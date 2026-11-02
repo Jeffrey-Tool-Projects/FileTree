@@ -252,7 +252,7 @@ FileTree は、Windows、macOS、および Linux で実行されます。
 
 デスクトップ ビルド CI は、Ubuntu 22.04 上で完全な x86_64 Linux AppImage を準備し、macOS 上で arm64 macOS `.app` ZIP も準備します。 15. ネイティブ抽出では、完全なランタイム/バンドルを比較し、ソース ハッシュ/アイデンティティを保持します。アプリは起動されていません。 CI は開発成果物と証拠を 7 日間保持します。正式リリースの添付ファイルは、macOS による進行中の項目 #4 のチェックの後、`FILETREE_POSIX_RELEASE_VERIFIED=true` によってゲートされます。開発者 ID の署名/公証および Finder/OS の同意は未検証のままです。コンパイラーのランタイム ホイール ロックは、正確なバージョンとハッシュ検証を保持しながら、ネイティブ Windows/Linux/macOS をカバーします。 macOS ビルドは、外部 PNG 変換を行わずにネイティブのマルチサイズ ICNS を描画します。パッケージ化では、コンパイラの `start_file_tree.app` が ZIP 内の別の検証済み `FileTree.app` にコピーされます。ネイティブ パッケージング コマンドについては、[Nuitka ガイド](../nuitka.ja.md) を参照してください。 AppImage のログイン登録では、一時マウントの外にある元の実行可能ファイルが使用されます。そのファイルを登録された場所に保管します。
 
-**Python 3.10 以降**、PyPI から:
+**Python 3.11 以降**、PyPI から:
 
 ```bash
 pip install je_file_tree

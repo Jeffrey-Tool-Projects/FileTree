@@ -268,7 +268,7 @@ def _pins() -> dict[str, str]:
 def _build_requires(metadata: str) -> list[Requirement]:
     """Return ``build-system.requires`` of a metadata file in the repository root.
 
-    Parsed as text: ``tomllib`` is missing on Python 3.10, which CI still tests.
+    Parsed as text, so the check needs no TOML parser.
     """
     section = _BUILD_SYSTEM.search((_ROOT / metadata).read_text(encoding="utf-8"))
     assert section is not None, f"{metadata} has no [build-system] table"
