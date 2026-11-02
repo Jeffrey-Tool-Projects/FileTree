@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from typing import Any
 
 from PySide6.QtCore import QTimer, Qt
@@ -50,7 +50,7 @@ class GrowthModel(_TableModel[Growth]):
 
 
 def _date(timestamp: float) -> str:
-    return _display_date(datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=timestamp))
+    return _display_date(datetime(1970, 1, 1, tzinfo=UTC) + timedelta(seconds=timestamp))
 
 
 def _display_date(value: datetime) -> str:

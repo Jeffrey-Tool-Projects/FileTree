@@ -41,7 +41,7 @@ FileTree 会扫描文件夹或磁盘，列出最占空间的文件与文件夹�
 
 ### Windows、macOS、Linux：使用 Python
 
-需要 **Python 3.10 或更新版本**：
+需要 **Python 3.11 或更新版本**：
 
 ```bash
 python -m pip install je_file_tree

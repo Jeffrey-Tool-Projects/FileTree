@@ -41,7 +41,7 @@ Windows でインストールできる MSI インストーラーも用意され�
 
 ### Windows・macOS・Linux：Python を使う
 
-**Python 3.10 以降**が必要です。
+**Python 3.11 以降**が必要です。
 
 ```bash
 python -m pip install je_file_tree

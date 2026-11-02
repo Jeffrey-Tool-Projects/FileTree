@@ -799,7 +799,7 @@ override, preserving the user's default scan option. Matched before/after known 
 separate from unknown measurements and is not guaranteed freed capacity.
 `tools/validate_windows_compression.py` creates only fresh owned NTFS fixtures, checks SHA-256 and
 restoration, an owned junction's untouched peer and hard-link refusal, and atomically writes evidence.
-The Windows CI matrix runs this probe on Python 3.10–3.14 and preserves its artifacts.
+The Windows CI matrix runs this probe on Python 3.11–3.14 and preserves its artifacts.
 
 Optional ScanOptions.exact_windows_allocation routes Windows allocation through no-follow
 FILE_READ_ATTRIBUTES handles and FILE_STANDARD_INFO, validating full FILE_ID_INFO device/inode (or
@@ -1960,7 +1960,7 @@ the approved change and verification. Neither snapshot contains credential value
 The first completed post-change PR analysis at 837998a is retained in sonar-20261009-gate.json;
 it confirms quota recovery and identifies a security-gate failure, not merge readiness.
 CI uses .github/requirements/test.txt and the desktop image uses runtime.txt, both generated with
-uv pip compile --universal --python-version 3.10 --generate-hashes --only-binary :all:.
+uv pip compile --universal --python-version 3.11 --generate-hashes --only-binary :all:.
 The runtime lock is constrained by the test lock so application versions align; update both from
 dev_requirements.txt/requirements.txt when inputs change. pip requires hashes and refuses source builds.
 The pinned desktop base image installs system prerequisites at build time, then defaults to the mapped

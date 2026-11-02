@@ -315,7 +315,7 @@ hash verification. The macOS build draws a native multi-size ICNS without extern
 See the [Nuitka guide](../nuitka.md) for native packaging commands. AppImage login registration uses the
 original executable outside its temporary mount; keep that file at its registered location.
 
-**With Python 3.10 or newer**, from PyPI:
+**With Python 3.11 or newer**, from PyPI:
 
 ```bash
 pip install je_file_tree
