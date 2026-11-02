@@ -15,7 +15,7 @@ import tempfile
 import time
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import Any, TextIO
 
 from je_file_tree.core.node import Node
@@ -137,7 +137,7 @@ def _iso_time(timestamp: float) -> str:
     if timestamp <= 0:
         return ""
     try:
-        return datetime.fromtimestamp(timestamp, tz=timezone.utc).astimezone().isoformat(timespec="seconds")
+        return datetime.fromtimestamp(timestamp, tz=UTC).astimezone().isoformat(timespec="seconds")
     except (OverflowError, OSError, ValueError):
         return ""
 

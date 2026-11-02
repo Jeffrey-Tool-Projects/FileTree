@@ -41,7 +41,7 @@ Windows에서 설치할 수 있는 MSI 설치 프로그램도 제공합니다.
 
 ### Windows, macOS, Linux: Python 사용
 
-**Python 3.10 이상**이 필요합니다.
+**Python 3.11 이상**이 필요합니다.
 
 ```bash
 python -m pip install je_file_tree

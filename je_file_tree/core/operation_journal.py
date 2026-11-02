@@ -13,7 +13,7 @@ import uuid
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from pathlib import Path
 from typing import BinaryIO
 
@@ -91,7 +91,7 @@ class OperationJournal:
             return
         self.directory.mkdir(parents=True, exist_ok=True)
         with _lock(self.directory / ".journal-lock"):
-            today = datetime.now(timezone.utc).strftime("%Y%m%d")
+            today = datetime.now(UTC).strftime("%Y%m%d")
             limit = min(_SEGMENT_BYTES, self.max_bytes)
             paths = self._segments()
             current = next((path for path in reversed(paths) if path.name.startswith(f"actions-{today}-")), None)
@@ -141,7 +141,7 @@ class OperationJournal:
                       key=lambda path: (path.stat().st_mtime_ns, path.name))
 
     def _retain(self) -> None:
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=self.days)).strftime("%Y%m%d")
+        cutoff = (datetime.now(UTC) - timedelta(days=self.days)).strftime("%Y%m%d")
         paths = self._segments()
         total = sum(path.stat().st_size for path in paths)
         for path in paths[:-1]:  # Never remove the segment just written, even under a tiny budget.
@@ -152,7 +152,7 @@ class OperationJournal:
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
+    return datetime.now(UTC).isoformat(timespec="microseconds")
 
 
 def _encode(record: OperationRecord) -> bytes:
@@ -190,7 +190,7 @@ def _decode(line: str) -> OperationRecord:
             raise ValueError("invalid identity")
         identity = (int(identity[0]), int(identity[1]))
     return OperationRecord(value["id"], value["batch"],
-                           timestamp.astimezone(timezone.utc).isoformat(timespec="microseconds"),
+                           timestamp.astimezone(UTC).isoformat(timespec="microseconds"),
                            value["source"], identity, value["reason"],
                            OperationOutcome(value["result"], value["detail"], destination))
 

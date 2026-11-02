@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from pathlib import Path
 
 from tools.pytest_context import write_record
@@ -62,7 +62,7 @@ def run_tests(folder: Path, arguments: list[str]) -> int:
     command = [sys.executable, "-m", "pytest", *arguments, "-p", "tools.pytest_context",
                "--capture=tee-sys", "-o", "faulthandler_timeout=60"]
     record = {"schema": 1, "state": "starting", "parent_pid": os.getpid(),
-              "utc": datetime.now(timezone.utc).isoformat(), "python": sys.version,
+              "utc": datetime.now(UTC).isoformat(), "python": sys.version,
               "capture": "tee-sys", "qt_force_stderr_logging": True, "fault_timeout_seconds": 60}
     write_record(folder / "process.json", record)
     started = time.monotonic()

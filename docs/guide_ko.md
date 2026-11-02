@@ -252,7 +252,7 @@ FileTree는 Windows, macOS 및 Linux에서 실행됩니다.
 
 데스크탑 빌드 CI는 또한 Ubuntu 22.04의 완전한 x86_64 Linux AppImage와 macOS의 arm64 macOS `.app` ZIP을 준비합니다. 기본 추출은 전체 런타임/번들을 비교하고 소스 해시/ID를 보존합니다. 앱이 실행되지 않습니다. CI는 개발 아티팩트와 증명을 7일 동안 보관합니다. 정식 릴리스 첨부 파일은 macOS이 진행 중인 항목 #4를 확인한 후 `FILETREE_POSIX_RELEASE_VERIFIED=true`에 의해 제어됩니다. 개발자 ID 서명/공증 및 Finder/OS 동의는 확인되지 않은 상태로 유지됩니다. 컴파일러 런타임 휠 잠금은 정확한 버전과 해시 확인을 유지하면서 네이티브 Windows/Linux/macOS을 포함합니다. macOS 빌드는 외부 PNG 변환 없이 기본 다중 크기 ICNS를 그립니다. 패키징은 컴파일러의 `start_file_tree.app`을 ZIP의 별도 확인된 `FileTree.app`에 복사합니다. 기본 패키징 명령은 [Nuitka 가이드](../nuitka.ko.md)을 참조하세요. AppImage 로그인 등록은 임시 마운트 외부의 원래 실행 파일을 사용합니다. 해당 파일을 등록된 위치에 보관하세요.
 
-**Python 3.10 이상**, PyPI에서:
+**Python 3.11 이상**, PyPI에서:
 
 ```bash
 pip install je_file_tree

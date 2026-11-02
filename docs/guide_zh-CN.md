@@ -252,7 +252,7 @@ FileTree 可在 Windows、macOS 与 Linux 上运行。
 
 Desktop builds CI 也会在 Ubuntu 22.04 准备完整 x86_64 Linux AppImage，在 macOS 15 准备 arm64 `.app` ZIP。原生解压比较完整运行时／包，并保留来源哈希／标识，不启动程序。CI 保留开发产物与证据七天。正式发布附件受 `FILETREE_POSIX_RELEASE_VERIFIED=true` 控制，须先完成进度项目 #4 的 macOS 验证。Developer ID 签名／公证与 Finder／系统授权仍未验证。编译运行时 wheel 锁覆盖原生 Windows／Linux／macOS，保留固定版本与哈希验证。macOS 构建直接绘制原生多尺寸 ICNS，无需外部 PNG 转换。打包把编译输出的 `start_file_tree.app` 复制成 ZIP 内独立核对的 `FileTree.app`。原生打包命令见 [Nuitka 指南](../nuitka.zh-CN.md)。AppImage 登录注册使用临时挂载外的原始可执行文件，请将该文件保留在注册位置。
 
-**有 Python 3.10 或更新版本**，从 PyPI 安装：
+**有 Python 3.11 或更新版本**，从 PyPI 安装：
 
 ```bash
 pip install je_file_tree
