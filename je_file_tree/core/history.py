@@ -15,7 +15,7 @@ import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import TextIO
 
 from je_file_tree.core.compare import SavedFolder, SavedScan, folder_key
@@ -259,7 +259,7 @@ class ScanHistory:
             target = bucket / name
             coverage = coverage_of(root, cancel=cancel)
             _check(cancel)
-            header = {"format": JSON_FORMAT, "saved": datetime.now(timezone.utc).isoformat(timespec="microseconds"),
+            header = {"format": JSON_FORMAT, "saved": datetime.now(UTC).isoformat(timespec="microseconds"),
                       "history": {"format": "file-tree-history/1", "id": name, "root": root.path,
                                   "size": root.size, "allocated": root.allocated,
                                   "incomplete": not coverage.complete or bool(coverage.unsafe)}}
@@ -342,11 +342,11 @@ class ScanHistory:
             _check(cancel)
             if entry.path.parent.name != key:
                 continue
-            instant = datetime.fromisoformat(entry.saved).astimezone(timezone.utc)
-            if (start is None or instant >= start.astimezone(timezone.utc)) and (
-                    end is None or instant < end.astimezone(timezone.utc)):
+            instant = datetime.fromisoformat(entry.saved).astimezone(UTC)
+            if (start is None or instant >= start.astimezone(UTC)) and (
+                    end is None or instant < end.astimezone(UTC)):
                 matching.append(entry)
-        matching.sort(key=lambda entry: (datetime.fromisoformat(entry.saved).astimezone(timezone.utc), entry.path.name))
+        matching.sort(key=lambda entry: (datetime.fromisoformat(entry.saved).astimezone(UTC), entry.path.name))
         return HistoryPeriod(tuple(matching[-limit:]), len(matching), invalid, len(matching) > limit)
 
     def _retain(self, latest: Path, cancel: threading.Event | None) -> None:

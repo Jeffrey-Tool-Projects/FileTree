@@ -1,6 +1,6 @@
 """Folder trends retain exact bytes and refuse unknown or incompatible observations."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 import threading
 
 import pytest
@@ -64,7 +64,7 @@ def test_period_filter_before_cap_and_inclusive_local_dates(tmp_path):
     root.mkdir()
     store = ScanHistory(tmp_path / "history")
     entries = [store.save(scan(root).root, options=ScanOptions()) for _ in range(3)]
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     earlier = now - timedelta(days=3)
     later = now + timedelta(days=3)
     for entry, instant in zip(entries, (earlier, now, later), strict=True):
@@ -173,8 +173,8 @@ def test_utc_offset_order_and_half_open_interval(tmp_path):
     trend = query_trend(store, TrendQuery(str(root)))
     assert [point.size for point in trend.points] == [1, 2]
     interval = query_trend(store, TrendQuery(str(root),
-                                            start=datetime(2026, 1, 1, 21, 30, tzinfo=timezone.utc),
-                                            end=datetime(2026, 1, 1, 22, 0, tzinfo=timezone.utc)))
+                                            start=datetime(2026, 1, 1, 21, 30, tzinfo=UTC),
+                                            end=datetime(2026, 1, 1, 22, 0, tzinfo=UTC)))
     assert interval.count == 1 and interval.points[0].size == 1
 
 

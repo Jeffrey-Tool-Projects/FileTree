@@ -59,6 +59,9 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "B", "SIM", "UP", "PL", "S", "C90", "N", "BLE"]
+# UP042 wants StrEnum, whose str() is the value rather than Class.MEMBER. That changes
+# runtime output, so it is a separate decision from the 3.11 floor that enabled the rule.
+ignore = ["UP042"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 15

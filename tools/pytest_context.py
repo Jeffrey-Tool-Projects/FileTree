@@ -7,7 +7,7 @@ import json
 import os
 import time
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from pathlib import Path
 
 import pytest
@@ -53,7 +53,7 @@ class PhaseContext:
         record = {
             "schema": 1, "pid": os.getpid(), "phase": phase,
             "nodeid": nodeid[:_MAX_NODEID], "nodeid_truncated": len(nodeid) > _MAX_NODEID,
-            "outcome": outcome, "utc": datetime.now(timezone.utc).isoformat(),
+            "outcome": outcome, "utc": datetime.now(UTC).isoformat(),
             "monotonic_ns": time.monotonic_ns(),
         }
         write_record(self.folder / "active.json", record)
