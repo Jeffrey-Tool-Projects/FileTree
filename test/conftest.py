@@ -82,6 +82,19 @@ def _design_screen(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(window_fit, "_available", lambda _window: window_fit.DESIGN)
 
 
+@pytest.fixture(autouse=True)
+def _python_scanner(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch):
+    """Scan with the Python folder reader, whose seams (``os.scandir``, ``MountSurvey.listing``) tests replace.
+
+    The native reader is optional and absent on most systems; ``test_native_scan.py`` switches it on and
+    proves that it records exactly the same tree.
+    """
+    if request.module.__name__.rsplit(".", 1)[-1] != "test_native_scan":
+        from je_file_tree.core import native_scan
+
+        monkeypatch.setattr(native_scan, "reader", lambda: None)
+
+
 def _inside_temporary(path: str, base: str) -> bool:
     """Whether ``path`` itself (its last name not followed) lies strictly inside the folder ``base``."""
     absolute = os.path.abspath(path)

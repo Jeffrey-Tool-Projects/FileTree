@@ -142,6 +142,11 @@ class MountSurvey:
     def __contains__(self, path: str) -> bool:
         return path in self.points
 
+    @property
+    def plain_listing(self) -> bool:
+        """Whether ``listing`` is a bare ``os.scandir`` of the path (no pinned descriptor, no root error)."""
+        return self._mount is None and self._root_error is None
+
     def _scope(self, points: frozenset[str]) -> frozenset[str]:
         root = boundary_path(self.root)
         prefix = root.rstrip(os.sep) + os.sep

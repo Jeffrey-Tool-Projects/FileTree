@@ -564,6 +564,21 @@ folders are refused; later arrivals stay and keep their folder. The batch is jou
 parents. `test/conftest.py` wraps `remove_entry` and refuses any path outside pytest's temporary
 directory; AST tests pin the single entry point.
 
+`je_file_tree/_native.cpp` (built by `setup.py` as the optional `je_file_tree._native`, Windows only,
+stable ABI for Python 3.11+, static C++ runtime, imports only `python3.dll` and `KERNEL32.dll`) lists
+one folder and reads each entry's metadata with the interpreter lock released, so the scanner's worker
+threads overlap. It is read-only. `core.native_scan.reader()` hands it out only after its packed
+snapshots equal `pack_snapshot(os.lstat(path))` on this interpreter and system (once per process,
+choosing the one-call query of Windows 11 24H2 or the handle query, and which time is `st_ctime`);
+`FILE_TREE_NATIVE_SCAN=0`, a missing module or a disagreement mean the Python reader, with the same
+tree. `scanner._read_native` builds plain files and folders from the rows; reparse points, sparse/
+compressed/cloud files and anything the module could not read go through `_entry_node` as before, and
+scans that capture Windows owners or exact allocation stay entirely in Python. Measured on 80,000
+small files (warm cache, 8 logical processors): Python 2.70 s with 4 threads, native 0.93 s. Tests run
+on the Python reader (their seams are `os.scandir` and `MountSurvey.listing`);
+`test/test_native_scan.py` proves both readers record identical trees. Build it for development with
+`python setup.py build_ext --inplace`; without a compiler everything works, only slower.
+
 `core.report` prepares immutable translated scalar tables from the recorded whole scan, with bounded
 largest-folder/file and type lists, complete counts, overlap/coverage notes and cancellable traversal.
 It writes escaped script-free HTML atomically with inline PNG bytes. GUI report adapters capture a

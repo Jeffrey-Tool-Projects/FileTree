@@ -25,6 +25,7 @@ import functools
 import os
 import sys
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 from je_file_tree.core.savings import Savings, estimate_savings
@@ -93,7 +94,22 @@ def windows_allocation(cluster: int, *, exact: bool = False) -> Allocation:
         measured = file_allocation(entry.path, info) if exact else compressed_size(entry.path)
         return rounded(info.st_size) if measured is None else measured
 
+    if not exact:  # the native folder reader applies the ordinary rule itself, without an entry object
+        allocated.ordinary = OrdinaryAllocation(rounded, _UNUSUAL)  # type: ignore[attr-defined]
     return allocated
+
+
+@dataclass(frozen=True, slots=True)
+class OrdinaryAllocation:
+    """The cluster rounding of files with none of the ``unusual`` attributes (no call to the system)."""
+
+    rounded: Callable[[int], int]
+    unusual: int
+
+
+def ordinary_allocation(allocation: Allocation) -> OrdinaryAllocation | None:
+    """The plain rule inside ``allocation``, or None when every file needs the full rule."""
+    return getattr(allocation, "ordinary", None)
 
 
 def cluster_size(path: str) -> int:
