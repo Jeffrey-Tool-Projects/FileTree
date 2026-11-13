@@ -76,10 +76,28 @@ tool default.
   - no recursion over the tree: deep folders must not hit the recursion limit.
 - **The scanner never follows links** (symlinks, junctions, mount points) and never stops on an
   unreadable folder: it records it in `ScanResult.errors`.
-- **Nothing is ever deleted permanently.** The only removal is `QFile.moveToTrash`, always after a
-  confirmation. Do not add a permanent delete. Everything that moves entries to the Recycle Bin goes through
-  `MainWindow.move_to_trash`, so system and program folders (`je_file_tree/core/protected.py`) always get
-  their second question.
+- **Nothing is removed without the user asking for it and being asked first.** The default removal is
+  `QFile.moveToTrash`, always after a confirmation. Everything that moves entries to the Recycle Bin goes
+  through `MainWindow.move_to_trash`, so system and program folders (`je_file_tree/core/protected.py`)
+  always get their second question.
+  Explicit *Delete permanently* is allowed (owner decision, 2026-11-13) under these rules:
+  - **Always ask first.** Every permanent delete goes through the single entry point
+    `MainWindow.delete_permanently`: a default-No question naming the entries, their count and size and
+    that it cannot be undone, plus the protected-folder second question. No setting, batch mode,
+    schedule, suggestion or "do not ask again" may skip or pre-answer it; a declined or closed question
+    deletes nothing.
+  - **Only what the user asked to delete.** While FileTree runs it removes exactly the entries the user
+    selected and approved in that question (and what is recorded inside an approved folder) — never
+    another file: no sibling, parent folder, look-alike name, later arrival, link target or entry that
+    changed since it was scanned. Links are removed as links and never followed; an entry whose identity
+    changed is refused and reported. Windows-managed entries (`core/system_files.py`) are always refused.
+    Failures and partial completion stay visible. FileTree never chooses on its own what to delete.
+  - **Tests use made-up data only.** Deletion code is exercised only on fixtures a test created itself
+    under pytest's temporary directory (or the owned scratch fixtures of an isolated validation tool).
+    Never run a permanent delete against real user data, the repository, the home folder or a real
+    drive — not in tests, tools, manual checks or screenshots. `test/conftest.py` must refuse a delete
+    outside the temporary directory instead of performing it.
+  This does not extend to disks: no formatting, partitioning or volume removal.
   An explicit Windows *Empty Recycle Bin* operation may permanently remove the current user's OS bin
   on one local drive through `SHEmptyRecycleBinW`, only after two questions naming that drive, its
   reported size/item count and irreversibility; the worker rechecks totals before starting. This
