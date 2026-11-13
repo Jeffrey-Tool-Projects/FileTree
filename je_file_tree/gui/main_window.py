@@ -72,6 +72,7 @@ from je_file_tree.gui.entry_move_prompt import confirm_entry_move
 from je_file_tree.gui.lazy_details import set_lazy_details
 from je_file_tree.gui.fluent_icons import palette_icon
 from je_file_tree.gui.volumes import VolumesDialog
+from je_file_tree.gui.disks_dialog import DisksDialog
 from je_file_tree.gui.bin_dialog import BinDialog
 from je_file_tree.gui.exclusions_dialog import ExclusionsDialog
 from je_file_tree.gui.cleanup_review import CleanupReview
@@ -1410,6 +1411,7 @@ class MainWindow(QMainWindow):
             ("background_monitor", None, self.configure_background),
             ("folder_budgets", None, self.show_folder_budgets),
             ("volumes", None, self.show_volumes),
+            ("disks", None, self.show_disks),
             ("bins", None, self.show_bins),
             ("quit", "Ctrl+Q", self.quit_application),  # Windows has no standard Quit key
             ("hidden", None, lambda: self.settings.setValue("include_hidden", self._actions["hidden"].isChecked())),
@@ -1487,6 +1489,7 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self._actions["quit"])
         view_menu = bar.addMenu("")
         view_menu.addAction(self._actions["volumes"])
+        view_menu.addAction(self._actions["disks"])
         view_menu.addAction(self._actions["bins"])
         unit_menu = view_menu.addMenu("")
         units = QActionGroup(self)
@@ -1618,6 +1621,7 @@ class MainWindow(QMainWindow):
         self._actions["cleanup_policy"].setEnabled(not scanning)
         self._actions["live_compare"].setEnabled(not scanning)
         self._actions["volumes"].setEnabled(not scanning)
+        self._actions["disks"].setEnabled(not scanning)
         self._actions["bins"].setEnabled(not scanning)
         self._actions["rescan"].setEnabled(bool(self._last_path or self._last_roots) and not scanning)
         for key in ("export_folders", "export_largest", "export_json", "export_chart_png", "trash", "find", "compare"):
@@ -1809,6 +1813,17 @@ class MainWindow(QMainWindow):
             return
         dialog = VolumesDialog(self._unit, self)
         dialog.scan_requested.connect(self.start_scan)
+        try:
+            dialog.exec()
+        finally:
+            dialog.shutdown()
+            dialog.deleteLater()
+
+    def show_disks(self) -> None:
+        """Show the physical disks, their health and partitions; nothing on a disk is changed."""
+        if self._worker is not None or self.operation_busy:
+            return
+        dialog = DisksDialog(self._unit, self)
         try:
             dialog.exec()
         finally:

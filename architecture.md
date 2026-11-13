@@ -515,6 +515,14 @@ retains up to 256 ready mounted roots and complete counts, queries bins and deli
 numeric-sort proxy and native free-space delegate. Welcome/View entry points activate the same modal
 flow; double-click joins the worker then asks MainWindow to scan a root. Closing discards late replies.
 
+`core.disks` reads physical drives and their partitions read-only behind one provider function: a
+fixed, shell-less System32 PowerShell storage query on Windows (constant script, 60 s timeout, 8 MiB
+output cap), `lsblk`/`/sys/block` on Linux and `diskutil` plists on macOS. Parsers are pure; serials
+are dropped and unreported fields stay unknown. `gui.disks_dialog.DisksDialog` runs the query on a
+worker (View → Physical disks, unavailable during a scan) and shows health, counters and a to-scale
+partition bar; its buttons use fixed entries of `gui.system_files.open_system_tool`. Nothing here
+writes to a disk: formatting, partitioning and volume removal stay out of scope.
+
 `core.report` prepares immutable translated scalar tables from the recorded whole scan, with bounded
 largest-folder/file and type lists, complete counts, overlap/coverage notes and cancellable traversal.
 It writes escaped script-free HTML atomically with inline PNG bytes. GUI report adapters capture a
