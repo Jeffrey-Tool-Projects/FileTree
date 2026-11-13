@@ -57,6 +57,8 @@ def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setattr(main_window, "journal_folder", lambda: tmp_path / "journal")
     monkeypatch.setattr(history, "history_folder", lambda: tmp_path / "history")
     monkeypatch.setattr(main_window, "history_folder", lambda: tmp_path / "history")
+    from je_file_tree.gui import forecast as forecast_view
+    monkeypatch.setattr(forecast_view, "forecast_file", lambda: tmp_path / "forecast" / "volumes.json")
     # Automatic label refresh after fixture moves must never query the host user's bins.
     monkeypatch.setattr(bin_labels, "trash_usage", lambda _root, **_kwargs: trash_size.TrashUsage(0, 0, True))
     monkeypatch.setattr(elevation, "run_as_admin",

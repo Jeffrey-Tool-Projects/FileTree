@@ -893,6 +893,32 @@ EN: dict[str, str] = {
                 "Stop cancels surveys; active emptying must finish. macOS empties ALL mounted Finder Trash after "
                 "global review (native validation pending). Capacity/bin "
                 "values refresh afterwards; rescan to update the main tree.",
+    "forecast_column": "Free-space forecast",
+    "forecast_record": "Record used space for the forecast",
+    "forecast_record_tip": (
+        "Each time this overview opens, FileTree keeps the time and the used and total bytes of each drive in its "
+        "local data folder: at most one sample per drive every {hours} hours and {count} per drive. Nothing about "
+        "files is stored."
+    ),
+    "forecast_growing": "About {rate} per day — full around {date}",
+    "forecast_not_soon": "About {rate} per day — not full within {years} years",
+    "forecast_stable": "Not growing",
+    "forecast_not_enough": "Not enough history yet (needs a few days)",
+    "forecast_off": "Recording is off",
+    "forecast_unknown": "Unknown (used space not reported)",
+    "forecast_off_tip": "Turn on recording below to build a history of used space for this drive.",
+    "forecast_unknown_tip": "The system did not report used space for this drive, so nothing was recorded.",
+    "forecast_not_enough_tip": (
+        "{count} samples over {days} days so far; a forecast needs at least {needed} samples over {needed_days} "
+        "days. A sample is recorded when this overview opens, at most every few hours."
+    ),
+    "forecast_estimate_tip": (
+        "An estimate from {count} samples over {days} days of used space (at most the last {window} days, since "
+        "the total size last changed). It assumes the recent rate continues and is not a guarantee."
+    ),
+    "forecast_newer": "The free-space history was saved by a newer FileTree version; it is kept unchanged.",
+    "forecast_save_failed": "The free-space history could not be saved: {reason}",
+    "forecast_unavailable": "The free-space history is unavailable: the system reports no application data folder.",
     "action_volumes": "Drive overview…",
     "action_volumes_tip": "Inspect mounted volumes, capacity, allocation units and Recycle Bin totals",
     "volume_root": "Mounted root",
@@ -2601,6 +2627,31 @@ ZH_TW: dict[str, str] = {
                 "永久移除前以兩次詢問列出確切範圍與總量。停止可取消盤點；開始清空後必須等待完成。"
                 "macOS 經全域檢視後清空所有已掛載磁碟的 Finder 回收筒，原生驗證待完成。"
                 "完成後更新容量／回收筒數值；重新掃描可更新主樹狀圖。",
+    "forecast_column": "剩餘空間預測",
+    "forecast_record": "記錄已用空間以預測",
+    "forecast_record_tip": (
+        "每次開啟此總覽時，FileTree 會在本機資料夾保存各磁碟的時間、已用與總容量位元組：每個磁碟最多每 {hours} "
+        "小時一筆、最多 {count} 筆。不保存任何檔案資訊。"
+    ),
+    "forecast_growing": "每天約 {rate}，約 {date} 用滿",
+    "forecast_not_soon": "每天約 {rate}，{years} 年內不會用滿",
+    "forecast_stable": "沒有成長",
+    "forecast_not_enough": "歷史資料不足（需要幾天）",
+    "forecast_off": "記錄已關閉",
+    "forecast_unknown": "未知（系統未回報已用空間）",
+    "forecast_off_tip": "開啟下方的記錄，即可為此磁碟累積已用空間的歷史。",
+    "forecast_unknown_tip": "系統未回報此磁碟的已用空間，因此沒有記錄。",
+    "forecast_not_enough_tip": (
+        "目前有 {count} 筆、涵蓋 {days} 天；預測至少需要 {needed} 筆、涵蓋 {needed_days} "
+        "天。每次開啟此總覽時記錄一筆，最多每幾小時一筆。"
+    ),
+    "forecast_estimate_tip": (
+        "根據 {count} 筆、涵蓋 {days} 天的已用空間估計（最多最近 {window} "
+        "天，且自上次總容量變更後）。假設近期速度持續，並非保證。"
+    ),
+    "forecast_newer": "剩餘空間歷史由較新版本的 FileTree 儲存，已保持不變。",
+    "forecast_save_failed": "無法儲存剩餘空間歷史：{reason}",
+    "forecast_unavailable": "無法使用剩餘空間歷史：系統未提供應用程式資料夾。",
     "action_volumes": "磁碟總覽…",
     "action_volumes_tip": "查看已掛載磁碟、容量、配置單位與資源回收筒總量",
     "volume_root": "掛載根目錄",
@@ -4221,6 +4272,31 @@ ZH_CN: dict[str, str] = {
                 "永久移除前以两次询问列出确切范围与总量。停止可取消清点；开始清空后必须等待完成。"
                 "macOS 经全局检查后清空所有已挂载磁盘的 Finder 回收站，原生验证待完成。"
                 "完成后更新容量／回收站数值；重新扫描可更新主树。",
+    "forecast_column": "剩余空间预测",
+    "forecast_record": "记录已用空间以预测",
+    "forecast_record_tip": (
+        "每次打开此总览时，FileTree 会在本地数据目录保存各磁盘的时间、已用与总容量字节：每个磁盘最多每 {hours} "
+        "小时一条、最多 {count} 条。不保存任何文件信息。"
+    ),
+    "forecast_growing": "每天约 {rate}，约 {date} 用满",
+    "forecast_not_soon": "每天约 {rate}，{years} 年内不会用满",
+    "forecast_stable": "没有增长",
+    "forecast_not_enough": "历史数据不足（需要几天）",
+    "forecast_off": "记录已关闭",
+    "forecast_unknown": "未知（系统未报告已用空间）",
+    "forecast_off_tip": "打开下方的记录，即可为此磁盘积累已用空间的历史。",
+    "forecast_unknown_tip": "系统未报告此磁盘的已用空间，因此没有记录。",
+    "forecast_not_enough_tip": (
+        "目前有 {count} 条、覆盖 {days} 天；预测至少需要 {needed} 条、覆盖 {needed_days} "
+        "天。每次打开此总览时记录一条，最多每几小时一条。"
+    ),
+    "forecast_estimate_tip": (
+        "根据 {count} 条、覆盖 {days} 天的已用空间估算（最多最近 {window} "
+        "天，且自上次总容量变化后）。假设近期速度持续，并非保证。"
+    ),
+    "forecast_newer": "剩余空间历史由较新版本的 FileTree 保存，已保持不变。",
+    "forecast_save_failed": "无法保存剩余空间历史：{reason}",
+    "forecast_unavailable": "无法使用剩余空间历史：系统未提供应用数据目录。",
     "action_volumes": "磁盘总览…",
     "action_volumes_tip": "查看已挂载磁盘、容量、分配单位与回收站总量",
     "volume_root": "挂载根目录",
@@ -6005,6 +6081,31 @@ JA: dict[str, str] = {
         '、グローバル レビュー後にマウントされた Finder ゴミ箱をすべて空にします (ネイティブ検証保留中)。容量'
         '/ビンの値は後で更新されます。再スキャンしてメイン ツリーを更新します。'
     ),
+    "forecast_column": "空き容量の予測",
+    "forecast_record": "予測のために使用量を記録する",
+    "forecast_record_tip": (
+        "この概要を開くたびに、FileTree は各ドライブの時刻・使用量・総容量のバイト数をローカルのデータフォルダーに"
+        "保存します。1 ドライブにつき最大 {hours} 時間に 1 件、最大 {count} 件です。ファイルの情報は保存しません。"
+    ),
+    "forecast_growing": "1 日あたり約 {rate} — {date} ごろにいっぱい",
+    "forecast_not_soon": "1 日あたり約 {rate} — {years} 年以内にはいっぱいになりません",
+    "forecast_stable": "増えていません",
+    "forecast_not_enough": "履歴がまだ足りません (数日必要です)",
+    "forecast_off": "記録はオフです",
+    "forecast_unknown": "不明 (使用量が報告されていません)",
+    "forecast_off_tip": "下の記録をオンにすると、このドライブの使用量の履歴がたまります。",
+    "forecast_unknown_tip": "システムがこのドライブの使用量を報告しなかったため、記録していません。",
+    "forecast_not_enough_tip": (
+        "現在 {count} 件、{days} 日分です。予測には {needed_days} 日以上にわたる {needed} "
+        "件以上が必要です。この概要を開くと記録されます (最大数時間に 1 件)。"
+    ),
+    "forecast_estimate_tip": (
+        "{days} 日分・{count} 件の使用量からの推定です (最大で直近 {window} "
+        "日、総容量が最後に変わって以降)。最近の速度が続くと仮定しており、保証ではありません。"
+    ),
+    "forecast_newer": "空き容量の履歴は新しいバージョンの FileTree で保存されたため、変更せずに残しています。",
+    "forecast_save_failed": "空き容量の履歴を保存できませんでした: {reason}",
+    "forecast_unavailable": "空き容量の履歴を使用できません: システムがアプリのデータフォルダーを提供していません。",
     'action_volumes': 'ドライブの概要…',
     'action_volumes_tip': 'マウントされたボリューム、容量、割り当て単位、およびごみ箱の合計を検査する',
     'volume_root': 'マウントされたルート',
@@ -7964,6 +8065,31 @@ KO: dict[str, str] = {
         ' 비웁니다(기본 유효성 검사 보류 중). 용량/bin 값은 나중에 새로 고쳐집니다. 메인 트리를 업데이트하려'
         '면 다시 스캔하세요.'
     ),
+    "forecast_column": "여유 공간 예측",
+    "forecast_record": "예측을 위해 사용 공간 기록",
+    "forecast_record_tip": (
+        "이 개요를 열 때마다 FileTree는 각 드라이브의 시각, 사용 바이트와 전체 바이트를 로컬 데이터 폴더에 "
+        "저장합니다. 드라이브마다 최대 {hours}시간에 1개, 최대 {count}개입니다. 파일 정보는 저장하지 않습니다."
+    ),
+    "forecast_growing": "하루 약 {rate} — {date}쯤 가득 참",
+    "forecast_not_soon": "하루 약 {rate} — {years}년 안에는 가득 차지 않음",
+    "forecast_stable": "늘지 않음",
+    "forecast_not_enough": "아직 기록이 부족합니다(며칠 필요)",
+    "forecast_off": "기록이 꺼져 있음",
+    "forecast_unknown": "알 수 없음(사용 공간이 보고되지 않음)",
+    "forecast_off_tip": "아래에서 기록을 켜면 이 드라이브의 사용 공간 기록이 쌓입니다.",
+    "forecast_unknown_tip": "시스템이 이 드라이브의 사용 공간을 보고하지 않아 기록하지 않았습니다.",
+    "forecast_not_enough_tip": (
+        "지금까지 {days}일 동안 {count}개입니다. 예측하려면 {needed_days}일 이상에 걸친 {needed}개 이상이 "
+        "필요합니다. 이 개요를 열 때 기록됩니다(최대 몇 시간에 1개)."
+    ),
+    "forecast_estimate_tip": (
+        "{days}일 동안의 사용 공간 {count}개로 추정한 값입니다(최대 최근 {window}일, 전체 크기가 마지막으로 바뀐 "
+        "이후). 최근 속도가 계속된다고 가정하며 보장되지 않습니다."
+    ),
+    "forecast_newer": "여유 공간 기록이 더 새 버전의 FileTree로 저장되어 그대로 두었습니다.",
+    "forecast_save_failed": "여유 공간 기록을 저장할 수 없습니다: {reason}",
+    "forecast_unavailable": "여유 공간 기록을 사용할 수 없습니다: 시스템이 앱 데이터 폴더를 제공하지 않습니다.",
     'action_volumes': '드라이브 개요…',
     'action_volumes_tip': '마운트된 볼륨, 용량, 할당 단위 및 휴지통 총계를 검사합니다.',
     'volume_root': '마운트된 루트',

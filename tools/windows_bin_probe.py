@@ -101,7 +101,7 @@ def owned_bin_dialog(volume: OwnedVolume) -> Iterator[tuple[QApplication, bins.B
         return native_empty(window, root, flags)
     def survey(worker):
         if not worker.cancel.is_set():
-            worker.ready.emit([_row(volume)], 1)
+            worker.ready.emit([_row(volume)], 1, None)
     with patch.object(VolumesWorker, "run", survey), patch.object(_shell32(), "SHEmptyRecycleBinW", empty):
         dialog = bins.BinDialog("auto")
         try:

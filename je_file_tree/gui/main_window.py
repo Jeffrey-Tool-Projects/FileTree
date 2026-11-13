@@ -1820,7 +1820,7 @@ class MainWindow(QMainWindow):
         """Show mounted volumes and scan an explicitly activated root."""
         if self._worker is not None or self.operation_busy:
             return
-        dialog = VolumesDialog(self._unit, self)
+        dialog = VolumesDialog(self._unit, self, settings=self.settings)
         dialog.scan_requested.connect(self.start_scan)
         try:
             dialog.exec()

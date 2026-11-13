@@ -533,6 +533,16 @@ worker (View → Physical disks, unavailable during a scan) and shows health, co
 partition bar; its buttons use fixed entries of `gui.system_files.open_system_tool`. Nothing here
 writes to a disk: formatting, partitioning and volume removal stay out of scope.
 
+`core.forecast` keeps a bounded observation store (`forecast/volumes.json` beside `history/` and
+`journal/`: format-versioned JSON, one sample per volume per 3 hours, 400 per volume with older
+halves thinned, 256 volumes, 8 MiB read limit, atomic write; corrupt files read as empty, newer
+formats are left untouched) and a pure forecast: Theil–Sen median slope over the last 30 days from
+at most 80 evenly spaced samples (measured: 256 volumes x 400 samples take 0.48 s capped, 10.4 s
+uncapped), a new series after a total-size change above 1 %, a clock passed in, and a 5-year horizon.
+The Volumes worker records and forecasts off the GUI thread; `gui.forecast` owns the setting
+(`forecast_enabled`), wording and the sparkline delegate. `BinDialog` reuses the survey without
+recording. Nothing outside the store file is written or removed, and no clear action exists.
+
 `core.report` prepares immutable translated scalar tables from the recorded whole scan, with bounded
 largest-folder/file and type lists, complete counts, overlap/coverage notes and cancellable traversal.
 It writes escaped script-free HTML atomically with inline PNG bytes. GUI report adapters capture a

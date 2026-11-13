@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, replace
 import threading
+import time
 from typing import Any
 
-from PySide6.QtCore import QSortFilterProxyModel, QStorageInfo, QThread, Qt, Signal
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QDialogButtonBox, QLabel, QPushButton,
+from PySide6.QtCore import QSettings, QSortFilterProxyModel, QStorageInfo, QThread, Qt, Signal
+from PySide6.QtGui import QGuiApplication
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QDialogButtonBox, QLabel, QPushButton,
                               QStyledItemDelegate, QStyle, QStyleOptionProgressBar, QTableView, QVBoxLayout, QWidget)
 
 from je_file_tree.core.allocation import allocation_unit
+from je_file_tree.core.forecast import Forecast, ForecastStore, Sample, forecast, recent_series
 from je_file_tree.core.formatting import format_count, format_size
 from je_file_tree.core.trash_size import TrashUsage, trash_usage
+from je_file_tree.gui import forecast as forecast_view
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
@@ -22,6 +26,7 @@ from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 
 _LIMIT = 256
 _FREE_COLUMN = 5
+_FORECAST_COLUMN = 9
 
 
 def _sort_amount(amount: int | None) -> int:
@@ -40,10 +45,14 @@ class Volume:
     available: int | None
     cluster: int | None
     trash: TrashUsage
+    forecast: Forecast | None = None
+    trend: tuple[float, ...] = ()
 
 
 class VolumesModel(_TableModel[Volume]):
-    """Mounted root, filesystem, OS capacity, available space bar, cluster and Trash totals."""
+    """Mounted root, filesystem, OS capacity, available space bar, cluster, Trash totals and forecast."""
+
+    recording = True
 
     def _size(self, value: int | None) -> str:
         return tr("size_unknown") if value is None else format_size(value, self.unit)
@@ -63,7 +72,10 @@ class VolumesModel(_TableModel[Volume]):
                 Column("volume_trash", self._trash_size, lambda row: row.trash.size, numeric=True),
                 Column("volume_trash_count", lambda row: format_count(row.trash.count) if row.trash.complete
                        else tr("volume_trash_partial", known=format_count(row.trash.count)),
-                       lambda row: row.trash.count, numeric=True))
+                       lambda row: row.trash.count, numeric=True),
+                Column("forecast_column",
+                       lambda row: forecast_view.forecast_text(row.forecast, self.unit, recording=self.recording),
+                       lambda row: forecast_view.sort_value(row.forecast)))
 
     def _trash_size(self, row: Volume) -> str:
         size = self._size(row.trash.size)
@@ -73,9 +85,18 @@ class VolumesModel(_TableModel[Volume]):
         """Expose scalar volume information for activation, free-space bars and error tooltips."""
         if role == Qt.ItemDataRole.UserRole:
             return row
+        if role == forecast_view.TREND_ROLE:
+            return row.trend
         if role == Qt.ItemDataRole.ToolTipRole:
             return row.trash.error or tr("volume_hint")
         return None
+
+    def data(self, index, role: int = Qt.ItemDataRole.DisplayRole) -> Any:
+        """Qt: the forecast column explains its estimate in its own tooltip."""
+        if role == Qt.ItemDataRole.ToolTipRole and index.isValid() and index.column() == _FORECAST_COLUMN:
+            row = self.row_at(index.row())
+            return None if row is None else forecast_view.forecast_tooltip(row.forecast, recording=self.recording)
+        return super().data(index, role)
 
 
 class FreeSpaceDelegate(QStyledItemDelegate):
@@ -100,18 +121,31 @@ class FreeSpaceDelegate(QStyledItemDelegate):
         QApplication.style().drawControl(QStyle.ControlElement.CE_ProgressBar, bar, painter)
 
 
+def _identity(storage: QStorageInfo, root: str, filesystem: str) -> str:
+    """Mounted root, OS device and filesystem: another disk mounted at the same root starts a new history."""
+    device = bytes(storage.device()).decode("utf-8", "replace")
+    return "\x1f".join((root, device, filesystem))
+
+
+def _observed(row: Volume) -> bool:
+    return row.used is not None and 0 <= row.used <= row.total
+
+
 class VolumesWorker(QThread):
-    """Construct/refresh Qt storage values and query Trash outside the GUI thread."""
+    """Construct/refresh Qt storage values, query Trash and record/forecast used space outside the GUI thread."""
 
-    ready = Signal(object, int)
+    ready = Signal(object, int, object)
 
-    def __init__(self, parent: QWidget) -> None:
+    def __init__(self, parent: QWidget, store: ForecastStore | None = None,
+                 clock: Callable[[], float] = time.time) -> None:
         super().__init__(parent)
         self.cancel = threading.Event()
+        self.store = store
+        self.clock = clock
 
     def run(self) -> None:
         """Emit a bounded completed overview; Stop suppresses partial/late results."""
-        rows, count = [], 0
+        rows, identities, count = [], [], 0
         for storage in QStorageInfo.mountedVolumes():
             if self.cancel.is_set():
                 return
@@ -125,26 +159,59 @@ class VolumesWorker(QThread):
             trash = trash_usage(root, cancel=self.cancel)
             if trash is None:
                 return
-            rows.append(Volume(root, storage.displayName(), bytes(storage.fileSystemType()).decode("utf-8", "replace"),
+            filesystem = bytes(storage.fileSystemType()).decode("utf-8", "replace")
+            rows.append(Volume(root, storage.displayName(), filesystem,
                                storage.bytesTotal(), storage.bytesTotal() - storage.bytesFree()
                                if storage.bytesFree() >= 0 else None,
                                storage.bytesAvailable() if storage.bytesAvailable() >= 0 else None,
                                allocation_unit(root),
                                trash))
+            identities.append(_identity(storage, root, filesystem))
+        if self.cancel.is_set():
+            return
+        rows, notice = self._forecast(rows, identities)
         if not self.cancel.is_set():
-            self.ready.emit(rows, count)
+            self.ready.emit(rows, count, notice)
+
+    def _forecast(self, rows: list[Volume], identities: list[str]) -> tuple[list[Volume], tuple[str, dict] | None]:
+        """Record one sample per readable volume (at most one every few hours) and forecast each from its history."""
+        if self.store is None:
+            return rows, None
+        now = self.clock()
+        outcome = self.store.record((key, Sample(now, row.used, row.total))
+                                    for row, key in zip(rows, identities, strict=True) if _observed(row))
+        notice = (("forecast_newer", {}) if outcome.newer else
+                  ("forecast_save_failed", {"reason": outcome.error}) if outcome.error else None)
+        result = []
+        for row, key in zip(rows, identities, strict=True):
+            if not _observed(row):
+                result.append(row)
+                continue
+            samples = outcome.volumes.get(key, ())
+            trend = tuple(sample.used / sample.total for sample in recent_series(samples, now))
+            result.append(replace(row, forecast=forecast(samples, now), trend=trend))
+        return result, notice
 
 
 class VolumesDialog(WorkerDialog):
     """Choose a mounted root to scan without changing any filesystem entry."""
 
     scan_requested = Signal(str)
+    records_forecast = True
+    """False in subclasses that reuse the survey for another purpose: no recording, no forecast column."""
 
-    def __init__(self, unit: str, parent: QWidget | None = None) -> None:
+    def __init__(self, unit: str, parent: QWidget | None = None, *, settings: QSettings | None = None,
+                 store: ForecastStore | None = None, clock: Callable[[], float] = time.time) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("action_volumes"))
-        self.resize(1270, 540)
+        screen = (parent.screen() if parent is not None else QGuiApplication.primaryScreen())
+        room = screen.availableGeometry().width() - 40 if screen is not None else 1560
+        self.resize(max(640, min(1560, room)), 540)  # the forecast column wants 1560; never wider than the screen
         self._closed = False
+        self.settings = settings if settings is not None else QSettings()
+        self._store = store
+        self._clock = clock
+        self._notice: tuple[str, dict] | None = None
         self.model = VolumesModel(self)
         self.model.unit = unit
         self.proxy = QSortFilterProxyModel(self)
@@ -155,21 +222,29 @@ class VolumesDialog(WorkerDialog):
         self.view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.view.setSortingEnabled(True)
         self.view.sortByColumn(0, Qt.SortOrder.AscendingOrder)
-        for column, width in enumerate((140, 140, 90, 100, 100, 190, 115, 130, 110)):
+        for column, width in enumerate((140, 140, 90, 100, 100, 190, 115, 130, 110, 400)):
             self.view.setColumnWidth(column, width)
         self.view.setItemDelegateForColumn(_FREE_COLUMN, FreeSpaceDelegate(self.view))
+        self.view.setItemDelegateForColumn(_FORECAST_COLUMN, forecast_view.SparklineDelegate(self.view))
         self.view.doubleClicked.connect(self._scan)
         install_copy(self.view)
         self.hint = QLabel(tr("volume_hint"))
         self.hint.setWordWrap(True)
         self.status = QLabel(tr("volume_reading"))
+        self.status.setWordWrap(True)
+        self.record = QCheckBox(tr("forecast_record"))
+        self.record.setToolTip(forecast_view.record_tip())
+        self.record.setChecked(forecast_view.recording_enabled(self.settings))
+        self.record.toggled.connect(self._set_recording)
         self.stop_button = QPushButton(tr("action_stop"))
         self.stop_button.clicked.connect(self.stop)
         close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
         close.rejected.connect(self.reject)
         layout = QVBoxLayout(self)
-        for widget in (self.hint, self.view, self.status, self.stop_button, close):
+        for widget in (self.hint, self.view, self.status, self.record, self.stop_button, close):
             layout.addWidget(widget, 1 if widget is self.view else 0)
+        self.record.setVisible(self.records_forecast)
+        self.view.setColumnHidden(_FORECAST_COLUMN, not self.records_forecast)
         self.close_box = close
         self.refresh()
 
@@ -183,17 +258,41 @@ class VolumesDialog(WorkerDialog):
             retire_worker(previous, self)
         self.status.setText(tr("volume_reading"))
         self.stop_button.setEnabled(True)
-        self.worker = VolumesWorker(self)
+        store, notice = self._forecast_store()
+        self.model.recording = store is not None
+        self.worker = VolumesWorker(self, store, self._clock)
         worker = self.worker
-        worker.ready.connect(lambda rows, count: self.worker is worker and self._show(rows, count))
+        worker.ready.connect(lambda rows, count, late: self.worker is worker
+                             and self._deliver(rows, count, late or notice))
         queue_worker(worker, lambda: not self._closed and self.worker is worker and not worker.cancel.is_set(), self)
+
+    def _forecast_store(self) -> tuple[ForecastStore | None, tuple[str, dict] | None]:
+        """The store the next survey records into: None while recording is off or no data folder exists."""
+        if not self.records_forecast or not self.record.isChecked():
+            return None, None
+        if self._store is not None:
+            return self._store, None
+        path = forecast_view.forecast_file()
+        return (None, ("forecast_unavailable", {})) if path is None else (ForecastStore(path), None)
+
+    def _set_recording(self, enabled: bool) -> None:
+        """Persist the recording choice; the next survey (started now) follows it."""
+        self.settings.setValue(forecast_view.SETTING, enabled)
+        self.refresh()
+
+    def _deliver(self, rows: list[Volume], count: int, notice: tuple[str, dict] | None) -> None:
+        """Keep the forecast notice beside the rows; subclasses override ``_show(rows, count)`` only."""
+        self._notice = notice
+        self._show(rows, count)
 
     def _show(self, rows: list[Volume], count: int) -> None:
         if self._closed or self.worker.cancel.is_set():
             return
         self.model.set_rows(rows)
         self.stop_button.setEnabled(False)
-        self.status.setText(tr("volume_summary", shown=format_count(len(rows)), count=format_count(count)))
+        summary = tr("volume_summary", shown=format_count(len(rows)), count=format_count(count))
+        notice = self._notice
+        self.status.setText(summary if notice is None else f"{summary}\n{tr(notice[0], **notice[1])}")
 
     def _scan(self, index) -> None:
         row = index.data(Qt.ItemDataRole.UserRole)
