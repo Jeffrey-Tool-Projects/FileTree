@@ -49,7 +49,7 @@ def coverage_of(root: Node, *, cancel: threading.Event | None = None) -> Coverag
             pending += 1
         elif folder.error is not None:
             inaccessible += 1
-        elif folder.path is not None:
+        elif folder.name or folder.parent is not None:  # it has a path; building it cost 1.5 s per 20,000 folders
             known += 1
         if folder.error is not None or any(child.error is not None for child in folder.children):
             unsafe.add(folder)
