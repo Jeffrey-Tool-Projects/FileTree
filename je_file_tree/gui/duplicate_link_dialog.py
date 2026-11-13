@@ -21,6 +21,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.lazy_details import set_lazy_details
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
+from je_file_tree.gui.window_fit import fit_window
 
 
 def link_reason(reason: str) -> str:
@@ -68,7 +69,7 @@ class DuplicateLinksDialog(WorkerDialog):
         self.changed = False
         self._closed = self._reported = False
         self.setWindowTitle(tr("link_title"))
-        self.resize(1120, 650)
+        fit_window(self, 1120, 650)
         self._build()
         self.worker = LinkPreviewWorker(root, tuple(groups), self)
         self.worker.ready.connect(self._show)

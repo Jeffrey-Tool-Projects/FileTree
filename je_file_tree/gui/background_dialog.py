@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from je_file_tree.core.background import MAX_ROOTS, MonitorConfig
 from je_file_tree.gui.autostart import Registration
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.window_fit import fit_window
 
 
 class BackgroundDialog(QDialog):
@@ -63,7 +64,7 @@ class BackgroundDialog(QDialog):
         buttons.accepted.connect(self._accept)
         buttons.rejected.connect(self.reject)
         layout.addRow(buttons)
-        self.resize(600, 540)
+        fit_window(self, 600, 540)
 
     def _monitor_changed(self, enabled: bool) -> None:
         if not enabled:

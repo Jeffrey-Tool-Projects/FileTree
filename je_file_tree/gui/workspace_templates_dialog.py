@@ -16,6 +16,7 @@ from je_file_tree.gui.scan_preferences import SCAN_FLAGS
 from je_file_tree.gui.startup_state import WorkspaceState
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue_worker
 from je_file_tree.gui.workspace_templates import ReplacementImpact, WorkspaceTemplate, read_templates, write_templates
+from je_file_tree.gui.window_fit import fit_window
 
 
 _PATH_COLUMN = 2
@@ -67,7 +68,7 @@ class WorkspaceTemplatesDialog(WorkerDialog):
         self._rows: list[tuple[int, int]] = []
         self._impact = ReplacementImpact()
         self.setWindowTitle(tr("workspace_templates"))
-        self.resize(940, 680)
+        fit_window(self, 940, 680)
         self.list, self.name = QComboBox(), QLineEdit()
         self.list.setPlaceholderText(tr("templates_select"))
         self.table = QTableWidget(0, 4)

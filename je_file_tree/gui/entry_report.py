@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import ListCapture, install_copy
+from je_file_tree.gui.window_fit import fit_window
 
 
 def literal_tooltip(text: str) -> str:
@@ -27,7 +28,7 @@ class EntryReportDialog(QDialog):
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(title)
-        self.resize(960, 540)
+        fit_window(self, 960, 540)
         self.model = model
         self.model.setParent(self)
         self.summary = QLabel(summary)

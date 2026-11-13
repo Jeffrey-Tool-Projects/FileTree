@@ -543,6 +543,11 @@ The Volumes worker records and forecasts off the GUI thread; `gui.forecast` owns
 (`forecast_enabled`), wording and the sparkline delegate. `BinDialog` reuses the survey without
 recording. Nothing outside the store file is written or removed, and no clear action exists.
 
+`gui.window_fit.fit_window(window, width, height)` is how every top-level window and dialog takes its
+opening size: the preferred size for a 1920 x 1040 available area, bounded to 92 % of the parent
+screen's available geometry and grown by at most 1.5x on larger screens. `test_window_fit.py` rejects
+a literal `resize(w, h)` in `gui/`; tests pin the design screen through `conftest._design_screen`.
+
 `core.report` prepares immutable translated scalar tables from the recorded whole scan, with bounded
 largest-folder/file and type lists, complete counts, overlap/coverage notes and cancellable traversal.
 It writes escaped script-free HTML atomically with inline PNG bytes. GUI report adapters capture a

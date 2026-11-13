@@ -15,6 +15,7 @@ from je_file_tree.core.operation_journal import JournalRead, OperationJournal, O
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import ExportWorker, wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
+from je_file_tree.gui.window_fit import fit_window
 
 _HEADERS = ("journal_time", "journal_source", "journal_identity", "review_reason", "journal_result",
             "journal_detail", "journal_destination")
@@ -49,7 +50,7 @@ class RecentActions(WorkerDialog):
     def __init__(self, journal: OperationJournal, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("action_recent_actions"))
-        self.resize(1100, 600)
+        fit_window(self, 1100, 600)
         self._journal = journal
         self._records: list[OperationRecord] = []
         self._exports: set[ExportWorker] = set()

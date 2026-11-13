@@ -69,6 +69,17 @@ def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     assert not unhandled_reports, f"a test did not inspect its failed-entry report: {unhandled_reports}"
 
 
+@pytest.fixture(autouse=True)
+def _design_screen(monkeypatch: pytest.MonkeyPatch):
+    """Open windows as on the full-HD desktop their sizes were chosen for, not the 800-pixel test screen.
+
+    ``test_window_fit.py`` replaces this with the screens it wants to check.
+    """
+    from je_file_tree.gui import window_fit
+
+    monkeypatch.setattr(window_fit, "_available", lambda _window: window_fit.DESIGN)
+
+
 def make_tree(root: Path, spec: dict) -> None:
     """Create files and folders from a nested dict: a str or bytes value is a file, a dict a folder."""
     for name, content in spec.items():

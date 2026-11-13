@@ -20,6 +20,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker, retire_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.tree_model import NODE_ROLE
+from je_file_tree.gui.window_fit import fit_window
 
 
 def _date(value: float | None) -> str:
@@ -73,7 +74,7 @@ class FileTimesDialog(WorkerDialog):
         self.root, self._closed, self._partial = root, False, partial
         self.worker: FileTimesWorker | None = None
         self.setWindowTitle(tr("action_file_times"))
-        self.resize(1120, 600)
+        fit_window(self, 1120, 600)
         self.mode = QComboBox()
         for key in ("accessed", "created"):
             self.mode.addItem(tr(f"file_times_{key}"), key)

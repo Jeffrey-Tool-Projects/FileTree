@@ -23,6 +23,7 @@ from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker, retire_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
+from je_file_tree.gui.window_fit import fit_window
 
 
 class CompressionModel(_TableModel[Node]):
@@ -75,7 +76,7 @@ class CompressionDialog(WorkerDialog):
         self.operation: CompactWorker | None = None
         self.changed = False
         self.setWindowTitle(tr("menu_compression"))
-        self.resize(1050, 610)
+        fit_window(self, 1050, 610)
         self.model = CompressionModel(self)
         self.model.unit = unit
         self.proxy = QSortFilterProxyModel(self)

@@ -9,7 +9,6 @@ import time
 from typing import Any
 
 from PySide6.QtCore import QSettings, QSortFilterProxyModel, QStorageInfo, QThread, Qt, Signal
-from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QDialogButtonBox, QLabel, QPushButton,
                               QStyledItemDelegate, QStyle, QStyleOptionProgressBar, QTableView, QVBoxLayout, QWidget)
 
@@ -23,6 +22,7 @@ from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker, retire_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
+from je_file_tree.gui.window_fit import fit_window
 
 _LIMIT = 256
 _FREE_COLUMN = 5
@@ -204,9 +204,7 @@ class VolumesDialog(WorkerDialog):
                  store: ForecastStore | None = None, clock: Callable[[], float] = time.time) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("action_volumes"))
-        screen = (parent.screen() if parent is not None else QGuiApplication.primaryScreen())
-        room = screen.availableGeometry().width() - 40 if screen is not None else 1560
-        self.resize(max(640, min(1560, room)), 540)  # the forecast column wants 1560; never wider than the screen
+        fit_window(self, 1560, 540)
         self._closed = False
         self.settings = settings if settings is not None else QSettings()
         self._store = store

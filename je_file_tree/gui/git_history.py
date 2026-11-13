@@ -16,6 +16,7 @@ from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
+from je_file_tree.gui.window_fit import fit_window
 
 
 class GitObjectsModel(_TableModel[GitObject]):
@@ -58,7 +59,7 @@ class GitHistoryDialog(WorkerDialog):
     def __init__(self, path: str, unit: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("action_git_history"))
-        self.resize(950, 570)
+        fit_window(self, 950, 570)
         self._closed = False
         self.model = GitObjectsModel(self)
         self.model.unit = unit

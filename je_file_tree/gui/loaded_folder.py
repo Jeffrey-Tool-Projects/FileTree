@@ -17,6 +17,7 @@ from je_file_tree.core.pacing import give_way
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue_worker, retire_worker
+from je_file_tree.gui.window_fit import fit_window
 
 PAGE_SIZE = 200
 
@@ -62,7 +63,7 @@ class LoadedFolderDialog(WorkerDialog):
         self.offset = 0
         self.rows: tuple[Node, ...] = ()
         self.setWindowTitle(tr('trend_choose_folder'))
-        self.resize(640, 460)
+        fit_window(self, 640, 460)
         self.path = QLineEdit()
         self.path.setReadOnly(True)
         self.path.setAccessibleName(tr('trend_full_path'))

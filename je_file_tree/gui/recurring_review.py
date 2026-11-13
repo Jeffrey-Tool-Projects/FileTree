@@ -22,6 +22,7 @@ from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.recurring_settings import ProposalSettings
 from je_file_tree.gui.scan_worker import ScanOutcome, wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads
+from je_file_tree.gui.window_fit import fit_window
 
 if TYPE_CHECKING:
     from je_file_tree.gui.background_monitor import BackgroundMonitor
@@ -103,7 +104,7 @@ class ValidationDialog(WorkerDialog):
         layout = QVBoxLayout(self)
         layout.addWidget(self.label)
         layout.addWidget(self.buttons)
-        self.resize(600, 180)
+        fit_window(self, 600, 180)
         self.worker = ReviewWorker(report, root, binding, self)
         self.worker.finished.connect(lambda: after_threads((self.worker,), self._finished, self))
         self.start_timer = QTimer(self)

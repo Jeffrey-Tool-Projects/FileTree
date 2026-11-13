@@ -16,6 +16,7 @@ from je_file_tree.gui.scan_preferences import (
     SCAN_FLAGS, decode_scan_preferences, encode_scan_preferences, valid_scan_preferences,
 )
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
+from je_file_tree.gui.window_fit import fit_window
 
 PRESETS_KEY = "scan_presets_v1"
 MAX_PRESETS = 32
@@ -95,7 +96,7 @@ class ScanPresetsDialog(WorkerDialog):
         self.items = items
         self.chosen: ScanPreset | None = None
         self.setWindowTitle(tr("action_scan_presets"))
-        self.resize(660, 360)
+        fit_window(self, 660, 360)
         self.list = QComboBox()
         self.list.setPlaceholderText(tr("presets_empty"))
         self.name, self.path = QLineEdit(), QLineEdit(path)

@@ -98,6 +98,7 @@ from je_file_tree.gui.themes import ThemeMenu
 from je_file_tree.gui.updates import UpdateNotice
 from je_file_tree.gui.operation_group import OperationGroup
 from je_file_tree.gui.change_watch import FollowChanges, supported as follow_supported
+from je_file_tree.gui.window_fit import fit_window
 
 WELCOME_PAGE, RESULTS_PAGE = range(2)
 # How often the tree of a running scan is refreshed.
@@ -197,7 +198,7 @@ class MainWindow(QMainWindow):
         self._build_toolbar()
         self._connect()
         self.setAcceptDrops(True)
-        self.resize(1240, 800)
+        fit_window(self, 1240, 800)
         self._restore()
         self.retranslate()
         self._update_actions()

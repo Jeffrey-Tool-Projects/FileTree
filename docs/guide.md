@@ -493,6 +493,7 @@ On macOS use ⌘ instead of Ctrl (⌘R rescans).
 
 ### Good to know
 
+- Windows open at a size taken from the screen: the main window and every dialog are cut back to fit a small screen (at most 92 % of the usable area, so the title bar and buttons stay reachable) and grow in proportion on a large one, up to one and a half times. The main window still reopens at the size and place you left it.
 - Sizes are real file sizes in binary units (1 KB = 1,024 bytes), the same as Windows Explorer. Pick a
   fixed unit under *View → Size unit*.
 - On Windows, FileTree asks for administrator rights when it starts, like TreeSize, so it can read protected

@@ -19,6 +19,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.lazy_details import set_lazy_details
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker, retire_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
+from je_file_tree.gui.window_fit import fit_window
 
 
 def namespace_reason(item: NamespaceItem) -> str:
@@ -61,7 +62,7 @@ class NamespaceDialog(WorkerDialog):
         self.plan: NamespacePlan | None = None
         self.changed = False
         self.setWindowTitle(tr("menu_rename" if rename else "menu_move_folder"))
-        self.resize(1140, 650)
+        fit_window(self, 1140, 650)
         self._build_controls()
         self._build_table()
         layout = QVBoxLayout(self)

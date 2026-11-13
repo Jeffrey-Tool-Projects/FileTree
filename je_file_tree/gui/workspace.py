@@ -21,6 +21,7 @@ from je_file_tree.gui.scan_preferences import ScanDefaults
 from je_file_tree.core.scanner import ScanOptions
 from je_file_tree.gui.workspace_templates import ReplacementImpact, TabImpact, WorkspaceTemplate
 from je_file_tree.gui.workspace_templates_dialog import WorkspaceTemplatesDialog
+from je_file_tree.gui.window_fit import fit_window
 
 
 class ScanWorkspace(QMainWindow):
@@ -67,7 +68,7 @@ class ScanWorkspace(QMainWindow):
         self.close_action.setShortcut(QKeySequence("Ctrl+W"))
         self.close_action.triggered.connect(lambda: self.close_tab(self.tabs.currentIndex()))
         self.addAction(self.close_action)
-        self.resize(1100, 760)
+        fit_window(self, 1100, 760)
         geometry = self.settings.value("workspace_geometry")
         if isinstance(geometry, QByteArray):
             self.restoreGeometry(geometry)

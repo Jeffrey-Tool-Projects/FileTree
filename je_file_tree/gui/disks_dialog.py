@@ -21,6 +21,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.system_files import open_system_tool
 from je_file_tree.gui.tables import Column, _TableModel
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker, retire_worker
+from je_file_tree.gui.window_fit import fit_window
 
 Provider = Callable[..., DiskSurvey | None]
 
@@ -191,7 +192,7 @@ class DisksDialog(WorkerDialog):
 
     def __init__(self, unit: str, parent: QWidget | None = None, provider: Provider = physical_disks) -> None:
         super().__init__(parent)
-        self.resize(1100, 640)
+        fit_window(self, 1100, 640)
         self._closed = False
         self._provider = provider
         self.survey: DiskSurvey | None = None

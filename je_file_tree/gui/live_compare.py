@@ -18,6 +18,7 @@ from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import ExportWorker, wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue_worker, retire_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
+from je_file_tree.gui.window_fit import fit_window
 
 
 class ComparisonModel(_TableModel[Difference]):
@@ -80,7 +81,7 @@ class LiveCompareDialog(WorkerDialog):
     def __init__(self, paths: tuple[str, str], unit: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("action_live_compare"))
-        self.resize(1150, 620)
+        fit_window(self, 1150, 620)
         self._closed, self._count, self._incomplete = False, 0, False
         self._exports: set[ExportWorker] = set()
         self.model = ComparisonModel(self)

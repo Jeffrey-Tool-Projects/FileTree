@@ -62,6 +62,11 @@ waiting without inventing a completion percentage or implying that an incomplete
   approvals are saved. Current-tab scans/source reviews disable the editor; opening it does not
   suspend peer readers. The settings-dialog shutdown contract closes it safely with the application.
 
+- **Window sizes:** no window opens at a fixed pixel size. Each names the size it was laid out for on
+  a full-HD desktop and `window_fit.fit_window` adapts it to the screen of its parent: at most 92 % of
+  the available area on a small screen, proportional growth up to 1.5x on a large one (the smaller of
+  the width and height ratios, so an ultrawide screen does not stretch dialogs). A geometry the user
+  left behind is restored afterwards and wins.
 - **Removal advice:** Largest files and Search answer *can it go?* in one sortable column beside the
   size: a coloured dot, a short label (cleanable, check first, your call, keep, OS-managed) and the
   reason in the tooltip. A legend above Largest files names the colours; the label never relies on

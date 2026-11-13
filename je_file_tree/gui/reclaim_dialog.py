@@ -25,6 +25,7 @@ from je_file_tree.gui.cleanup_text import explanation
 from je_file_tree.gui.delegates import ShareBarDelegate
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.tree_model import NODE_ROLE, SHARE_ROLE
+from je_file_tree.gui.window_fit import fit_window
 
 if TYPE_CHECKING:
     from je_file_tree.gui.results_view import ResultsView
@@ -61,7 +62,7 @@ class ReclaimDialog(QDialog):
         self._sources = sources
         self._plan: ReclaimPlan | None = None
         self._base: ReclaimPlan | None = None
-        self.resize(980, 640)
+        fit_window(self, 980, 640)
         self.hint, self.status, self.note, self.drive, self.selection = (QLabel() for _ in range(5))
         for label in (self.hint, self.status, self.note):
             label.setWordWrap(True)
