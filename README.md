@@ -19,6 +19,7 @@ Use arrow keys to select budget rows and Tab to reach the editor. Reopening sear
 - **Check your drives**: View → **Physical disks…** lists each physical drive with its type, health, temperature and wear when reported, and its partition layout. It is read-only and can open the Windows disk tools.
 - **Plan how to free space**: File → **Free up space…** asks how much you need and lists what the scan found as ranked steps, safest first. Nothing is ticked for you, and what you tick still goes through the Recycle Bin review and questions.
 - **See when a drive will fill up**: Drive overview shows a free-space forecast per drive, such as about 2 GB per day and the estimated date it is full, from used-space samples FileTree records when the overview opens. Recording can be turned off there.
+- **Delete permanently, only when you say so**: Shift+Del deletes the selected entries without the Recycle Bin. FileTree asks every time, deletes only what you approved, and leaves anything that changed since the scan.
 - Save named scan presets from the welcome page or Options, then load a path and its scan choices for reuse. Opening the editor keeps other tabs scanning.
 - Keep the last cleanup counts visible, with operation records, available Undo and an explicit rescan of the original folder.
 - **Find large files and folders**: see the biggest items first, including after cleaning or rescanning a folder. Charts show their share of the space. Browsing and filtering reuse sorted rows and sort unopened subfolders only when needed.

@@ -7,7 +7,8 @@ this file in the same commit.
 
 A disk-usage viewer: scan a folder or drive, add up every file, and show where the space goes — a folder
 tree sorted largest first, a squarified treemap, the largest files and the space per file type — with a
-safe way to free space (move to the Recycle Bin / Trash, never a permanent delete).
+safe way to free space (move to the Recycle Bin / Trash by default; a permanent delete only on an
+explicit, always-confirmed request).
 
 ## 2. Layers and directories
 
@@ -123,7 +124,7 @@ shutdown. A queued finished callback is idempotent; closing readiness does not d
 
 | Layer | Path | Depends on | Holds |
 |---|---|---|---|
-| Core | `je_file_tree/core/` | standard library only | `node.py` (the tree), `scanner.py` (parallel scan), `allocation.py` (size on disk), `protected.py` (system and program folders), `advice.py` (whether an entry can go), `exclusions.py` (folders to skip), `analysis.py` (largest files, per-type and per-age totals), `search.py` (find by name), `duplicates.py` (same content), `cleanup.py` (clean-up suggestions), `reclaim.py` (free-up-space plan), `compare.py` (against a saved scan), `pacing.py` (background work gives way to the window), `treemap.py` (layout), `sunburst.py` (rings), `tree_layout.py` (bounded hierarchy rows), `formatting.py`, `export.py` (CSV / JSON) |
+| Core | `je_file_tree/core/` | standard library only | `node.py` (the tree), `scanner.py` (parallel scan), `allocation.py` (size on disk), `protected.py` (system and program folders), `advice.py` (whether an entry can go), `exclusions.py` (folders to skip), `analysis.py` (largest files, per-type and per-age totals), `search.py` (find by name), `duplicates.py` (same content), `cleanup.py` (clean-up suggestions), `reclaim.py` (free-up-space plan), `permanent_delete.py` (confirmed permanent removal), `compare.py` (against a saved scan), `pacing.py` (background work gives way to the window), `treemap.py` (layout), `sunburst.py` (rings), `tree_layout.py` (bounded hierarchy rows), `formatting.py`, `export.py` (CSV / JSON) |
 | GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `advice_text.py`, `reclaim_dialog.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings.py`, `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
 | Entry script | `start_file_tree.py` | GUI | Starts the window from a source copy; the file Nuitka compiles |
 | Tools | `tools/` | GUI | `make_screenshots.py` (README pictures), `build_nuitka.py` (stand-alone builds, see `nuitka.md`) |
@@ -547,6 +548,21 @@ recording. Nothing outside the store file is written or removed, and no clear ac
 opening size: the preferred size for a 1920 x 1040 available area, bounded to 92 % of the parent
 screen's available geometry and grown by at most 1.5x on larger screens. `test_window_fit.py` rejects
 a literal `resize(w, h)` in `gui/`; tests pin the design screen through `conftest._design_screen`.
+
+`MainWindow.delete_permanently` is the only way into permanent deletion (Shift+Del, File and context
+menus; never from Clean up, duplicate or recurring suggestions). It refuses Windows-managed entries,
+asks the protected-folder question, then one default-No question, and only then creates
+`gui.permanent_delete.PermanentDeleteWorker`. `core.permanent_delete.delete_entries` walks the scan
+record iteratively, bottom-up, never the disk: before each removal it rechecks the no-follow snapshot
+(link state, kind, identity, and for files size, times, attributes, link count), protection and
+containment under the recorded parents, and calls the single `remove_entry`. Windows opens the entry
+itself, compares the open object identity and marks that object for deletion; POSIX anchors the
+parent by descriptor and uses `unlinkat`/`rmdir` (a swap between check and unlink cannot be excluded
+there). Links go as links; mount points, other volumes, read-only entries and incompletely scanned
+folders are refused; later arrivals stay and keep their folder. The batch is journaled first
+(`deleted`/`partial` statuses), offers no Undo, reports every refusal and failure, and rescans the
+parents. `test/conftest.py` wraps `remove_entry` and refuses any path outside pytest's temporary
+directory; AST tests pin the single entry point.
 
 `core.report` prepares immutable translated scalar tables from the recorded whole scan, with bounded
 largest-folder/file and type lists, complete counts, overlap/coverage notes and cancellable traversal.
@@ -1856,7 +1872,8 @@ pytest PID roles distinct for Windows virtual environments. See `docs/testing.md
   with two workers, 872 MB resident memory (419 incremental bytes/entry). Snapshot storage is 76 packed
   bytes / 109-byte Python bytes object plus an 8-byte Node slot. Diagnostic budget: 1 GiB / 240 s.
 - Links are never followed; unreadable folders are recorded, never fatal.
-- Nothing is deleted permanently; every move to the trash is confirmed.
+- Nothing is removed without a confirmation. The default is the trash; an explicit permanent delete
+  goes only through `MainWindow.delete_permanently` and removes only the approved entries.
 
 ## 8. When to update this file
 

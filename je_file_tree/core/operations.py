@@ -89,6 +89,16 @@ def revalidate(node: Node, root: Node, *, places: Sequence[Protection] = (),
     return reason if reason is not None else _check_subtree(node, cancel, snapshot_overrides)
 
 
+def check_place(node: Node, root: Node, *, places: Sequence[Protection] = (),
+                approved: Protection | None = None) -> str | None:
+    """Recheck only where an approved entry is: inside ``root``, under unchanged non-link folders,
+    with the protection that was approved and not Windows-managed. Its own metadata and contents
+    are the caller's to check (permanent deletion checks them one entry at a time)."""
+    if root.path is None or node.path is None or node is root or not node.is_in(root):
+        return "outside"
+    return _check_ancestors(node) or _check_location(node, root, places, approved)
+
+
 def _check_ancestors(node: Node) -> str | None:
     above = node.parent
     while above is not None:

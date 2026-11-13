@@ -34,6 +34,8 @@ def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
         unhandled_reports.append(dialog.windowTitle())
         return QDialog.DialogCode.Rejected
     monkeypatch.setattr(FailedEntriesDialog, "exec", reject_unhandled_report)
+    from je_file_tree.gui.permanent_delete import PermanentReportDialog
+    monkeypatch.setattr(PermanentReportDialog, "exec", reject_unhandled_report)
 
     emptied: list[str] = []
     original_empty_scope = bin_empty._empty_scope
@@ -78,6 +80,44 @@ def _design_screen(monkeypatch: pytest.MonkeyPatch):
     from je_file_tree.gui import window_fit
 
     monkeypatch.setattr(window_fit, "_available", lambda _window: window_fit.DESIGN)
+
+
+def _inside_temporary(path: str, base: str) -> bool:
+    """Whether ``path`` itself (its last name not followed) lies strictly inside the folder ``base``."""
+    absolute = os.path.abspath(path)
+    parent, name = os.path.split(absolute)
+    if not name:  # a drive or file-system root
+        return False
+    where = os.path.normcase(os.path.join(os.path.realpath(parent), name))
+    try:
+        return where != base and os.path.commonpath((base, where)) == base
+    except ValueError:  # another drive
+        return False
+
+
+@pytest.fixture(autouse=True)
+def _permanent_delete_guard(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory):
+    """Refuse, instead of performing, any permanent delete outside pytest's temporary directory.
+
+    Every removal of ``je_file_tree.core.permanent_delete`` goes through its ``remove_entry``. During
+    tests that call is wrapped: a path outside the session's temporary base raises before the real
+    removal is reached, and the test fails at teardown. Tests use made-up fixtures only.
+    """
+    from je_file_tree.core import permanent_delete
+
+    base = os.path.normcase(os.path.realpath(tmp_path_factory.getbasetemp()))
+    refused: list[str] = []
+    original = permanent_delete.remove_entry
+
+    def guarded(path: str, expected: bytes, parent: bytes, *, directory: bool) -> None:
+        if not _inside_temporary(path, base):
+            refused.append(path)
+            raise AssertionError(f"Tests may only delete fixtures under {base}; refused {path}")
+        original(path, expected, parent, directory=directory)
+
+    monkeypatch.setattr(permanent_delete, "remove_entry", guarded)
+    yield refused
+    assert not refused, f"a test tried to permanently delete outside the temporary directory: {refused}"
 
 
 def make_tree(root: Path, spec: dict) -> None:
@@ -143,6 +183,12 @@ def _modeled_entry_move_prompts(request, monkeypatch):
                                 QMessageBox.StandardButton.No)
             return callback(parent, title, text)
         monkeypatch.setattr(main_window, "confirm_entry_move", answer)
+
+        def unanswered_permanent(_parent, title, _text):
+            unhandled.append(title)  # a test that reaches the question must answer it itself
+            return QMessageBox.StandardButton.No
+        monkeypatch.setattr(main_window, "confirm_permanent_delete", unanswered_permanent)
+        monkeypatch.setattr(main_window, "refuse_managed", lambda _parent, _nodes: unhandled.append("managed notice"))
     yield
     assert not unhandled, f"a flow test did not supply an entry-move approval answer: {unhandled}"
 

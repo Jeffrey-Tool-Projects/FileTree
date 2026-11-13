@@ -1749,6 +1749,51 @@ EN: dict[str, str] = {
     "trash_failed_many": ("{count} items could not be moved to the Recycle Bin. "
                           "They may be in use or read-only:\n\n{names}"),
     "trash_done_many": "Moved {count} items to the Recycle Bin: {size} freed.",
+    "permanent_delete": "Delete permanently",
+    "permanent_delete_tip": ("Delete the selected files and folders permanently, without the Recycle Bin "
+                             "(you are asked first; it cannot be undone)"),
+    "permanent_menu_many": "Delete {count} items permanently",
+    "permanent_not_suggestions": ("Delete permanently works on entries you pick in the folder tree, the largest "
+                                  "files or search results, not on Clean up or duplicate suggestions."),
+    "permanent_title": "Delete permanently",
+    "permanent_confirm": ("Permanently delete “{name}” ({size})?\n\n{path}\n\n"
+                          "It does not go to the Recycle Bin. This cannot be undone."),
+    "permanent_confirm_many": ("Permanently delete these {count} items ({size} in total)?\n\n{names}\n\n"
+                               "They do not go to the Recycle Bin. This cannot be undone."),
+    "permanent_confirm_folders": ("Folders are deleted with what the scan recorded inside them. "
+                                  "Anything added or changed since the scan is left in place."),
+    "permanent_protected_question": ("{count} of the entries are system or program folders. Deleting them "
+                                     "permanently can make the system or programs stop working:\n\n{names}\n\n"
+                                     "Delete them anyway?"),
+    "permanent_managed": ("Windows manages these entries, so FileTree does not delete them. "
+                          "Use the system tool shown in Details instead:\n\n{names}"),
+    "permanent_running": "Deleting permanently… {count} entries removed. Press Esc to stop.",
+    "permanent_done": "Permanently deleted {removed} entries ({size}). Left in place: {refused}; failed: {failed}.",
+    "permanent_report_title": "Delete permanently: entries left in place",
+    "permanent_failed": "The system did not delete it: {reason}",
+    "permanent_pending": "Deletion is pending: another program still has it open",
+    "permanent_journal_reason": "Explicit permanent deletion",
+    "permanent_journal_deleted": "Permanently deleted",
+    "permanent_journal_partial": "Partly deleted (folder kept)",
+    "permanent_skip_outside": "outside the current scan; not deleted",
+    "permanent_skip_unverified": "no verified scan identity; not deleted",
+    "permanent_skip_incomplete": "the scan could not read all of this folder; not entered",
+    "permanent_skip_missing": "the entry or its folder is missing",
+    "permanent_skip_unreadable": "the entry cannot be read; not deleted",
+    "permanent_skip_link": "the entry or a folder above it became a link; not deleted",
+    "permanent_skip_kind": "the entry's kind changed; not deleted",
+    "permanent_skip_identity": "the entry was replaced since the scan; not deleted",
+    "permanent_skip_changed": "size or timestamps changed since the scan; not deleted",
+    "permanent_skip_protected": "a system or program folder your approval did not cover; not deleted",
+    "permanent_skip_system_managed": "Windows manages this entry; not deleted",
+    "permanent_skip_cancelled": "stopped before this entry; not deleted",
+    "permanent_skip_journal": "the approved action could not be recorded; nothing was deleted",
+    "permanent_skip_read_only": "read-only; FileTree does not clear the attribute, so it was not deleted",
+    "permanent_skip_mount_point": "a mounted volume or mount point; not deleted",
+    "permanent_skip_other_volume": "on another volume; not deleted",
+    "permanent_skip_arrived": "added after the scan; left in place",
+    "permanent_skip_not_empty": "folder kept: something inside it was left in place",
+    "permanent_skip_failed": "the system refused to delete something inside it",
     "status_selected_many": "{count} items selected: {size}",
     # export
     "export_title": "Export",
@@ -3410,6 +3455,49 @@ ZH_TW: dict[str, str] = {
     "trash_more": "……還有 {count} 個",
     "trash_failed_many": "有 {count} 個項目無法移到資源回收筒，可能正在使用中或是唯讀：\n\n{names}",
     "trash_done_many": "已把 {count} 個項目移到資源回收筒，釋出 {size}。",
+    "permanent_delete": "永久刪除",
+    "permanent_delete_tip": "永久刪除選取的檔案和資料夾，不經過資源回收筒（會先詢問，刪除後無法復原）",
+    "permanent_menu_many": "永久刪除 {count} 個項目",
+    "permanent_not_suggestions": ("永久刪除只用於您在資料夾樹狀結構、最大檔案或搜尋結果中挑選的項目，"
+                                  "不用於清理或重複檔案的建議。"),
+    "permanent_title": "永久刪除",
+    "permanent_confirm": ("要永久刪除「{name}」（{size}）嗎？\n\n{path}\n\n"
+                          "它不會移到資源回收筒，刪除後無法復原。"),
+    "permanent_confirm_many": ("要永久刪除這 {count} 個項目（共 {size}）嗎？\n\n{names}\n\n"
+                               "它們不會移到資源回收筒，刪除後無法復原。"),
+    "permanent_confirm_folders": ("資料夾會連同掃描時記錄的內容一起刪除；"
+                                  "掃描後新增或變更的項目會保留在原處。"),
+    "permanent_protected_question": ("其中 {count} 個是系統或程式的資料夾，永久刪除可能讓系統或程式"
+                                     "無法正常運作：\n\n{names}\n\n仍要刪除嗎？"),
+    "permanent_managed": ("這些項目由 Windows 管理，FileTree 不會刪除。"
+                          "請改用詳細資訊中列出的系統工具：\n\n{names}"),
+    "permanent_running": "正在永久刪除…已刪除 {count} 個項目。按 Esc 可停止。",
+    "permanent_done": "已永久刪除 {removed} 個項目（{size}）。保留在原處：{refused}；失敗：{failed}。",
+    "permanent_report_title": "永久刪除：保留在原處的項目",
+    "permanent_failed": "系統未刪除此項目：{reason}",
+    "permanent_pending": "刪除尚未完成：另一個程式仍開啟著它",
+    "permanent_journal_reason": "明確的永久刪除",
+    "permanent_journal_deleted": "已永久刪除",
+    "permanent_journal_partial": "部分刪除（保留資料夾）",
+    "permanent_skip_outside": "不在目前的掃描範圍，未刪除",
+    "permanent_skip_unverified": "沒有經核對的掃描身分，未刪除",
+    "permanent_skip_incomplete": "掃描無法讀取此資料夾的全部內容，未進入",
+    "permanent_skip_missing": "項目或所在資料夾已不存在",
+    "permanent_skip_unreadable": "無法讀取項目，未刪除",
+    "permanent_skip_link": "項目或上層資料夾變成連結，未刪除",
+    "permanent_skip_kind": "項目種類已變更，未刪除",
+    "permanent_skip_identity": "掃描後項目已被替換，未刪除",
+    "permanent_skip_changed": "掃描後大小或時間已變更，未刪除",
+    "permanent_skip_protected": "不在您確認範圍內的系統或程式資料夾，未刪除",
+    "permanent_skip_system_managed": "此項目由 Windows 管理，未刪除",
+    "permanent_skip_cancelled": "在處理此項目前已停止，未刪除",
+    "permanent_skip_journal": "無法記錄已確認的操作，未刪除任何項目",
+    "permanent_skip_read_only": "唯讀項目；FileTree 不會清除此屬性，因此未刪除",
+    "permanent_skip_mount_point": "已掛接的磁碟區或掛接點，未刪除",
+    "permanent_skip_other_volume": "位於其他磁碟區，未刪除",
+    "permanent_skip_arrived": "掃描後新增，保留在原處",
+    "permanent_skip_not_empty": "保留資料夾：其中仍有項目保留在原處",
+    "permanent_skip_failed": "系統拒絕刪除其中的項目",
     "status_selected_many": "已選取 {count} 個項目：{size}",
     "export_title": "匯出",
     "export_running": "正在儲存到 {path}…",
@@ -5055,6 +5143,49 @@ ZH_CN: dict[str, str] = {
     "trash_more": "……还有 {count} 个",
     "trash_failed_many": "有 {count} 个项目无法移到回收站，可能正在使用或是只读：\n\n{names}",
     "trash_done_many": "已把 {count} 个项目移到回收站，释放 {size}。",
+    "permanent_delete": "永久删除",
+    "permanent_delete_tip": "永久删除选中的文件和文件夹，不经过回收站（会先询问，删除后无法恢复）",
+    "permanent_menu_many": "永久删除 {count} 个项目",
+    "permanent_not_suggestions": ("永久删除只用于你在文件夹树、最大文件或搜索结果中挑出的项目，"
+                                  "不用于清理或重复文件的建议。"),
+    "permanent_title": "永久删除",
+    "permanent_confirm": ("要永久删除“{name}”（{size}）吗？\n\n{path}\n\n"
+                          "它不会移到回收站，删除后无法恢复。"),
+    "permanent_confirm_many": ("要永久删除这 {count} 个项目（共 {size}）吗？\n\n{names}\n\n"
+                               "它们不会移到回收站，删除后无法恢复。"),
+    "permanent_confirm_folders": ("文件夹会连同扫描时记录的内容一起删除；"
+                                  "扫描后新增或更改的项目会保留在原处。"),
+    "permanent_protected_question": ("其中 {count} 个是系统或程序的文件夹，永久删除可能让系统或程序"
+                                     "无法正常运行：\n\n{names}\n\n仍要删除吗？"),
+    "permanent_managed": ("这些项目由 Windows 管理，FileTree 不会删除。"
+                          "请改用详细信息中列出的系统工具：\n\n{names}"),
+    "permanent_running": "正在永久删除…已删除 {count} 个项目。按 Esc 可停止。",
+    "permanent_done": "已永久删除 {removed} 个项目（{size}）。保留在原处：{refused}；失败：{failed}。",
+    "permanent_report_title": "永久删除：保留在原处的项目",
+    "permanent_failed": "系统未删除此项目：{reason}",
+    "permanent_pending": "删除尚未完成：另一个程序仍打开着它",
+    "permanent_journal_reason": "明确的永久删除",
+    "permanent_journal_deleted": "已永久删除",
+    "permanent_journal_partial": "部分删除（保留文件夹）",
+    "permanent_skip_outside": "不在当前的扫描范围，未删除",
+    "permanent_skip_unverified": "没有经过核对的扫描身份，未删除",
+    "permanent_skip_incomplete": "扫描无法读取此文件夹的全部内容，未进入",
+    "permanent_skip_missing": "项目或所在文件夹已不存在",
+    "permanent_skip_unreadable": "无法读取项目，未删除",
+    "permanent_skip_link": "项目或父文件夹变成链接，未删除",
+    "permanent_skip_kind": "项目类型已更改，未删除",
+    "permanent_skip_identity": "扫描后项目已被替换，未删除",
+    "permanent_skip_changed": "扫描后大小或时间已更改，未删除",
+    "permanent_skip_protected": "不在你确认范围内的系统或程序文件夹，未删除",
+    "permanent_skip_system_managed": "此项目由 Windows 管理，未删除",
+    "permanent_skip_cancelled": "在处理此项目前已停止，未删除",
+    "permanent_skip_journal": "无法记录已确认的操作，未删除任何项目",
+    "permanent_skip_read_only": "只读项目；FileTree 不会清除此属性，因此未删除",
+    "permanent_skip_mount_point": "已挂载的卷或挂载点，未删除",
+    "permanent_skip_other_volume": "位于其他卷，未删除",
+    "permanent_skip_arrived": "扫描后新增，保留在原处",
+    "permanent_skip_not_empty": "保留文件夹：其中仍有项目保留在原处",
+    "permanent_skip_failed": "系统拒绝删除其中的项目",
     "status_selected_many": "已选中 {count} 个项目：{size}",
     "export_title": "导出",
     "export_running": "正在保存到 {path}…",
@@ -7102,6 +7233,67 @@ JA: dict[str, str] = {
         'ります:\n\n{names}'
     ),
     'trash_done_many': '{count} 個のアイテムをごみ箱に移動しました: {size} が解放されました。',
+    'permanent_delete': '完全に削除',
+    'permanent_delete_tip': (
+        '選択したファイルとフォルダーをごみ箱を使わずに完全に削除します'
+        '（最初に確認し、元に戻せません）'
+    ),
+    'permanent_menu_many': '{count} 個の項目を完全に削除',
+    'permanent_not_suggestions': (
+        '完全に削除は、フォルダーツリー、最大のファイル、検索結果で選んだ項目にだけ使えます。'
+        'クリーンアップや重複の候補には使えません。'
+    ),
+    'permanent_title': '完全に削除',
+    'permanent_confirm': (
+        '「{name}」({size}) を完全に削除しますか?\n\n{path}\n\n'
+        'ごみ箱には移動されず、元に戻せません。'
+    ),
+    'permanent_confirm_many': (
+        'これらの {count} 個の項目 (合計 {size}) を完全に削除しますか?\n\n{names}\n\n'
+        'ごみ箱には移動されず、元に戻せません。'
+    ),
+    'permanent_confirm_folders': (
+        'フォルダーは、スキャン時に記録された中身と一緒に削除されます。'
+        'スキャン後に追加または変更された項目はそのまま残ります。'
+    ),
+    'permanent_protected_question': (
+        '項目のうち {count} 個はシステムまたはプログラムのフォルダーです。完全に削除すると、'
+        'システムやプログラムが動作しなくなる可能性があります:\n\n{names}\n\nそれでも削除しますか?'
+    ),
+    'permanent_managed': (
+        'これらの項目は Windows が管理しているため、FileTree は削除しません。'
+        '代わりに詳細に表示されるシステムツールを使ってください:\n\n{names}'
+    ),
+    'permanent_running': '完全に削除しています… {count} 個の項目を削除しました。Esc で停止します。',
+    'permanent_done': (
+        '{removed} 個の項目 ({size}) を完全に削除しました。'
+        '残した項目: {refused}、失敗: {failed}。'
+    ),
+    'permanent_report_title': '完全に削除: 残した項目',
+    'permanent_failed': 'システムが削除しませんでした: {reason}',
+    'permanent_pending': '削除は保留中です: 別のプログラムがまだ開いています',
+    'permanent_journal_reason': '明示的な完全削除',
+    'permanent_journal_deleted': '完全に削除しました',
+    'permanent_journal_partial': '一部を削除 (フォルダーは残しました)',
+    'permanent_skip_outside': '現在のスキャン範囲外のため削除しません',
+    'permanent_skip_unverified': '確認済みのスキャン識別情報がないため削除しません',
+    'permanent_skip_incomplete': 'スキャンでこのフォルダーをすべて読み取れなかったため、中に入りません',
+    'permanent_skip_missing': '項目またはそのフォルダーが見つかりません',
+    'permanent_skip_unreadable': '項目を読み取れないため削除しません',
+    'permanent_skip_link': '項目または上位フォルダーがリンクに変わったため削除しません',
+    'permanent_skip_kind': '項目の種類が変わったため削除しません',
+    'permanent_skip_identity': 'スキャン後に項目が置き換えられたため削除しません',
+    'permanent_skip_changed': 'スキャン後にサイズまたは日時が変わったため削除しません',
+    'permanent_skip_protected': '承認の対象外のシステムまたはプログラムのフォルダーのため削除しません',
+    'permanent_skip_system_managed': 'Windows が管理する項目のため削除しません',
+    'permanent_skip_cancelled': 'この項目の前に停止したため削除しません',
+    'permanent_skip_journal': '承認した操作を記録できなかったため、何も削除しませんでした',
+    'permanent_skip_read_only': '読み取り専用です。FileTree は属性を解除しないため削除しません',
+    'permanent_skip_mount_point': 'マウントされたボリュームまたはマウントポイントのため削除しません',
+    'permanent_skip_other_volume': '別のボリューム上にあるため削除しません',
+    'permanent_skip_arrived': 'スキャン後に追加されたため残しました',
+    'permanent_skip_not_empty': '中に残った項目があるため、フォルダーを残しました',
+    'permanent_skip_failed': '中の項目の削除をシステムが拒否しました',
     'status_selected_many': '{count} 個のアイテムが選択されました: {size}',
     'export_title': 'エクスポート',
     'export_running': '{path} に保存中…',
@@ -9001,6 +9193,67 @@ KO: dict[str, str] = {
         '{count} 항목을 휴지통으로 이동할 수 없습니다. 사용 중이거나 읽기 전용일 수 있습니다. \n\n{names}'
     ),
     'trash_done_many': '{count} 항목을 휴지통으로 이동했습니다: {size}이 해제되었습니다.',
+    'permanent_delete': '영구 삭제',
+    'permanent_delete_tip': (
+        '선택한 파일과 폴더를 휴지통을 거치지 않고 영구 삭제합니다'
+        '(먼저 확인하며 되돌릴 수 없습니다)'
+    ),
+    'permanent_menu_many': '항목 {count}개 영구 삭제',
+    'permanent_not_suggestions': (
+        '영구 삭제는 폴더 트리, 가장 큰 파일, 검색 결과에서 고른 항목에만 사용할 수 있으며 '
+        '정리나 중복 제안에는 사용할 수 없습니다.'
+    ),
+    'permanent_title': '영구 삭제',
+    'permanent_confirm': (
+        '“{name}”({size})을(를) 영구 삭제하시겠습니까?\n\n{path}\n\n'
+        '휴지통으로 이동하지 않으며 되돌릴 수 없습니다.'
+    ),
+    'permanent_confirm_many': (
+        '이 항목 {count}개(총 {size})를 영구 삭제하시겠습니까?\n\n{names}\n\n'
+        '휴지통으로 이동하지 않으며 되돌릴 수 없습니다.'
+    ),
+    'permanent_confirm_folders': (
+        '폴더는 스캔할 때 기록된 내용과 함께 삭제됩니다. '
+        '스캔 후 추가되거나 바뀐 항목은 그대로 남습니다.'
+    ),
+    'permanent_protected_question': (
+        '항목 중 {count}개는 시스템 또는 프로그램 폴더입니다. 영구 삭제하면 시스템이나 프로그램이 '
+        '작동하지 않을 수 있습니다.\n\n{names}\n\n그래도 삭제하시겠습니까?'
+    ),
+    'permanent_managed': (
+        '이 항목은 Windows가 관리하므로 FileTree가 삭제하지 않습니다. '
+        '대신 세부 정보에 표시된 시스템 도구를 사용하세요.\n\n{names}'
+    ),
+    'permanent_running': '영구 삭제 중… 항목 {count}개를 삭제했습니다. 중지하려면 Esc를 누르세요.',
+    'permanent_done': (
+        '항목 {removed}개({size})를 영구 삭제했습니다. '
+        '남긴 항목: {refused}, 실패: {failed}.'
+    ),
+    'permanent_report_title': '영구 삭제: 남긴 항목',
+    'permanent_failed': '시스템이 삭제하지 않았습니다: {reason}',
+    'permanent_pending': '삭제 대기 중: 다른 프로그램이 아직 열어 두고 있습니다',
+    'permanent_journal_reason': '명시적 영구 삭제',
+    'permanent_journal_deleted': '영구 삭제됨',
+    'permanent_journal_partial': '일부 삭제됨(폴더 유지)',
+    'permanent_skip_outside': '현재 스캔 범위 밖이므로 삭제하지 않음',
+    'permanent_skip_unverified': '확인된 스캔 식별 정보가 없어 삭제하지 않음',
+    'permanent_skip_incomplete': '스캔에서 이 폴더 전체를 읽지 못해 들어가지 않음',
+    'permanent_skip_missing': '항목 또는 해당 폴더가 없음',
+    'permanent_skip_unreadable': '항목을 읽을 수 없어 삭제하지 않음',
+    'permanent_skip_link': '항목 또는 상위 폴더가 링크로 바뀌어 삭제하지 않음',
+    'permanent_skip_kind': '항목 종류가 바뀌어 삭제하지 않음',
+    'permanent_skip_identity': '스캔 후 항목이 교체되어 삭제하지 않음',
+    'permanent_skip_changed': '스캔 후 크기나 시간이 바뀌어 삭제하지 않음',
+    'permanent_skip_protected': '승인 범위에 없는 시스템 또는 프로그램 폴더이므로 삭제하지 않음',
+    'permanent_skip_system_managed': 'Windows가 관리하는 항목이므로 삭제하지 않음',
+    'permanent_skip_cancelled': '이 항목 전에 중지되어 삭제하지 않음',
+    'permanent_skip_journal': '승인한 작업을 기록할 수 없어 아무것도 삭제하지 않음',
+    'permanent_skip_read_only': '읽기 전용입니다. FileTree는 속성을 해제하지 않으므로 삭제하지 않음',
+    'permanent_skip_mount_point': '마운트된 볼륨 또는 마운트 지점이므로 삭제하지 않음',
+    'permanent_skip_other_volume': '다른 볼륨에 있어 삭제하지 않음',
+    'permanent_skip_arrived': '스캔 후 추가되어 그대로 둠',
+    'permanent_skip_not_empty': '안에 남은 항목이 있어 폴더를 유지함',
+    'permanent_skip_failed': '안의 항목 삭제를 시스템이 거부함',
     'status_selected_many': '{count} 선택한 항목: {size}',
     'export_title': '수출',
     'export_running': '{path}에 저장 중…',

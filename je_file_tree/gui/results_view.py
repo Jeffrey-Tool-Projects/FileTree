@@ -158,6 +158,7 @@ class ResultsView(QWidget):
     elevate_requested = Signal()
     compare_failed = Signal(str)
     chart_setting_changed = Signal(str, object)  # a setting key and its new value
+    menu_source: QAbstractItemView | None = None  # the list whose context menu is open, while it is
 
     def __init__(self, parent: QWidget | None = None, *, settings: QSettings | None = None) -> None:
         super().__init__(parent)
@@ -971,7 +972,19 @@ class ResultsView(QWidget):
         picked = _selected_in(view)
         if not any(entry is node for entry in picked):
             picked = [node]
-        self.node_menu_requested.emit(node, picked, view.viewport().mapToGlobal(point))
+        self.menu_source = view  # the receiver runs its menu inside this call
+        try:
+            self.node_menu_requested.emit(node, picked, view.viewport().mapToGlobal(point))
+        finally:
+            self.menu_source = None
+
+    def in_suggestions(self) -> bool:
+        """Whether the open context menu or the keyboard is in the Clean up or duplicates list.
+
+        Those lists hold FileTree's suggestions; permanent deletion is never offered from them.
+        """
+        lists = (self.cleanup.view, self.duplicates.view)
+        return self.menu_source in lists or any(view.hasFocus() for view in lists)
 
     def _emit_menu(self, node: Node | None, point: QPoint) -> None:
         if node is not None:

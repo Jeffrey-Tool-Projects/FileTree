@@ -84,17 +84,7 @@ class RecentActions(WorkerDialog):
     def _show(self, result: JournalRead) -> None:
         self._records = result.records
         for record in result.records:
-            outcome = record.outcome
-            reason = (_record_text(f"cleanup_{record.reason[8:]}", record.reason)
-                      if record.reason.startswith("cleanup:") else
-                      tr("journal_reason_undo" if record.reason == "undo" else
-                         "journal_reason_duplicate_links" if record.reason == "duplicate_links" else
-                         "journal_reason_compaction" if record.reason == "virtual_disk_compaction" else
-                         "journal_reason_duplicates" if record.reason == "duplicates" else "review_manual"))
-            values = (record.timestamp, record.source, str(record.identity), reason,
-                      tr(f"journal_status_{outcome.status}"),
-                      _record_text(f"trash_skip_{outcome.detail}", outcome.detail) if outcome.detail else "",
-                      outcome.destination or tr("size_unknown"))
+            values = _cells(record)
             items = []
             for value in values:
                 item = QStandardItem(value)
@@ -138,6 +128,27 @@ class RecentActions(WorkerDialog):
         for worker in self._exports.copy():
             if wait:
                 wait_for(worker)
+
+
+def _cells(record: OperationRecord) -> tuple[str, ...]:
+    """The shown texts of one record; a permanent deletion has its own reason, statuses and details."""
+    outcome = record.outcome
+    if record.reason == "permanent_delete":
+        reason = tr("permanent_journal_reason")
+        status = (tr(f"permanent_journal_{outcome.status}") if outcome.status in ("deleted", "partial")
+                  else tr(f"journal_status_{outcome.status}"))
+        detail = _record_text(f"permanent_skip_{outcome.detail}", outcome.detail) if outcome.detail else ""
+    else:
+        reason = (_record_text(f"cleanup_{record.reason[8:]}", record.reason)
+                  if record.reason.startswith("cleanup:") else
+                  tr("journal_reason_undo" if record.reason == "undo" else
+                     "journal_reason_duplicate_links" if record.reason == "duplicate_links" else
+                     "journal_reason_compaction" if record.reason == "virtual_disk_compaction" else
+                     "journal_reason_duplicates" if record.reason == "duplicates" else "review_manual"))
+        status = tr(f"journal_status_{outcome.status}")
+        detail = _record_text(f"trash_skip_{outcome.detail}", outcome.detail) if outcome.detail else ""
+    return (record.timestamp, record.source, str(record.identity), reason, status, detail,
+            outcome.destination or tr("size_unknown"))
 
 
 def _record_text(key: str, original: str) -> str:

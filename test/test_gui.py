@@ -662,10 +662,11 @@ def test_the_context_menu_acts_on_the_selection_it_was_opened_on(
         results._menu_for(results.tree, results.tree.visualRect(results.tree_model.index_for(node)).center())
     assert requests[0][0] is notes and {id(node) for node in requests[0][1]} == {id(big), id(notes)}
     assert requests[1][0] is photos and requests[1][1] == [photos], "a click outside the selection acts alone"
-    assert menus[0][-1] == "Move 2 items to Recycle Bin"
-    assert menus[1][-1] == "Move to Recycle Bin"
+    assert menus[0][-2:] == ["Move 2 items to Recycle Bin", "Delete 2 items permanently"]
+    assert menus[1][-2:] == ["Move to Recycle Bin", "Delete permanently"]
     window.show_menu_for(root, [root], QPoint())
     assert "Move to Recycle Bin" not in menus[2], "the scanned folder itself cannot be moved"
+    assert "Delete permanently" not in menus[2], "the scanned folder itself cannot be deleted"
 
 
 def test_search_finds_entries_anywhere_and_follows_changes_to_the_tree(

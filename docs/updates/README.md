@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261114-05 | 2026-11-14 | 新增需逐次確認的「永久刪除」 | #done #gui #safety #i18n | [2026-11](2026-11.md) |
 | U-20261114-04 | 2026-11-14 | 視窗開啟大小依螢幕自動調整 | #done #gui #ux | [2026-11](2026-11.md) |
 | U-20261114-03 | 2026-11-14 | 磁碟總覽新增剩餘空間預測 | #done #gui #volumes #i18n | [2026-11](2026-11.md) |
 | U-20261114-02 | 2026-11-14 | 新增「釋放空間」計畫 | #done #gui #cleanup #i18n | [2026-11](2026-11.md) |
