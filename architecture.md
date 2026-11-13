@@ -89,6 +89,16 @@ Because that hand-over changes list data, `MainWindow.export_list` starts its `L
 clean-up analysis (`CleanupPanel.summary_changed`) instead of failing with a changed list; a replaced
 outcome reports the failure and a closing window drops the request.
 
+`core.reclaim.build_plan` turns a space target and the results already in memory (clean-up groups,
+duplicate groups with an explicitly kept copy, the captured largest files and the `Adviser`) into
+ranked steps: lower-risk clean-up first, then duplicate extras and review-needed rules by size, then
+a separate list of files no rule covers. It reads recorded nodes only, counts an entry once (nested
+entries add only the remainder), never proposes protected, OS-managed, root or linked entries or a
+kept copy, and is bounded (200 entries per step, 100 options, 10x look-ups: measured 0.24 s against
+3.4 s unbounded on 50,000 refused extras), so it runs on the GUI thread without a tree walk.
+`gui.reclaim_dialog` (File → Free up space, and a Clean up button) pre-selects nothing and only
+emits the ticked nodes; removal still goes through `MainWindow.move_to_trash` and its questions.
+
 `Summary.top_folders` captures at most three direct nonlinked folders on the analysis worker;
 `ScanOutcome.top_folders` carries them to `ResultHighlights`. The collapsible guidance renders those
 references, the captured capacity coverage and `CleanupPanel.proposal_summary` only. Its buttons
@@ -113,8 +123,8 @@ shutdown. A queued finished callback is idempotent; closing readiness does not d
 
 | Layer | Path | Depends on | Holds |
 |---|---|---|---|
-| Core | `je_file_tree/core/` | standard library only | `node.py` (the tree), `scanner.py` (parallel scan), `allocation.py` (size on disk), `protected.py` (system and program folders), `advice.py` (whether an entry can go), `exclusions.py` (folders to skip), `analysis.py` (largest files, per-type and per-age totals), `search.py` (find by name), `duplicates.py` (same content), `cleanup.py` (clean-up suggestions), `compare.py` (against a saved scan), `pacing.py` (background work gives way to the window), `treemap.py` (layout), `sunburst.py` (rings), `tree_layout.py` (bounded hierarchy rows), `formatting.py`, `export.py` (CSV / JSON) |
-| GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `advice_text.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings.py`, `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
+| Core | `je_file_tree/core/` | standard library only | `node.py` (the tree), `scanner.py` (parallel scan), `allocation.py` (size on disk), `protected.py` (system and program folders), `advice.py` (whether an entry can go), `exclusions.py` (folders to skip), `analysis.py` (largest files, per-type and per-age totals), `search.py` (find by name), `duplicates.py` (same content), `cleanup.py` (clean-up suggestions), `reclaim.py` (free-up-space plan), `compare.py` (against a saved scan), `pacing.py` (background work gives way to the window), `treemap.py` (layout), `sunburst.py` (rings), `tree_layout.py` (bounded hierarchy rows), `formatting.py`, `export.py` (CSV / JSON) |
+| GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `advice_text.py`, `reclaim_dialog.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings.py`, `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
 | Entry script | `start_file_tree.py` | GUI | Starts the window from a source copy; the file Nuitka compiles |
 | Tools | `tools/` | GUI | `make_screenshots.py` (README pictures), `build_nuitka.py` (stand-alone builds, see `nuitka.md`) |
 | Tests | `test/` | both | one file per area; Qt tests on the offscreen platform |

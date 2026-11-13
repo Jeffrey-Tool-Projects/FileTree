@@ -219,6 +219,11 @@ class ResultsView(QWidget):
         """The scan shown."""
         return self._outcome
 
+    @property
+    def adviser(self) -> Adviser:
+        """The removal advice for the scan shown (``ready`` once its clean-up suggestions are known)."""
+        return self._adviser
+
     def restore_splitter(self, state: QByteArray) -> bool:
         """Restore a valid saved layout without first-display defaults replacing it; keep both panes available."""
         restored = self.splitter.restoreState(state)

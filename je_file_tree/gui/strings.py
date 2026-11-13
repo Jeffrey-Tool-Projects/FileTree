@@ -218,6 +218,45 @@ EN: dict[str, str] = {
     "highlights_folders_label": 'Largest folders',
     "highlights_files_label": 'Largest files',
     "highlights_files": 'The largest files — select one to locate it. The dot shows the removal advice.',
+    "reclaim_action": "Free up space…",
+    "reclaim_action_tip": "Plan how to free a chosen amount of space from what this scan found",
+    "reclaim_title": "Free up space",
+    "reclaim_hint": (
+        "Choose how much space you need. FileTree lists what this scan already found, the safest first. Nothing is "
+        "selected for you, and nothing is moved until you review it and answer yes."
+    ),
+    "reclaim_target": "Space to free:",
+    "reclaim_custom": "Custom amount",
+    "reclaim_share": "Until the drive has this share free",
+    "reclaim_drive": "The drive had {free} free of {total} when it was scanned.",
+    "reclaim_column_entry": "Step or entry",
+    "reclaim_column_total": "Running total",
+    "reclaim_step": "{risk}: {title} ({count})",
+    "reclaim_duplicates": "Extra copies of duplicates",
+    "reclaim_duplicates_tip": (
+        "Files with the same content as the copy you chose to keep in the Duplicates tab. The kept copy is never "
+        "proposed."
+    ),
+    "reclaim_options": "Large files no rule covers — only if you are sure",
+    "reclaim_running": "{total} of {target}",
+    "reclaim_beyond": "{total} of {target} (past the target)",
+    "reclaim_more": "{count} more not listed",
+    "reclaim_overlap": "{size} on its own; part of it is already counted in an earlier step.",
+    "reclaim_reached": "These steps could free about {found}, enough for the {target} you asked for.",
+    "reclaim_short": (
+        "These steps could free only about {found}, {short} short of {target}. The large files listed last may make "
+        "up the rest, if you are sure you no longer need them."
+    ),
+    "reclaim_empty": "This scan found nothing that can be proposed.",
+    "reclaim_waiting": "Clean-up suggestions are still being looked for; the plan fills in when they are ready.",
+    "reclaim_undecided": "{count} duplicate groups are left out: choose the copy to keep in the Duplicates tab first.",
+    "reclaim_selected": "Selected: {selected} of {target}",
+    "reclaim_note": (
+        "These are estimates from the scan. What is really freed can differ: hard links, compressed and cloud files "
+        "take less space than their size, and the Recycle Bin keeps what is moved there until it is emptied."
+    ),
+    "reclaim_show": "Show in tree",
+    "reclaim_review": "Review and move to Recycle Bin…",
     "shell_reading": "Reading Explorer registration…",
     "shell_saving": "Saving Explorer registration…",
     "shell_waiting": "Waiting for the current Explorer settings request to finish… A started Save continues.",
@@ -1942,6 +1981,42 @@ ZH_TW: dict[str, str] = {
     "highlights_folders_label": '最大的資料夾',
     "highlights_files_label": '最大的檔案',
     "highlights_files": '最大的檔案；點選即可定位。圓點代表可否刪除的建議。',
+    "reclaim_action": "釋放空間…",
+    "reclaim_action_tip": "依這次掃描找到的項目，規劃如何釋放指定的空間",
+    "reclaim_title": "釋放空間",
+    "reclaim_hint": (
+        "選擇您需要多少空間。FileTree 會列出這次掃描已找到的項目，最安全的排在最前面。不會替您勾選任何項目，在您審查"
+        "並回答「是」之前也不會移動任何項目。"
+    ),
+    "reclaim_target": "要釋放的空間：",
+    "reclaim_custom": "自訂大小",
+    "reclaim_share": "直到磁碟機有此比例的可用空間",
+    "reclaim_drive": "掃描時磁碟機共 {total}，可用 {free}。",
+    "reclaim_column_entry": "步驟或項目",
+    "reclaim_column_total": "累計",
+    "reclaim_step": "{risk}：{title}（{count}）",
+    "reclaim_duplicates": "重複檔案的多餘副本",
+    "reclaim_duplicates_tip": "與您在「重複檔案」分頁中選擇保留的副本內容相同的檔案。保留的副本絕不會列入。",
+    "reclaim_options": "沒有規則涵蓋的大型檔案——確定時才選",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target}（已超過目標）",
+    "reclaim_more": "另有 {count} 個未列出",
+    "reclaim_overlap": "本身為 {size}；其中一部分已計入前面的步驟。",
+    "reclaim_reached": "這些步驟約可釋放 {found}，足以達到您要求的 {target}。",
+    "reclaim_short": (
+        "這些步驟約只能釋放 {found}，距離 {target} 還差 {short}。"
+        "若確定不再需要，最後列出的大型檔案或許能補足。"
+    ),
+    "reclaim_empty": "這次掃描沒有找到可以建議的項目。",
+    "reclaim_waiting": "仍在尋找清理建議；完成後計畫會自動補上。",
+    "reclaim_undecided": "有 {count} 組重複檔案未列入：請先在「重複檔案」分頁選擇要保留的副本。",
+    "reclaim_selected": "已選取：{selected} / {target}",
+    "reclaim_note": (
+        "這些是依掃描結果的估計值，實際釋放的空間可能不同：硬連結、已壓縮的檔案與雲端檔案占用的空間比其大小少，而移到"
+        "資源回收筒的項目要等清空後才會釋放空間。"
+    ),
+    "reclaim_show": "在樹狀清單中顯示",
+    "reclaim_review": "審查並移到資源回收筒…",
     "shell_reading": "正在讀取檔案總管登錄…",
     "shell_saving": "正在儲存檔案總管登錄…",
     "shell_waiting": "正在等待目前的檔案總管設定作業完成…已開始的儲存會繼續執行。",
@@ -3526,6 +3601,42 @@ ZH_CN: dict[str, str] = {
     "highlights_folders_label": '最大的文件夹',
     "highlights_files_label": '最大的文件',
     "highlights_files": '最大的文件；点击即可定位。圆点表示能否删除的建议。',
+    "reclaim_action": "释放空间…",
+    "reclaim_action_tip": "根据本次扫描找到的项目，规划如何释放指定的空间",
+    "reclaim_title": "释放空间",
+    "reclaim_hint": (
+        "选择你需要多少空间。FileTree 会列出本次扫描已找到的项目，最安全的排在最前面。不会替你勾选任何项目，在你审查"
+        "并回答“是”之前也不会移动任何项目。"
+    ),
+    "reclaim_target": "要释放的空间：",
+    "reclaim_custom": "自定义大小",
+    "reclaim_share": "直到驱动器有此比例的可用空间",
+    "reclaim_drive": "扫描时驱动器共 {total}，可用 {free}。",
+    "reclaim_column_entry": "步骤或项目",
+    "reclaim_column_total": "累计",
+    "reclaim_step": "{risk}：{title}（{count}）",
+    "reclaim_duplicates": "重复文件的多余副本",
+    "reclaim_duplicates_tip": "与你在“重复文件”标签页中选择保留的副本内容相同的文件。保留的副本绝不会列入。",
+    "reclaim_options": "没有规则涵盖的大文件——确定时才选",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target}（已超过目标）",
+    "reclaim_more": "另有 {count} 个未列出",
+    "reclaim_overlap": "本身为 {size}；其中一部分已计入前面的步骤。",
+    "reclaim_reached": "这些步骤约可释放 {found}，足以达到你要求的 {target}。",
+    "reclaim_short": (
+        "这些步骤约只能释放 {found}，距离 {target} 还差 {short}。"
+        "如果确定不再需要，最后列出的大文件或许能补足。"
+    ),
+    "reclaim_empty": "本次扫描没有找到可以建议的项目。",
+    "reclaim_waiting": "仍在查找清理建议；完成后计划会自动补上。",
+    "reclaim_undecided": "有 {count} 组重复文件未列入：请先在“重复文件”标签页选择要保留的副本。",
+    "reclaim_selected": "已选中：{selected} / {target}",
+    "reclaim_note": (
+        "这些是根据扫描结果的估计值，实际释放的空间可能不同：硬链接、已压缩的文件和云文件占用的空间比其大小少，而移到"
+        "回收站的项目要等清空后才会释放空间。"
+    ),
+    "reclaim_show": "在树状列表中显示",
+    "reclaim_review": "审查并移到回收站…",
     "shell_reading": "正在读取资源管理器注册项…",
     "shell_saving": "正在保存资源管理器注册项…",
     "shell_waiting": "正在等待当前资源管理器设置操作完成…已开始的保存会继续执行。",
@@ -5149,6 +5260,44 @@ JA: dict[str, str] = {
     "highlights_folders_label": '大きいフォルダー',
     "highlights_files_label": '大きいファイル',
     "highlights_files": '大きいファイルを選んで表示します。丸印は削除の目安です。',
+    "reclaim_action": "空き容量を増やす…",
+    "reclaim_action_tip": "このスキャンで見つかった項目から、指定した容量を空ける計画を立てます",
+    "reclaim_title": "空き容量を増やす",
+    "reclaim_hint": (
+        "必要な容量を選んでください。FileTree はこのスキャンで見つかった項目を、安全なものから順に表示します。自動で"
+        "選択されるものはなく、確認して「はい」と答えるまで何も移動しません。"
+    ),
+    "reclaim_target": "空ける容量:",
+    "reclaim_custom": "任意の容量",
+    "reclaim_share": "ドライブの空きがこの割合になるまで",
+    "reclaim_drive": "スキャン時、ドライブは {total} 中 {free} が空いていました。",
+    "reclaim_column_entry": "ステップまたは項目",
+    "reclaim_column_total": "累計",
+    "reclaim_step": "{risk}: {title} ({count})",
+    "reclaim_duplicates": "重複ファイルの余分なコピー",
+    "reclaim_duplicates_tip": (
+        "「重複」タブで残すと選んだコピーと同じ内容のファイルです。残すコピーが提案されることはありません。"
+    ),
+    "reclaim_options": "どの規則にも当てはまらない大きなファイル — 確かな場合のみ",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target}(目標超過)",
+    "reclaim_more": "ほかに {count} 件(表示していません)",
+    "reclaim_overlap": "単独では {size}。一部は前のステップで計上済みです。",
+    "reclaim_reached": "これらのステップで約 {found} を空けられ、指定した {target} に届きます。",
+    "reclaim_short": (
+        "これらのステップで空けられるのは約 {found} で、{target} まで {short} "
+        "足りません。不要だと確かな場合は、最後に並ぶ大きなファイルで補える場合があります。"
+    ),
+    "reclaim_empty": "このスキャンでは提案できる項目が見つかりませんでした。",
+    "reclaim_waiting": "整理の候補をまだ探しています。見つかり次第、計画に反映されます。",
+    "reclaim_undecided": "{count} 組の重複は含まれていません。先に「重複」タブで残すコピーを選んでください。",
+    "reclaim_selected": "選択: {selected} / {target}",
+    "reclaim_note": (
+        "これはスキャン結果からの推定です。実際に空く容量は異なる場合があります。ハードリンク、圧縮されたファイル、ク"
+        "ラウドのファイルはサイズより使用量が少なく、ごみ箱に移動した項目はごみ箱を空にするまで容量を使い続けます。"
+    ),
+    "reclaim_show": "ツリーで表示",
+    "reclaim_review": "確認してごみ箱に移動…",
     "shell_reading": "エクスプローラーの登録を読み取り中…",
     "shell_saving": "エクスプローラーの登録を保存中…",
     "shell_waiting": "現在のエクスプローラー設定の処理が終わるまで待機中…開始済みの保存は続行します。",
@@ -7124,6 +7273,44 @@ KO: dict[str, str] = {
     "highlights_folders_label": '가장 큰 폴더',
     "highlights_files_label": '가장 큰 파일',
     "highlights_files": '가장 큰 파일을 선택하여 위치를 확인하세요. 점은 삭제 가능 여부 안내입니다.',
+    "reclaim_action": "공간 확보…",
+    "reclaim_action_tip": "이번 스캔에서 찾은 항목으로 원하는 만큼 공간을 확보하는 계획을 세웁니다",
+    "reclaim_title": "공간 확보",
+    "reclaim_hint": (
+        "필요한 공간을 선택하세요. FileTree는 이번 스캔에서 이미 찾은 항목을 가장 안전한 것부터 보여 줍니다. "
+        "자동으로 선택되는 항목은 없으며, 검토하고 '예'라고 답하기 전에는 아무것도 이동하지 않습니다."
+    ),
+    "reclaim_target": "확보할 공간:",
+    "reclaim_custom": "직접 입력",
+    "reclaim_share": "드라이브 여유 공간이 이 비율이 될 때까지",
+    "reclaim_drive": "스캔 당시 여유 공간: {free} / {total}",
+    "reclaim_column_entry": "단계 또는 항목",
+    "reclaim_column_total": "누계",
+    "reclaim_step": "{risk}: {title} ({count})",
+    "reclaim_duplicates": "중복 파일의 추가 사본",
+    "reclaim_duplicates_tip": (
+        "'중복' 탭에서 유지하기로 선택한 사본과 내용이 같은 파일입니다. 유지할 사본은 절대 제안되지 않습니다."
+    ),
+    "reclaim_options": "어떤 규칙에도 해당하지 않는 큰 파일 — 확실할 때만",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target} (목표 초과)",
+    "reclaim_more": "표시되지 않은 항목 {count}개",
+    "reclaim_overlap": "단독 크기 {size}. 일부는 이전 단계에서 이미 계산되었습니다.",
+    "reclaim_reached": "이 단계들로 약 {found} 확보 가능 — 요청한 {target}에 충분합니다.",
+    "reclaim_short": (
+        "이 단계들로는 약 {found}만 확보할 수 있어 {target}까지 {short} 부족합니다. 더 이상 필요 없다고 확실하면 "
+        "마지막에 나열된 큰 파일로 나머지를 채울 수 있습니다."
+    ),
+    "reclaim_empty": "이번 스캔에서 제안할 수 있는 항목을 찾지 못했습니다.",
+    "reclaim_waiting": "정리 제안을 아직 찾는 중입니다. 준비되면 계획에 반영됩니다.",
+    "reclaim_undecided": "중복 그룹 {count}개는 제외되었습니다. 먼저 '중복' 탭에서 유지할 사본을 선택하세요.",
+    "reclaim_selected": "선택됨: {selected} / {target}",
+    "reclaim_note": (
+        "스캔 결과에 따른 추정치입니다. 실제로 확보되는 공간은 다를 수 있습니다. 하드 링크, 압축된 파일, 클라우드 "
+        "파일은 크기보다 사용량이 적고, 휴지통으로 이동한 항목은 휴지통을 비울 때까지 공간을 계속 차지합니다."
+    ),
+    "reclaim_show": "트리에서 표시",
+    "reclaim_review": "검토 후 휴지통으로 이동…",
     "shell_reading": "탐색기 등록을 읽는 중…",
     "shell_saving": "탐색기 등록을 저장하는 중…",
     "shell_waiting": "현재 탐색기 설정 요청이 끝날 때까지 기다리는 중…이미 시작한 저장은 계속됩니다.",

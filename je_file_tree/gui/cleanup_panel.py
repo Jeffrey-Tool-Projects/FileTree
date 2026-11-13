@@ -29,6 +29,7 @@ class CleanupPanel(QWidget):
     bins_requested = Signal()
     bin_refresh_requested = Signal()
     summary_changed = Signal()
+    reclaim_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -49,6 +50,8 @@ class CleanupPanel(QWidget):
         self.select_group = QPushButton()
         self.bins = QPushButton()
         self.bins.clicked.connect(self.bins_requested)
+        self.reclaim = QPushButton()
+        self.reclaim.clicked.connect(self.reclaim_requested)
         self.bin_refresh = QPushButton()
         self.bin_refresh.clicked.connect(self.bin_refresh_requested)
         self.bin_totals = QLabel()
@@ -66,9 +69,8 @@ class CleanupPanel(QWidget):
         bar = QHBoxLayout()
         bar.setContentsMargins(0, 0, 0, 0)
         bar.addWidget(self.status, 1)
-        bar.addWidget(self.select_group)
-        bar.addWidget(self.select_all)
-        bar.addWidget(self.bins)
+        for button in (self.select_group, self.select_all, self.reclaim, self.bins):
+            bar.addWidget(button)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 4, 0, 0)
         layout.addLayout(bar)
@@ -184,6 +186,8 @@ class CleanupPanel(QWidget):
         self.select_all.setText(tr("cleanup_select_all"))
         self.select_group.setText(tr("cleanup_select_group"))
         self.bins.setText(tr("action_bins"))
+        self.reclaim.setText(tr("reclaim_action"))
+        self.reclaim.setToolTip(tr("reclaim_action_tip"))
         self.bin_refresh.setText(tr("bin_labels_refresh"))
         self.bin_refresh.setToolTip(tr("bin_labels_hint"))
         self.bin_totals.setToolTip(tr("bin_labels_hint"))
@@ -218,6 +222,7 @@ class CleanupPanel(QWidget):
                                    and not self._partial and self._coverage is not None
                                    and self._coverage.complete)
         self.select_group.setEnabled(has_entries)
+        self.reclaim.setEnabled(self._root is not None and self._root.path is not None)
         self._group_button()
         self.status.setText(self._status_text())
         coverage = self._coverage

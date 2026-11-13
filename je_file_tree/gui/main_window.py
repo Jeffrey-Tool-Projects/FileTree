@@ -55,6 +55,7 @@ from je_file_tree.gui.history import HistoryDialog, HistorySettings, configured_
 from je_file_tree.gui.recurring_review import RecurringReview
 from je_file_tree.core.history import ScanHistory
 from je_file_tree.gui.projects import ProjectsDialog
+from je_file_tree.gui.reclaim_dialog import ReclaimDialog, reclaim_sources
 from je_file_tree.gui.programs import ProgramsDialog
 from je_file_tree.gui.virtual_disks import VirtualDisksDialog
 from je_file_tree.gui.file_times import FileTimesDialog
@@ -1215,6 +1216,9 @@ class MainWindow(QMainWindow):
             action.setText(tr(f"action_{key}"))
             action.setToolTip(tr(f"action_{key}_tip"))
             action.setStatusTip(tr(f"action_{key}_tip"))
+        self._reclaim_action.setText(tr("reclaim_action"))
+        self._reclaim_action.setToolTip(tr("reclaim_action_tip"))
+        self._reclaim_action.setStatusTip(tr("reclaim_action_tip"))
         if elevation.supported() and not elevation.compiled():
             for key in ("elevate", "ask_admin"):
                 tip = tr(f"action_{key}_tip") + "\n" + tr("elevate_python_tip")
@@ -1432,6 +1436,8 @@ class MainWindow(QMainWindow):
                 action.setShortcut(QKeySequence(shortcut))
             action.triggered.connect(lambda _checked=False, run=handler: run())
             self._actions[key] = action
+        self._reclaim_action = QAction(self)
+        self._reclaim_action.triggered.connect(lambda _checked=False: self.show_reclaim())
         self._configure_actions()
 
     def _configure_actions(self) -> None:
@@ -1483,6 +1489,7 @@ class MainWindow(QMainWindow):
                     "programs", "virtual_disks", "file_times", "recurring", "folder_budgets"):
             file_menu.addAction(self._actions[key])
         file_menu.addSeparator()
+        file_menu.addAction(self._reclaim_action)
         file_menu.addAction(self._actions["trash"])
         file_menu.addAction(self._actions["elevate"])
         file_menu.addSeparator()
@@ -1575,6 +1582,7 @@ class MainWindow(QMainWindow):
         self.welcome.drives_changed.connect(self._update_actions)
         self.results.duplicates.link_requested.connect(self.show_duplicate_links)
         self.results.cleanup.review_requested.connect(self.move_to_trash)
+        self.results.cleanup.reclaim_requested.connect(self.show_reclaim)
         self.welcome.choose_folder_requested.connect(self.choose_folder)
         self.welcome.scan_requested.connect(self.start_scan)
         self.welcome.presets_requested.connect(self.configure_scan_presets)
@@ -1639,6 +1647,7 @@ class MainWindow(QMainWindow):
         virtual = has_results and self.results.outcome.result.root.path is None
         for key in ("trash", "history", "git_history"):
             self._actions[key].setEnabled(has_results and not scanning and not virtual)
+        self._reclaim_action.setEnabled(has_results and not scanning and not virtual)
         self._actions["multi_scan"].setEnabled(not self.operation_busy)
         self.welcome.scan_all.setEnabled(not scanning and bool(self.welcome.drive_rows))
         self._update_bin_buttons()
@@ -1973,6 +1982,25 @@ class MainWindow(QMainWindow):
             dialog.exec()
         finally:
             dialog.shutdown()
+            dialog.deleteLater()
+
+    def show_reclaim(self) -> None:
+        """Plan how to free a chosen amount; the checked entries go only through ``move_to_trash``."""
+        sources = reclaim_sources(self.results)
+        if sources is None or sources.root.path is None or self._worker is not None or self.operation_busy:
+            return
+        dialog = ReclaimDialog(sources, self._unit, self)
+        dialog.selected.connect(self.results.select_node)
+        dialog.review_requested.connect(self.move_to_trash)
+
+        def refresh() -> None:
+            dialog.update_sources(reclaim_sources(self.results))
+
+        self.results.cleanup.summary_changed.connect(refresh)
+        try:
+            dialog.exec()
+        finally:
+            self.results.cleanup.summary_changed.disconnect(refresh)
             dialog.deleteLater()
 
     def exclusions(self) -> list[str]:
