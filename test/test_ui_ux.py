@@ -254,7 +254,7 @@ def test_theme_switch_retains_overview_values_and_analysis_selection(window, qap
 def test_folder_columns_keep_the_nearest_folders_when_elided(window, sample_tree):
     results = window.results
     results.show_outcome(analyse(scan(sample_tree)))
-    views = [(results.largest_table, 2), (results.search_table, 2), (results.type_locations_table, 0),
+    views = [(results.largest_table, 3), (results.search_table, 3), (results.type_locations_table, 0),
              (results.cleanup.view, 2), (results.duplicates.view, 2)]
     for view, column in views:
         delegate = view.itemDelegateForColumn(column)

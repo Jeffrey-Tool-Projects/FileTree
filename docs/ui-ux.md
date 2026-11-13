@@ -62,9 +62,17 @@ waiting without inventing a completion percentage or implying that an incomplete
   approvals are saved. Current-tab scans/source reviews disable the editor; opening it does not
   suspend peer readers. The settings-dialog shutdown contract closes it safely with the application.
 
+- **Removal advice:** Largest files and Search answer *can it go?* in one sortable column beside the
+  size: a coloured dot, a short label (cleanable, check first, your call, keep, OS-managed) and the
+  reason in the tooltip. A legend above Largest files names the colours; the label never relies on
+  colour alone. The size cell draws a bar relative to the biggest listed row. Details repeats the
+  answer for the tree's selection. The answer is pending until the clean-up analysis of the scan on
+  screen is complete, protected and system-managed places win over clean-up rules, and lower risk
+  never means safe: the column selects nothing and every move keeps its review and confirmations.
 - **Result highlights:** a keyboard-collapsible section below the metric cards links the three largest
-  direct folders to the tree, candidate cleanup data to Clean up, and skipped/unreadable/pending
-  coverage to Problems. Pending analysis differs from a completed empty result; partial sizes remain
+  direct folders and the three largest files (each with its advice dot) to the tree, candidate cleanup
+  data to Clean up, and skipped/unreadable/pending
+  coverage to Problems. Row captions replace the general sentence once results are complete. Pending analysis differs from a completed empty result; partial sizes remain
   explicit. Candidate bytes never imply free-space recovery. The section keeps its expansion and the
   tree's selection across language/unit changes, using worker-captured data without source queries.
 

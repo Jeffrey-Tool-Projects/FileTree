@@ -188,6 +188,36 @@ EN: dict[str, str] = {
     "highlights_cleanup_hint": 'Candidate bytes require review and do not represent immediately recoverable space.',
     "highlights_coverage_unknown": 'Coverage not yet available',
     "highlights_coverage": 'Scan limits: {skipped} skipped, {denied} unreadable, {pending} pending',
+    "column_advice": 'Removal advice',
+    "advice_low": 'Cleanable',
+    "advice_review": 'Check first',
+    "advice_personal": 'Your call',
+    "advice_protected": 'Keep',
+    "advice_managed": "OS-managed",
+    "advice_pending": 'Checking…',
+    "advice_low_tip": (
+        'A lower-risk clean-up suggestion: programs can recreate this data. Review it before '
+        'moving it.'
+    ),
+    "advice_review_tip": 'A clean-up suggestion that needs your review: make sure nothing here is still needed.',
+    "advice_personal_tip": (
+        'No rule covers this entry, so only you can tell whether it is still needed. Nothing '
+        'is moved without your confirmation.'
+    ),
+    "advice_protected_tip": 'Keep it: {reason}. Removing it can break the system or installed programs.',
+    "advice_managed_tip": (
+        'The operating system manages this space and FileTree never moves it. Details names t'
+        'he system tool to use.'
+    ),
+    "advice_pending_tip": 'The clean-up analysis is still running.',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": (
+        "Advice from this scan's clean-up rules and the protected places of this computer. It"
+        ' is guidance only: every move still asks first.'
+    ),
+    "highlights_folders_label": 'Largest folders',
+    "highlights_files_label": 'Largest files',
+    "highlights_files": 'The largest files — select one to locate it. The dot shows the removal advice.',
     "shell_reading": "Reading Explorer registration…",
     "shell_saving": "Saving Explorer registration…",
     "shell_waiting": "Waiting for the current Explorer settings request to finish… A started Save continues.",
@@ -1834,6 +1864,24 @@ ZH_TW: dict[str, str] = {
     "highlights_cleanup_hint": '候選資料量需要審查，不代表可立即釋出的空間。',
     "highlights_coverage_unknown": '尚無掃描範圍資料',
     "highlights_coverage": '掃描限制：略過 {skipped}、無法讀取 {denied}、待掃描 {pending}',
+    "column_advice": '可否刪除',
+    "advice_low": '可清理',
+    "advice_review": '先確認',
+    "advice_personal": '自行決定',
+    "advice_protected": '勿刪除',
+    "advice_managed": '系統管理',
+    "advice_pending": '分析中…',
+    "advice_low_tip": '較低風險的清理建議：程式可以重新產生這些資料。移動前仍請先審查。',
+    "advice_review_tip": '需要您審查的清理建議：請確認其中沒有還要用的內容。',
+    "advice_personal_tip": '沒有規則涵蓋這個項目，只有您能判斷是否還需要。未經您確認不會移動任何項目。',
+    "advice_protected_tip": '請保留：{reason}。移除後可能使系統或已安裝的程式無法運作。',
+    "advice_managed_tip": '這些空間由作業系統管理，FileTree 不會移動它。「詳細資訊」會說明該使用的系統工具。',
+    "advice_pending_tip": '清理分析仍在進行。',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": '依據這次掃描的清理規則與這台電腦的受保護位置提供建議。僅供參考：每次移動前仍會先詢問。',
+    "highlights_folders_label": '最大的資料夾',
+    "highlights_files_label": '最大的檔案',
+    "highlights_files": '最大的檔案；點選即可定位。圓點代表可否刪除的建議。',
     "shell_reading": "正在讀取檔案總管登錄…",
     "shell_saving": "正在儲存檔案總管登錄…",
     "shell_waiting": "正在等待目前的檔案總管設定作業完成…已開始的儲存會繼續執行。",
@@ -3343,6 +3391,24 @@ ZH_CN: dict[str, str] = {
     "highlights_cleanup_hint": '候选数据量需要检查，不代表可立即释放的空间。',
     "highlights_coverage_unknown": '暂无扫描范围数据',
     "highlights_coverage": '扫描限制：跳过 {skipped}、无法读取 {denied}、待扫描 {pending}',
+    "column_advice": '能否删除',
+    "advice_low": '可清理',
+    "advice_review": '先确认',
+    "advice_personal": '自行决定',
+    "advice_protected": '勿删除',
+    "advice_managed": '系统管理',
+    "advice_pending": '分析中…',
+    "advice_low_tip": '较低风险的清理建议：程序可以重新生成这些数据。移动前仍请先检查。',
+    "advice_review_tip": '需要您检查的清理建议：请确认其中没有还要用的内容。',
+    "advice_personal_tip": '没有规则涵盖这个项目，只有您能判断是否还需要。未经您确认不会移动任何项目。',
+    "advice_protected_tip": '请保留：{reason}。移除后可能导致系统或已安装的程序无法运行。',
+    "advice_managed_tip": '这些空间由操作系统管理，FileTree 不会移动它。“详细信息”会说明应使用的系统工具。',
+    "advice_pending_tip": '清理分析仍在进行。',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": '根据这次扫描的清理规则与这台电脑的受保护位置提供建议。仅供参考：每次移动前仍会先询问。',
+    "highlights_folders_label": '最大的文件夹',
+    "highlights_files_label": '最大的文件',
+    "highlights_files": '最大的文件；点击即可定位。圆点表示能否删除的建议。',
     "shell_reading": "正在读取资源管理器注册项…",
     "shell_saving": "正在保存资源管理器注册项…",
     "shell_waiting": "正在等待当前资源管理器设置操作完成…已开始的保存会继续执行。",
@@ -4876,6 +4942,39 @@ JA: dict[str, str] = {
     "highlights_cleanup_hint": '候補の容量は確認が必要で、すぐに空く容量ではありません。',
     "highlights_coverage_unknown": 'スキャン範囲はまだ不明です',
     "highlights_coverage": 'スキャン制限：除外 {skipped}、読取不可 {denied}、未読 {pending}',
+    "column_advice": '削除の目安',
+    "advice_low": '整理できる',
+    "advice_review": '要確認',
+    "advice_personal": '自分で判断',
+    "advice_protected": '削除しない',
+    "advice_managed": 'システム管理',
+    "advice_pending": '分析中…',
+    "advice_low_tip": (
+        'リスクが低い整理候補です。プログラムがこのデータを再作成できます。移動する前に確認し'
+        'てください。'
+    ),
+    "advice_review_tip": '確認が必要な整理候補です。まだ必要なものが含まれていないか確かめてください。',
+    "advice_personal_tip": (
+        'この項目に当てはまるルールはありません。必要かどうかはご自身で判断してください。確認'
+        'なしに移動することはありません。'
+    ),
+    "advice_protected_tip": (
+        '残してください：{reason}。削除するとシステムやインストール済みのプログラムが動かなく'
+        'なることがあります。'
+    ),
+    "advice_managed_tip": (
+        'この領域はオペレーティングシステムが管理しており、FileTree は移動しません。使用する'
+        'システムツールは「詳細」に表示されます。'
+    ),
+    "advice_pending_tip": '整理の分析を実行中です。',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": (
+        'このスキャンの整理ルールと、このコンピューターの保護された場所に基づく目安です。参考'
+        '情報であり、移動の前には必ず確認します。'
+    ),
+    "highlights_folders_label": '大きいフォルダー',
+    "highlights_files_label": '大きいファイル',
+    "highlights_files": '大きいファイルを選んで表示します。丸印は削除の目安です。',
     "shell_reading": "エクスプローラーの登録を読み取り中…",
     "shell_saving": "エクスプローラーの登録を保存中…",
     "shell_waiting": "現在のエクスプローラー設定の処理が終わるまで待機中…開始済みの保存は続行します。",
@@ -6757,6 +6856,39 @@ KO: dict[str, str] = {
     "highlights_cleanup_hint": '후보 데이터 크기는 검토가 필요하며 즉시 확보할 수 있는 공간이 아닙니다.',
     "highlights_coverage_unknown": '스캔 범위 정보가 아직 없습니다',
     "highlights_coverage": '스캔 제한: 제외 {skipped}, 읽기 불가 {denied}, 대기 {pending}',
+    "column_advice": '삭제 가능 여부',
+    "advice_low": '정리 가능',
+    "advice_review": '확인 필요',
+    "advice_personal": '직접 판단',
+    "advice_protected": '삭제 금지',
+    "advice_managed": '시스템 관리',
+    "advice_pending": '분석 중…',
+    "advice_low_tip": (
+        '위험이 낮은 정리 후보입니다. 프로그램이 이 데이터를 다시 만들 수 있습니다. 이동하기 '
+        '전에 검토하세요.'
+    ),
+    "advice_review_tip": '검토가 필요한 정리 후보입니다. 아직 필요한 내용이 없는지 확인하세요.',
+    "advice_personal_tip": (
+        '이 항목에 해당하는 규칙이 없으므로 필요한지는 직접 판단해야 합니다. 확인 없이는 아무'
+        '것도 이동하지 않습니다.'
+    ),
+    "advice_protected_tip": (
+        '유지하세요: {reason}. 제거하면 시스템이나 설치된 프로그램이 동작하지 않을 수 있습니'
+        '다.'
+    ),
+    "advice_managed_tip": (
+        "이 공간은 운영 체제가 관리하며 FileTree는 이동하지 않습니다. 사용할 시스템 도구는 '"
+        "세부 정보'에 표시됩니다."
+    ),
+    "advice_pending_tip": '정리 분석이 아직 진행 중입니다.',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": (
+        '이 스캔의 정리 규칙과 이 컴퓨터의 보호된 위치를 바탕으로 한 안내입니다. 참고용이며 '
+        '이동하기 전에 항상 먼저 묻습니다.'
+    ),
+    "highlights_folders_label": '가장 큰 폴더',
+    "highlights_files_label": '가장 큰 파일',
+    "highlights_files": '가장 큰 파일을 선택하여 위치를 확인하세요. 점은 삭제 가능 여부 안내입니다.',
     "shell_reading": "탐색기 등록을 읽는 중…",
     "shell_saving": "탐색기 등록을 저장하는 중…",
     "shell_waiting": "현재 탐색기 설정 요청이 끝날 때까지 기다리는 중…이미 시작한 저장은 계속됩니다.",

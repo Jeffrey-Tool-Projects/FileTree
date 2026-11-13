@@ -84,6 +84,10 @@ def main() -> None:
         window.current.results.show_outcome(analyse(ScanResult(demo_tree(), [], 2.4)))
         window.current.pages.setCurrentIndex(RESULTS_PAGE)
         window.current.path_edit.setText("C:\\Users\\demo")
+        deadline = time.monotonic() + 30  # the removal advice follows the clean-up analysis
+        while window.current.results.cleanup.proposal_summary is None and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.01)
         for _ in range(10):
             app.processEvents()
         window.grab().save(str(OUTPUT / f"main_window_{language}.png"))

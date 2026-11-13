@@ -40,6 +40,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from je_file_tree.core.advice import Adviser
 from je_file_tree.core.analysis import (
     AGES,
     CATEGORIES,
@@ -56,11 +57,12 @@ from je_file_tree.core.analysis import (
 from je_file_tree.core.formatting import format_count, format_size
 from je_file_tree.core.capacity import CapacityLedger
 from je_file_tree.core.node import Node
+from je_file_tree.core.protected import protected_places
 from je_file_tree.gui.node_text import node_path
 from je_file_tree.core.compare import SavedScan
 from je_file_tree.core.scanner import ScanProgress, ScanResult
 from je_file_tree.core.type_locations import TypeMatches
-from je_file_tree.gui import elevation
+from je_file_tree.gui import advice_text, elevation
 from je_file_tree.gui.changes_panel import ChangesPanel
 from je_file_tree.gui.capacity_panel import CapacityPanel
 from je_file_tree.gui.age_colours import AGE_COLOURS, UNKNOWN_AGE_COLOUR
@@ -113,8 +115,9 @@ from je_file_tree.gui.users_panel import UsersPanel
 _LARGEST_SIZE_COLUMN = 1
 # Name starts at 250 px; extra columns use horizontal scrolling.
 _TREE_COLUMN_WIDTHS = {SIZE: 75, ALLOCATED: 75, SHARE: 95, DRIVE_SHARE: 95, FILES: 55, FOLDERS: 65, MODIFIED: 120}
-_LARGEST_COLUMN_WIDTHS = {0: 200, 1: 80, 3: 125}
-_LARGEST_FOLDER_COLUMN = 2
+_LARGEST_COLUMN_WIDTHS = {0: 165, 1: 80, 2: 104, 4: 112}
+_LARGEST_FOLDER_COLUMN = 3
+_HIGHLIGHT_FILES = 3
 _CHANGE_COLUMN = 3
 _PROBLEM_COLUMN_WIDTH = 220
 _TYPES_SHARE_COLUMN = 3
@@ -473,6 +476,11 @@ class ResultsView(QWidget):
                  else self.duplicates.view}
         return lists.get(self.tabs.currentIndex())
 
+    def advice_arriving(self, view: QAbstractItemView) -> bool:
+        """Whether ``view`` shows removal advice that the running clean-up analysis is about to change."""
+        return (view in (self.largest_table, self.search_table) and self.cleanup.busy
+                and not self._adviser.ready)
+
     def select_node(self, node: Node) -> None:
         """Select ``node`` in the tree (expanding its folders), and outline it in the treemap."""
         index = self.tree_filter.reveal(node)
@@ -557,6 +565,8 @@ class ResultsView(QWidget):
                     [(tr(f"tree_orientation_{mode}"), mode) for mode in ORIENTATIONS],
                     self.charts.tree.orientation)
         self._largest_filter.setPlaceholderText(tr("largest_filter"))
+        self._advice_legend.set_items(advice_text.legend())
+        self._advice_legend.setToolTip(tr("advice_legend_tip"))
         self._type_locations_label.setText(tr('type_locations_title'))
         self._type_locations_label.setToolTip(tr('type_locations_tip'))
         self.type_locations_model.refresh()
@@ -580,11 +590,20 @@ class ResultsView(QWidget):
         self.duplicates = DuplicatesPanel()
         self.cleanup = CleanupPanel()
         self.cleanup.summary_changed.connect(lambda: self.highlights.show_cleanup(self.cleanup.proposal_summary))
+        self.cleanup.summary_changed.connect(self._refresh_advice)
         self.highlights.folder_requested.connect(self.select_node)
+        self.highlights.file_requested.connect(self.select_node)
         self.highlights.cleanup_requested.connect(self._show_cleanup_highlight)
         self.highlights.problems_requested.connect(lambda: self.tabs.setCurrentIndex(PROBLEMS_TAB))
         self.users = UsersPanel()
         self.cleanup_pages = QTabWidget()
+        self._advice_legend = ChartLegend()
+        self._places = protected_places()
+        self._adviser = Adviser(self._places)
+        self._advice_groups: object = None  # the clean-up result the adviser was built from
+        for model in (self.largest_model, self.search_model):
+            model.set_adviser(self._adviser)
+        self.details.set_adviser(self._adviser)
 
     def _build_scope_switch(self) -> None:
         self._scope: Node | None = None  # the folder the three lists cover; None: the whole scan
@@ -649,6 +668,7 @@ class ResultsView(QWidget):
         header.setSectionResizeMode(_LARGEST_FOLDER_COLUMN, QHeaderView.ResizeMode.Stretch)
         table.setTextElideMode(Qt.TextElideMode.ElideMiddle)  # names keep their extension
         table.setItemDelegateForColumn(_LARGEST_FOLDER_COLUMN, PathTailDelegate(table))  # the nearest folders
+        table.setItemDelegateForColumn(_LARGEST_SIZE_COLUMN, ShareBarDelegate(table))  # beside the biggest row
         table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         return table, proxy
 
@@ -729,7 +749,8 @@ class ResultsView(QWidget):
         self._assemble_chart_tab()
         self._show_all.clicked.connect(self.show_all_largest)
         self._focus_bar.hide()
-        self.tabs.addTab(_column(self._focus_bar, self._largest_filter, self._build_type_locations()), "")
+        self.tabs.addTab(_column(self._focus_bar, self._largest_filter, self._advice_legend,
+                                 self._build_type_locations()), "")
         self.tabs.addTab(self.search, "")
         self.cleanup_pages.addTab(self.cleanup, "")
         self.cleanup_pages.addTab(self.duplicates, "")
@@ -822,7 +843,25 @@ class ResultsView(QWidget):
             folders = tuple(node for node in folders if node.parent is root)
         coverage = outcome.capacity.coverage if outcome is not None and outcome.capacity is not None else None
         self.highlights.show_scan(folders, state, coverage)
+        files = tuple(outcome.largest[:_HIGHLIGHT_FILES]) if outcome is not None else ()
+        self.highlights.show_files(files, self._adviser)
         self._analysis_hint.setText(tr("overview_live_hint" if outcome is None else "overview_result_hint"))
+
+    def _refresh_advice(self) -> None:
+        """Answer *can it go?* again once the clean-up suggestions of the scan on screen changed.
+
+        Building the adviser reads the suggested entries only (no tree walk); an unchanged result is
+        skipped, since the panel also announces unit and language changes.
+        """
+        groups = self.cleanup.groups if self.cleanup.proposal_summary is not None else None
+        if groups is self._advice_groups and self._adviser.ready == (groups is not None):
+            return
+        self._advice_groups = groups
+        self._adviser = Adviser(self._places, groups)
+        for model in (self.largest_model, self.search_model):
+            model.set_adviser(self._adviser)
+        self.details.set_adviser(self._adviser)
+        self._update_overview()
 
     def _show_cleanup_highlight(self) -> None:
         self.tabs.setCurrentIndex(CLEANUP_TAB)

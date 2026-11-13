@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261113-01 | 2026-11-13 | 最大的檔案顯示大小長條與「可否刪除」建議 | #done #gui #cleanup #i18n | [2026-11](2026-11.md) |
 | U-20261102-01 | 2026-11-02 | 要求 Python 3.11，不再支援 3.10 | #migration #deps #ci | [2026-11](2026-11.md) |
 | U-20261030-01 | 2026-10-30 | 整合 Ruff 0.17.1 與測試鎖定檔相依套件更新 | #migration #tooling #ci | [2026-10-e](2026-10-e.md) |
 | U-20261029-07 | 2026-10-29 | 確認清理鍵盤測試修正通過全部跨平台檢查 | #done #tests #gui | [2026-10-e](2026-10-e.md) |

@@ -15,6 +15,7 @@ from PySide6.QtCore import QByteArray, QEvent, QPoint, QSettings, QSignalBlocker
 from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QDragEnterEvent, QDropEvent, QKeySequence
 from PySide6.QtPrintSupport import QPrintDialog
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
     QFileDialog,
     QLineEdit,
@@ -1054,6 +1055,27 @@ class MainWindow(QMainWindow):
         target, _ = QFileDialog.getSaveFileName(self, tr('action_export_list'), 'list.csv', tr('csv_filter'))
         if not target:
             return
+        self.statusBar().showMessage(tr('export_running', path=target))
+        if not self.results.advice_arriving(view):
+            self._export_list_to(view, target)
+            return
+        # The clean-up analysis is about to change the removal advice this list shows: capture after it.
+        outcome, changed = self.results.outcome, self.results.cleanup.summary_changed
+
+        def resume() -> None:
+            if self.results.advice_arriving(view):
+                return
+            changed.disconnect(resume)
+            if self._closing:
+                return
+            if self.results.outcome is not outcome:
+                QMessageBox.warning(self, tr('export_title'), tr('export_failed', reason=tr('list_changed')))
+                return
+            self._export_list_to(view, target)
+
+        changed.connect(resume)
+
+    def _export_list_to(self, view: QAbstractItemView, target: str) -> None:
         stream = ListStream()
         capture = ListCapture(view, self, stream=stream)
         self._captures.add(capture)
@@ -1066,7 +1088,6 @@ class MainWindow(QMainWindow):
         worker.finished.connect(lambda: self._exports.discard(worker))
         worker.finished.connect(worker.deleteLater)
         self._exports.add(worker)
-        self.statusBar().showMessage(tr('export_running', path=target))
         worker.start()
         capture.start()
 
