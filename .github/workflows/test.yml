@@ -227,18 +227,6 @@ jobs:
           windows-volume-vhd.json
         if-no-files-found: warn
         retention-days: 7
-    - name: Compare raw MFT metadata on a new private NTFS image
-      env:
-        QT_QPA_PLATFORM: offscreen
-      run: python tools/validate_mft.py --output windows-mft.json
-    - name: Preserve raw MFT metadata evidence
-      if: always()
-      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
-      with:
-        name: windows-mft
-        path: windows-mft.json
-        if-no-files-found: warn
-        retention-days: 7
     - name: Compare sparse Trash lengths on a fresh owned larger NTFS volume
       env:
         QT_QPA_PLATFORM: offscreen

@@ -53,6 +53,7 @@ def test_a_path_query_alone_cannot_set_the_bit_and_a_listing_can(tmp_path) -> No
     assert path_metadata(_with_attributes(info, RECALL_ON_OPEN)).st_file_attributes == 0x80
 
 
+@_windows  # elsewhere a file has no attributes for the bit to join
 def test_a_snapshot_of_one_path_never_carries_the_bit(tmp_path, monkeypatch) -> None:
     target = tmp_path / "file.bin"
     target.write_bytes(b"data")

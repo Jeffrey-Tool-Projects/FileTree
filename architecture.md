@@ -111,7 +111,6 @@ Scan workers transfer their first failure from priority setup/cleanup, pacing, r
 the caller after all owned threads join. Each taken task releases its busy count exactly once;
 failure takes precedence over cancellation. The GUI terminal boundary logs unexpected exceptions
 and emits one failure even during partial-result analysis; CLI errors retain its JSON/exit-3 protocol.
-An explicitly requested but discarded MFT candidate adds a stable warning to the ordinary result.
 Local compaction path validation precedes pinning and keeps extended drive namespaces unchanged
 through native opening, rejecting UNC/device/relative forms. Explorer is resolved through the native
 Windows directory API, and quoted trailing backslashes are escaped.
@@ -1497,7 +1496,7 @@ versioned internal JSON arguments with strict types, unique fields and a 1 MiB p
 scan workers after all tabs exist. Invalid input gets a literal, locale-font-aware startup error.
 Version 2 adds immutable `ScanOptions` snapshots: six flags per tab and shared exclusion/worker
 defaults encoded once. `scan_preferences` validates exact booleans, the existing 1–32 worker bound,
-pattern strings and consistent workspace defaults; experimental backends/unknown authority fields
+pattern strings and consistent workspace defaults; unknown fields
 are refused. Version 1 remains readable and uses saved preferences. Apply all flags through signal
 blockers before scan dispatch. A shared transient `ScanDefaults` serves current/new tabs; explicit
 exclusion/concurrency edits update it and saved settings. Imported flags do not cause preference
@@ -1722,89 +1721,16 @@ folder is published exclusively under an anchored parent; existing or concurrent
 Draft provenance records actual hashes/ProductCode and published=false. CI archives drafts; the release
 attaches their ZIP without store credentials or submissions. URLs require those exact published assets.
 
-`core/mft.py` is the stdlib-only NTFS 3.1 raw metadata foundation: immutable FILE segments,
-sequence-qualified names/attribute-list entries, resident sizes (never DATA payloads), nonresident
-VCN runs/allocation and distinct FILETIME dates. Record sizes, USA arrays, forms, lengths, name
-offsets, instances, mapping widths, signs, extents and list counts are bounded and fail closed.
-Sparse holes do not alter previous LCNs; extension sizes remain unknown outside LowestVcn zero.
-Known FILE system/view-index bits are retained without treating view indexes as directories;
-unknown flag bits are refused alongside the existing geometry and identity checks.
-Zero-link live records are retained as metadata; formatted unused records may have sequence zero.
-Only independently checked live names/parents/native directory visibility can become tree entries.
-The parser performs no volume I/O. `core/mft_reader.py` owns an exclusively read-only raw volume
-handle with bounded aligned reads, checked NTFS 3.1 geometry/physical mapping, streaming batches and
-an LRU record cache. It checks extension sequences/base ownership and refuses nested/split lists.
-No elevation/privilege changes, volume mutations or public DATA payload access are provided. This
-metadata reader connects to `scan` only through off-by-default ScanOptions.experimental_mft. The
-serial core/mft_scan candidate requires ordinary visible directory entries and per-path no-follow
-stat authority before matching raw sequence/name/parent/date/link/type/size metadata. Only the known
-NTFS internal 0x10000000 DIRECTORY bit is normalized for comparison when native listing and stat
-both independently identify an ordinary nonreparse/noncloud directory. Full snapshot attributes
-are retained; regular files, unknown bits, identity/time changes and other attributes still refuse. Shared Node
-helpers retain ordinary allocation, owner, exclusion, hidden, link and hard-link semantics. Ancestors
-are pinned; worker pause/cancel checks precede entries and attribute-list extensions. Native reader
-and mount observations reverify before completion. Success/cancellation adopts a sorted staged tree
-into the single on_root object; unsupported/raw failures discard it and restart ordinary traversal
-after checking root identity, so progress can restart. User callback errors propagate without fallback.
-ScanResult.backend identifies ordinary or the explicit mft audit; raw I/O stays serial despite workers.
-Large-real-drive MFT parity and throughput remain required before considering default enabling.
-Candidate refusal logs a bounded metadata-only reason at DEBUG; default logging remains quiet. Native
-private-image validation enables those diagnostics, including directory/stat ID/attribute/time values,
-so an ordinary fallback never supplies parity evidence without the actual refusal being inspected.
-`tools/validate_mft.py` accepts only a new owned private
-NTFS image, compares native identities/names/sizes/allocation/dates and preserves main/ADS payloads;
-CI retains phase evidence. Synthetic tests are not proof of native metadata parity.
-`tools/mft_tree_probe.py` compares ordinary versus explicitly selected audit snapshots, owners,
-allocation, hard-link accounting, hidden/excluded/link coverage and cancellation on that private image.
-Three whole-private-drive pairs retain medians without extrapolating to large real volumes. Each
-owned-folder/options/DACL comparison requires the actual MFT backend. Whole-private-drive pairs
-also validate a permitted ordinary fallback when Windows-managed metadata refuses the audit;
-every Node/snapshot/coverage/accounting field and the single published root must still agree.
-The evidence names the actual backend and separates requested-audit timings from actual MFT
-samples; no successful MFT sample means its median is null. Completed denied/cancel/drive phases
-are retained immediately, including later failures. Production time/identity checks remain strict.
-Each comparison measures both complete calls with perf_counter, avoiding zero-duration baselines from
-the coarse Windows clock used by older runtimes. The ACL child receives only the fixed Windows
-PowerShell system Modules directory in PSModulePath; parent environment and host settings remain
-intact, and incompatible inherited PowerShell 7 modules cannot override the native ACL cmdlets.
-An owned denied-listing branch freezes its original DACL and restores it in finally, including failed probes;
-phase evidence retains the exact original/restored descriptors before enforcing equality, so failed
-native restoration cannot be mistaken for completed validation or lose its permission metadata.
-The fixed ACL script preserves the captured inheritance model: ordinary Set-Acl handles an already
-auto-inherited DACL; legacy non-auto-inherited fixtures use System32 SetFileSecurityW with only
-DACL_SECURITY_INFORMATION, without propagating to children or writing owner/group/SACL sections.
-This use of the obsolete API is confined to the owned fixture because Set-Acl converts the legacy
-model. Exact descriptor equality remains mandatory; no AI flag or ACE differences are ignored.
-The fixed mft_fixture_acl.ps1 additionally requires the exact fresh path pattern, volume GUID, unique
-fixture label and nonreparse directory before ACL access. It denies only LIST_DIRECTORY on that owned
-folder. Phase evidence retains comparisons/refusal and original payload/ADS identities/hashes; no host
-ACL, privilege change or source removal occurs. Native artifact review is required before parity claims.
-The newly created fixture symlink freezes its complete no-follow snapshot and actual readlink target
-before scanning. Final equality preserves native Windows namespace prefixes and refuses replaced
-identity/type/metadata or changed targets; comparing against the input display path is insufficient.
 `core/windows_directory.py` streams bounded FILE_ID_EXTD_DIR_INFO under ordinary scandir listing
 permission, checked native file ID/volume and a no-follow handle pinned against rename/delete.
 It rejects unsafe/corrupt chains, reparse/cloud directory scopes and changed identities, propagates
 worker checks, and closes only its own handle. Callers must anchor ancestors. It makes no raw-volume
-or privilege calls; private-image validation compares native names/IDs/sizes/attributes/birth/modified
-dates across a reply larger than one buffer. Directory allocation is retained separately. Node/options
-validation passed on owned native fixtures; large-real-drive MFT parity/throughput remain
-required before considering default enablement.
-Reviewed evidence in docs/updates/mft-20261009-native.json comes from successful native run
-37808218838/job 113417986654 at 85490ec (Windows administrator, Python 3.12, fresh 512 MiB NTFS image).
-It proves 238 raw/native observations, five actual MFT options comparisons, actual denied-listing
-incomplete coverage with exact DACL restoration, counted single-root MFT cancellation, original
-source/ADS/payload and exact symlink snapshot/target preservation, and completed image cleanup.
-Three whole-private-drive comparisons proved ordinary fallback parity after System Volume Information
-listing/path modification times disagreed. Ordinary/requested-audit medians were 0.0067914/0.0114338 s;
-all three actual backends were ordinary, so successful whole-drive MFT samples were zero and the MFT
-median is null. Those timings do not prove MFT throughput or extrapolate to large real drives. Default
-enablement remains false. This native evidence does not substitute for owner desktop/cloud/UNC/signing
-or same-device macOS/POSIX mount validation.
-Raw resident DATA allocation is zero separate clusters. Its logical byte length and bounded
-ValueOffset..RecordLength capacity (including padding) are distinct. FILE_STANDARD_INFO may report
-the resident space, not logical length. Diagnostics preserve these fields separately and require
-exact native capacity comparisons; a size/truncation matrix must pass before Node construction.
+or privilege calls. Directory allocation is retained separately.
+The experimental raw NTFS metadata audit (`core/mft.py`, `core/mft_reader.py`, `core/mft_scan.py`,
+`ScanOptions.experimental_mft`, `ScanResult.backend` and their validation tools) was removed on
+2026-11-14 by owner decision: on a live system volume it fell back to the ordinary scan, it was about
+ten times slower, and a successful audit equalled the ordinary result by design
+(docs/updates U-20261114-13 to -15). The scanner has one backend.
 
 The GUI entry point accepts `--background` for an explicitly enabled monitor. It skips elevation
 and hides the workspace only when the saved opt-in configuration and native system tray are usable.
@@ -2092,8 +2018,6 @@ Native macOS arm64 Desktop build 37788683269 at 763182a compiled the actual bund
 preserved all 167 source entries and verified canonical FileTree.app extraction. Reviewed proof
 CRC/size is retained in docs/updates/desktop-20261008-macos.json. The app was not launched/published;
 Finder consent, signing/notarization and the POSIX release gate remain external requirements.
-Owned MFT tree parity failures report the first differing Node field or bounded coverage/count
-detail without weakening comparisons; native candidate success alone is not parity evidence.
 
 Ordinary Windows os.DirEntry metadata always passes through no-follow os.lstat even when a cached
 ID is valid, because enumeration can omit NTFS internal attributes. Full attributes remain in

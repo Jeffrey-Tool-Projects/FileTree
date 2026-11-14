@@ -26,7 +26,7 @@ def valid_scan_preferences(options: tuple[ScanOptions, ...], count: int) -> bool
     if type(options) is not tuple or len(options) != count or not options:
         return False
     for item in options:
-        if (type(item) is not ScanOptions or item.experimental_mft is not False
+        if (type(item) is not ScanOptions
                 or not all(type(getattr(item, field)) is bool for field in _FIELDS)
                 or type(item.workers) is not int or not 1 <= item.workers <= MAX_SCAN_WORKERS
                 or type(item.exclude) is not tuple

@@ -50,12 +50,6 @@ def test_corrupt_presets_are_refused_without_overwriting(window, tmp_path, kind)
     assert window.settings.value(PRESETS_KEY) == raw
 
 
-def test_private_backend_cannot_be_saved(window, tmp_path):
-    with pytest.raises(ValueError):
-        write_presets(window.settings, (ScanPreset("owned", str(tmp_path), ScanOptions(experimental_mft=True)),))
-    assert not window.settings.contains(PRESETS_KEY)
-
-
 def test_dialog_add_update_rename_delete_and_load(window, tmp_path):
     dialog = ScanPresetsDialog(window.settings, str(tmp_path), ScanOptions(workers=7), window)
     try:
