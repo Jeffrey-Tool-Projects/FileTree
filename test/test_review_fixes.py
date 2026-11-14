@@ -252,7 +252,17 @@ def test_non_windows_compaction_refuses_before_native_pinning(monkeypatch):
         compaction.prepare_compaction(SimpleNamespace(path=r"C:\owned.vhdx"))
 
 
-@pytest.mark.parametrize("path", ["C:\\", "C:\\a b\\文件.txt", "C:\\trip,day1\\a.jpg"])
+def test_explorer_gets_a_drive_root_with_one_trailing_backslash(monkeypatch):
+    # Explorer does not parse like CommandLineToArgvW: the doubled backslash that argv parsing wants
+    # made it open the Desktop instead (observed with the real Explorer on Windows 11, 2026-11-14).
+    from je_file_tree.gui import file_actions
+
+    monkeypatch.setattr(file_actions, "_explorer_path", lambda: "C:\\Windows\\explorer.exe")
+    assert file_actions.explorer_command("C:\\") == '"C:\\Windows\\explorer.exe" /select,"C:\\"'
+    assert file_actions.explorer_command("C:\\folder\\") == '"C:\\Windows\\explorer.exe" /select,"C:\\folder"'
+
+
+@pytest.mark.parametrize("path", ["C:\\a b\\文件.txt", "C:\\trip,day1\\a.jpg"])
 def test_explorer_uses_system_directory_and_roundtrips_argument(qapp, monkeypatch, path):
     from je_file_tree.gui import file_actions
 

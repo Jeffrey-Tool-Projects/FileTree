@@ -37,10 +37,10 @@ def explorer_command(path: str) -> str:
     """The ``explorer`` command line that opens a window with ``path`` selected."""
     if re.fullmatch(r'[^\x00-\x1f"]+', path) is None:
         raise ValueError("Invalid Windows file-manager path")
-    target = ntpath.normpath(path)
-    # A trailing backslash must be doubled before the closing command-line quote.
-    trailing = len(target) - len(target.rstrip("\\"))
-    return f'"{_explorer_path()}" /select,"{target}{chr(92) * trailing}"'
+    # Explorer reads its own command line, not the C runtime's argv: a root keeps its single trailing
+    # backslash. Measured on Windows 11 (2026-11-14): /select,"C:\" selects the drive in This PC, while
+    # the argv-style /select,"C:\\" opens the Desktop with Documents selected.
+    return f'"{_explorer_path()}" /select,"{ntpath.normpath(path)}"'
 
 
 def _explorer_path() -> str:
