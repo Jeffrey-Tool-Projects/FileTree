@@ -153,7 +153,9 @@ def test_fixed_disk_tools_open_through_the_shell_without_arguments(monkeypatch) 
     monkeypatch.setattr(system_files.sys, "platform", "win32")
     monkeypatch.setenv("SYSTEMROOT", "C:\\Windows")
     monkeypatch.setattr(system_files.subprocess, "Popen", commands.append)
-    monkeypatch.setattr(system_files.QDesktopServices, "openUrl", lambda url: urls.append(url.toString()) or True)
+    # Off Windows, Qt keeps the backslashes of a Windows path as %5C; the tool itself only runs on Windows.
+    monkeypatch.setattr(system_files.QDesktopServices, "openUrl",
+                        lambda url: urls.append(url.toString().replace("%5C", "/")) or True)
     for tool, _key in disks_dialog.TOOLS:
         assert system_files.open_system_tool(tool, "D:\\ignored")
     assert urls == ["file:///C:/Windows/System32/diskmgmt.msc", "file:///C:/Windows/System32/dfrgui.exe",
