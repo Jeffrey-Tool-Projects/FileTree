@@ -11,6 +11,7 @@ from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.folder_validation import FolderWorker
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue_worker
+from je_file_tree.gui.window_fit import fit_window
 
 
 class MultiScanDialog(WorkerDialog):
@@ -24,7 +25,7 @@ class MultiScanDialog(WorkerDialog):
         self._workers: set[FolderWorker] = set()
         self._order: list[str] = []
         self.setWindowTitle(tr("multi_choose"))
-        self.resize(700, 420)
+        fit_window(self, 700, 420)
         layout = QVBoxLayout(self)
         hint = QLabel(tr("multi_hint"))
         hint.setWordWrap(True)

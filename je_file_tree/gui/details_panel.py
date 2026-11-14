@@ -11,10 +11,12 @@ from PySide6.QtWidgets import (
     QLabel, QLayout, QLineEdit, QPushButton, QScrollArea, QSizePolicy, QToolButton, QVBoxLayout, QWidget,
 )
 
+from je_file_tree.core.advice import Adviser
 from je_file_tree.core.details import Breakdown, breakdown
 from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_size, format_time
 from je_file_tree.core.node import Node
 from je_file_tree.gui.node_text import node_path
+from je_file_tree.gui import advice_text
 from je_file_tree.gui.elided_label import ElidedLabel
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
@@ -52,6 +54,7 @@ class DetailsPanel(QWidget):
         self.now = time.time()
         self.unit = AUTO_UNIT
         self._result: Breakdown | None = None
+        self._adviser: Adviser | None = None
         self._current: DetailsWorker | None = None
         self._running: set[DetailsWorker] = set()
         self.toggle = QToolButton()
@@ -60,6 +63,7 @@ class DetailsPanel(QWidget):
         self.path_label = ElidedLabel()
         self.facts = QLabel()
         self.facts.setTextFormat(Qt.TextFormat.PlainText)
+        self.facts.setWordWrap(True)
         self.facts.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.distribution = QLabel()
         self.distribution.setTextFormat(Qt.TextFormat.PlainText)
@@ -144,6 +148,11 @@ class DetailsPanel(QWidget):
         if self.toggle.isChecked() and node is not None and not live:
             self._timer.start()
 
+    def set_adviser(self, adviser: Adviser | None) -> None:
+        """Say whether the selection can go, from ``adviser``; the running analysis is left alone."""
+        self._adviser = adviser
+        self.retranslate()
+
     def stop(self, *, wait: bool = False) -> None:
         """Cancel all obsolete requests; the window joins their owned threads on close."""
         self._timer.stop()
@@ -164,6 +173,8 @@ class DetailsPanel(QWidget):
             ('column_allocated', format_size(node.allocated, self.unit)),
             ('column_files', format_count(node.file_count)), ('column_folders', format_count(node.dir_count)),
             ('column_modified', format_time(node.modified)),
+            *((('column_advice', advice_text.summary(self._adviser.advice(node))),)
+              if self._adviser is not None and not self.live else ()),
         )
         self.facts.setText('\n'.join(f'{tr(key)}: {value}' for key, value in fields))
         self.distribution.setText(self._distribution_text())

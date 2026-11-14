@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.window_fit import fit_window
 
 
 class ExclusionsDialog(QDialog):
@@ -28,7 +29,7 @@ class ExclusionsDialog(QDialog):
     def __init__(self, patterns: Sequence[str], parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("exclusions_title"))
-        self.resize(520, 380)
+        fit_window(self, 520, 380)
         hint = QLabel(tr("exclusions_hint"))
         hint.setWordWrap(True)
         self.list = QListWidget()

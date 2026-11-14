@@ -20,6 +20,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.tree_model import NODE_ROLE
+from je_file_tree.gui.window_fit import fit_window
 
 
 class SpecialFilesModel(_TableModel[SpecialEntry]):
@@ -70,7 +71,7 @@ class SpecialFilesDialog(WorkerDialog):
     def __init__(self, root: Node, unit: str, *, partial: bool = False, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("action_special_files"))
-        self.resize(1050, 560)
+        fit_window(self, 1050, 560)
         self._partial, self._closed = partial, False
         self.model = SpecialFilesModel(self)
         self.model.unit = unit

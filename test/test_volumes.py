@@ -16,7 +16,7 @@ from je_file_tree.gui.tables import SORT_ROLE
 def _storage(root="D:/", *, free=400, available=300, ready=True):
     return SimpleNamespace(refresh=lambda: None, isValid=lambda: True, isReady=lambda: ready,
                            rootPath=lambda: root, displayName=lambda: "owned drive",
-                           fileSystemType=lambda: QByteArray(b"ntfs"),
+                           device=lambda: QByteArray(b"owned"), fileSystemType=lambda: QByteArray(b"ntfs"),
                            bytesTotal=lambda: 1000, bytesFree=lambda: free, bytesAvailable=lambda: available)
 
 

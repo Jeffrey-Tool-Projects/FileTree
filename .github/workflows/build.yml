@@ -17,6 +17,11 @@ on:
       - .github/requirements/archives.txt
       - .github/requirements/photos.txt
       - .github/requirements/reports.txt
+      - .github/requirements/native.txt
+      - setup.py
+      - je_file_tree/_native.cpp
+      - je_file_tree/core/native_scan.py
+      - tools/require_native_reader.py
       - tools/validate_msi.ps1
       - tools/installer/**
 
@@ -40,8 +45,16 @@ jobs:
           python-version: "3.12"
       - name: Install shared pinned compiler tools
         run: python tools/install_compiler.py
+      - name: Install the build backend of the native folder reader at locked wheel hashes
+        run: 'python -m pip install --require-hashes --only-binary :all: -r .github/requirements/native.txt'
+      - name: Build the native folder reader
+        run: python setup.py build_ext --inplace
+      - name: Require the native folder reader to agree with this Python
+        run: python -m tools.require_native_reader
       - name: Compile the actual FileTree standalone program
         run: python tools/build_nuitka.py
+      - name: Require the native folder reader inside the standalone folder
+        run: python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist
       - name: Install the pinned MSI compiler
         run: |
           dotnet tool install wix --version 6.0.2 --tool-path .tools/wix

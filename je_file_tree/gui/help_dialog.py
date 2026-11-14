@@ -5,6 +5,7 @@ from __future__ import annotations
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QTextBrowser, QVBoxLayout, QWidget
 
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.window_fit import fit_window
 
 
 class HelpDialog(QDialog):
@@ -13,7 +14,7 @@ class HelpDialog(QDialog):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("help_title"))
-        self.resize(640, 560)
+        fit_window(self, 640, 560)
         browser = QTextBrowser()
         browser.setOpenExternalLinks(False)
         browser.setHtml(tr("help_html"))

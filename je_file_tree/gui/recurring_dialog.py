@@ -16,6 +16,7 @@ from je_file_tree.core.recurring import Candidate, Growth, RecurringProposal
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.tables import Column, _TableModel
+from je_file_tree.gui.window_fit import fit_window
 
 
 class CandidatesModel(_TableModel[Candidate]):
@@ -69,7 +70,7 @@ class RecurringDialog(QDialog):
         self.reports, self.status = tuple(reports), status
         self.requested: RecurringProposal | None = None
         self.setWindowTitle(tr("action_recurring"))
-        self.resize(980, 620)
+        fit_window(self, 980, 620)
         self.roots = QComboBox()
         self.roots.addItems([report.baseline.root for report in self.reports])
         self.roots.setAccessibleName(tr("background_roots"))

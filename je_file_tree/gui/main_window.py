@@ -15,6 +15,7 @@ from PySide6.QtCore import QByteArray, QEvent, QPoint, QSettings, QSignalBlocker
 from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QDragEnterEvent, QDropEvent, QKeySequence
 from PySide6.QtPrintSupport import QPrintDialog
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
     QFileDialog,
     QLineEdit,
@@ -54,6 +55,7 @@ from je_file_tree.gui.history import HistoryDialog, HistorySettings, configured_
 from je_file_tree.gui.recurring_review import RecurringReview
 from je_file_tree.core.history import ScanHistory
 from je_file_tree.gui.projects import ProjectsDialog
+from je_file_tree.gui.reclaim_dialog import ReclaimDialog, reclaim_sources
 from je_file_tree.gui.programs import ProgramsDialog
 from je_file_tree.gui.virtual_disks import VirtualDisksDialog
 from je_file_tree.gui.file_times import FileTimesDialog
@@ -71,6 +73,7 @@ from je_file_tree.gui.entry_move_prompt import confirm_entry_move
 from je_file_tree.gui.lazy_details import set_lazy_details
 from je_file_tree.gui.fluent_icons import palette_icon
 from je_file_tree.gui.volumes import VolumesDialog
+from je_file_tree.gui.disks_dialog import DisksDialog
 from je_file_tree.gui.bin_dialog import BinDialog
 from je_file_tree.gui.exclusions_dialog import ExclusionsDialog
 from je_file_tree.gui.cleanup_review import CleanupReview
@@ -84,6 +87,16 @@ from je_file_tree.gui.printing import print_view, save_view_pdf, view_printer
 from je_file_tree.gui.list_transfer import ListCapture, ListStream
 from je_file_tree.gui.scan_worker import AnalyseWorker, ExportWorker, ScanOutcome, ScanWorker, wait_for
 from je_file_tree.gui.trash_worker import TrashWorker
+from je_file_tree.core.permanent_delete import DeleteResult
+from je_file_tree.gui.permanent_delete import (
+    PermanentDeleteWorker,
+    PermanentReportDialog,
+    confirm_permanent_delete,
+    permanent_question,
+    refuse_managed,
+    report_rows,
+    report_summary,
+)
 from je_file_tree.gui.trash_undo import TrashUndo
 from je_file_tree.gui.recent_actions import RecentActions, journal_folder
 from je_file_tree.gui.welcome import WelcomePage
@@ -95,6 +108,7 @@ from je_file_tree.gui.themes import ThemeMenu
 from je_file_tree.gui.updates import UpdateNotice
 from je_file_tree.gui.operation_group import OperationGroup
 from je_file_tree.gui.change_watch import FollowChanges, supported as follow_supported
+from je_file_tree.gui.window_fit import fit_window
 
 WELCOME_PAGE, RESULTS_PAGE = range(2)
 # How often the tree of a running scan is refreshed.
@@ -158,7 +172,7 @@ class MainWindow(QMainWindow):
         self.settings = settings if settings is not None else QSettings()
         self._journal = OperationJournal(journal_folder())
         self._init_scan_state()
-        self._trash_worker: TrashWorker | None = None
+        self._init_operation_workers()
         self._path_dialogs, self._settings_dialogs = set[QDialog](), set[WorkerDialog]()
         self._trash_rescans: list[Node] = []
         self._closing, self._close_waiting, self._close_ready = False, False, False
@@ -194,11 +208,15 @@ class MainWindow(QMainWindow):
         self._build_toolbar()
         self._connect()
         self.setAcceptDrops(True)
-        self.resize(1240, 800)
+        fit_window(self, 1240, 800)
         self._restore()
         self.retranslate()
         self._update_actions()
         self._restore_cleanup_policy()
+
+    def _init_operation_workers(self) -> None:
+        self._trash_worker: TrashWorker | None = None
+        self._delete_worker: PermanentDeleteWorker | None = None
 
     def _init_scan_state(self) -> None:
         self._budget_store = None
@@ -243,8 +261,9 @@ class MainWindow(QMainWindow):
 
     @property
     def local_operation_busy(self) -> bool:
-        """Whether this tab owns Trash, restoration or a source-operation review."""
-        return self._trash_worker is not None or self._undo.busy or bool(self._path_dialogs)
+        """Whether this tab owns Trash, permanent deletion, restoration or a source-operation review."""
+        return (self._trash_worker is not None or self._delete_worker is not None or self._undo.busy
+                or bool(self._path_dialogs))
 
     @property
     def operation_busy(self) -> bool:
@@ -422,6 +441,8 @@ class MainWindow(QMainWindow):
                 self._undo.worker.cancel()
             elif self._trash_worker is not None:
                 self._trash_worker.cancel()
+            elif self._delete_worker is not None:
+                self._delete_worker.cancel()
             return
         worker.cancel()
         self.results.scan_bar.stopping()
@@ -544,6 +565,10 @@ class MainWindow(QMainWindow):
             text = tr("action_trash") if len(movable) == 1 else tr("action_trash_many",
                                                                     count=format_count(len(movable)))
             menu.addAction(text).triggered.connect(lambda: self.move_to_trash(movable))
+            if not self.results.in_suggestions():  # never from FileTree's Clean up or duplicate suggestions
+                text = tr("permanent_delete") if len(movable) == 1 else tr("permanent_menu_many",
+                                                                            count=format_count(len(movable)))
+                menu.addAction(text).triggered.connect(lambda: self.delete_permanently(movable))
         if chart:
             menu.addSeparator()
             for key in ("export_chart_png", "export_chart_svg"):
@@ -839,6 +864,96 @@ class MainWindow(QMainWindow):
             worker.result = MoveResult()
             self._trash_finished(worker.result)
 
+    def delete_permanently(self, nodes: Sequence[Node]) -> None:
+        """Ask, every time, then permanently delete exactly the approved ``nodes``: the only way in.
+
+        Windows-managed entries are refused before any question. System and program folders get the
+        protected-folder question first; then one question, No by default, names the entries, their
+        count and size and says it cannot be undone. A declined or closed question deletes nothing.
+        The worker removes only the approved entries and what the scan recorded inside approved
+        folders, rechecking each against its scan record; no setting or batch skips the question.
+        """
+        chosen = _movable(nodes)
+        root = self.results.tree_model.root
+        if (not chosen or root is None or root.path is None or self._worker is not None or self.operation_busy
+                or self._closing):
+            return
+        managed = {node for node in chosen if system_file(node.path) is not None}
+        if managed:
+            refuse_managed(self, [node for node in chosen if node in managed])
+            chosen = [node for node in chosen if node not in managed]
+        if not chosen or self._closing:
+            return
+        approvals = {node: protection_of(node.path, self._protected) for node in chosen}
+        if not self._confirm_protected(chosen, "permanent_protected_question"):
+            return
+        answer = confirm_permanent_delete(self, tr("permanent_title"), permanent_question(chosen, self._unit))
+        if answer != QMessageBox.StandardButton.Yes or self._closing:
+            return
+        if self._worker is not None or self.operation_busy or self.results.tree_model.root is not root:
+            self._show_entry_report(PermanentReportDialog([(node.path, tr("permanent_skip_outside"))
+                                                           for node in chosen], tr("permanent_title"), self))
+            return
+        if self.results.duplicates.running:
+            self.results.duplicates.stop()
+        worker = PermanentDeleteWorker(root, chosen, self._protected, approvals, self._journal, self)
+        if self.results.outcome is not None:
+            worker.summary_now = self.results.outcome.now
+        self._undo.expire()
+        worker.progressed.connect(lambda count: worker is self._delete_worker and not self._closing
+                                  and self.statusBar().showMessage(tr("permanent_running", count=format_count(count))))
+        worker.done.connect(lambda result: after_threads((worker,), lambda: self._delete_finished(worker, result),
+                                                         self))
+        self._delete_worker = worker
+        self.results.setEnabled(False)
+        self._update_actions()
+        self.statusBar().showMessage(tr("permanent_running", count=format_count(0)))
+        queue_worker(worker, lambda: not self._closing and self._delete_worker is worker and not worker.cancelled,
+                     self, lambda: self._discard_delete(worker))
+
+    def _stop_delete(self, *, wait: bool) -> None:
+        """Closing: stop after the entry being removed; with ``wait``, until the worker has ended."""
+        worker = self._delete_worker
+        if worker is None:
+            return
+        worker.cancel(discard_results=True)
+        if wait:
+            wait_for(worker)
+            self._delete_worker = None
+
+    def _discard_delete(self, worker: PermanentDeleteWorker) -> None:
+        """A batch stopped before it started deleted nothing; report every entry as left in place."""
+        if worker is self._delete_worker and not self._closing:
+            self._delete_finished(worker, DeleteResult(refused=[(node.path, "cancelled") for node in worker.nodes]))
+
+    def _delete_finished(self, worker: PermanentDeleteWorker, result: DeleteResult) -> None:
+        """Show what happened (every refusal and failure stays visible), then refresh totals by rescanning."""
+        if worker is not self._delete_worker:
+            return
+        worker.deleteLater()
+        self._delete_worker = None
+        self.refresh_bin_labels()
+        if self._closing:
+            return
+        self.results.setEnabled(True)
+        self._update_actions()
+        outcome, removed = self.results.outcome, worker.removed_summary
+        if (result.removed and outcome is not None and outcome.result.hard_links is None and removed is not None
+                and removed.now == outcome.now):
+            self._analyser = None
+            self.results.forget(result.removed, removed=removed)
+        summary = report_summary(result, self._unit)
+        rows = report_rows(result)
+        if rows:
+            self._show_entry_report(PermanentReportDialog(rows, summary, self))
+        if worker.journal_errors:
+            QMessageBox.warning(self, tr("action_recent_actions"),
+                                tr("journal_write_failed", reason="\n".join(worker.journal_errors)))
+        self.statusBar().showMessage(summary, _STATUS_TIMEOUT_MS)
+        self._trash_rescans = outermost(result.parents)
+        self._update_actions()
+        QTimer.singleShot(0, self._rescan_after_trash)
+
     def _proposal_current(self, proposal: RecurringReview) -> bool:
         status = proposal.check()
         if status is None:
@@ -967,7 +1082,7 @@ class MainWindow(QMainWindow):
         if self._worker is None and self._trash_rescans:
             QTimer.singleShot(0, self._rescan_after_trash)
 
-    def _confirm_protected(self, nodes: list[Node]) -> bool:
+    def _confirm_protected(self, nodes: list[Node], question_key: str = "protected_question") -> bool:
         """The first of two questions when system or program folders are among ``nodes``: True to go on."""
         guarded = [(node, found) for node in nodes if (found := protection_of(node.path, self._protected)) is not None]
         if not guarded:
@@ -975,7 +1090,7 @@ class MainWindow(QMainWindow):
         lines = [f"• {node.path} — {tr(f'protected_{found.reason}')}" for node, found in guarded[:_LISTED_NAMES]]
         if len(guarded) > _LISTED_NAMES:
             lines.append(tr("trash_more", count=format_count(len(guarded) - _LISTED_NAMES)))
-        question = tr("protected_question", count=format_count(len(guarded)), names="\n".join(lines))
+        question = tr(question_key, count=format_count(len(guarded)), names="\n".join(lines))
         answer = confirm_entry_move(self, tr("protected_title"), question, protected=True)
         return answer == QMessageBox.StandardButton.Yes
 
@@ -1004,6 +1119,14 @@ class MainWindow(QMainWindow):
     def _trash_selected(self) -> None:
         if self.pages.currentIndex() == RESULTS_PAGE:
             self.move_to_trash(self.results.focused_selection())
+
+    def _delete_selected(self) -> None:
+        if self.pages.currentIndex() != RESULTS_PAGE:
+            return
+        if self.results.in_suggestions():  # the user picks what to delete; FileTree's suggestions never feed it
+            self.statusBar().showMessage(tr("permanent_not_suggestions"), _STATUS_TIMEOUT_MS)
+            return
+        self.delete_permanently(self.results.focused_selection())
 
     def _selection_changed(self, node: Node | None) -> None:
         self._update_folder_context()
@@ -1054,6 +1177,27 @@ class MainWindow(QMainWindow):
         target, _ = QFileDialog.getSaveFileName(self, tr('action_export_list'), 'list.csv', tr('csv_filter'))
         if not target:
             return
+        self.statusBar().showMessage(tr('export_running', path=target))
+        if not self.results.advice_arriving(view):
+            self._export_list_to(view, target)
+            return
+        # The clean-up analysis is about to change the removal advice this list shows: capture after it.
+        outcome, changed = self.results.outcome, self.results.cleanup.summary_changed
+
+        def resume() -> None:
+            if self.results.advice_arriving(view):
+                return
+            changed.disconnect(resume)
+            if self._closing:
+                return
+            if self.results.outcome is not outcome:
+                QMessageBox.warning(self, tr('export_title'), tr('export_failed', reason=tr('list_changed')))
+                return
+            self._export_list_to(view, target)
+
+        changed.connect(resume)
+
+    def _export_list_to(self, view: QAbstractItemView, target: str) -> None:
         stream = ListStream()
         capture = ListCapture(view, self, stream=stream)
         self._captures.add(capture)
@@ -1066,7 +1210,6 @@ class MainWindow(QMainWindow):
         worker.finished.connect(lambda: self._exports.discard(worker))
         worker.finished.connect(worker.deleteLater)
         self._exports.add(worker)
-        self.statusBar().showMessage(tr('export_running', path=target))
         worker.start()
         capture.start()
 
@@ -1190,9 +1333,13 @@ class MainWindow(QMainWindow):
         apply_language_font(current_language())
         self.setWindowTitle(tr("app_title_admin") if elevation.is_elevated() else tr("app_title"))
         for key, action in self._actions.items():
-            action.setText(tr(f"action_{key}"))
-            action.setToolTip(tr(f"action_{key}_tip"))
-            action.setStatusTip(tr(f"action_{key}_tip"))
+            text = key if key.startswith("permanent_") else f"action_{key}"
+            action.setText(tr(text))
+            action.setToolTip(tr(f"{text}_tip"))
+            action.setStatusTip(tr(f"{text}_tip"))
+        self._reclaim_action.setText(tr("reclaim_action"))
+        self._reclaim_action.setToolTip(tr("reclaim_action_tip"))
+        self._reclaim_action.setStatusTip(tr("reclaim_action_tip"))
         if elevation.supported() and not elevation.compiled():
             for key in ("elevate", "ask_admin"):
                 tip = tr(f"action_{key}_tip") + "\n" + tr("elevate_python_tip")
@@ -1301,6 +1448,7 @@ class MainWindow(QMainWindow):
                 wait_for(worker)
                 self._trash_worker = None
                 self._report_copy_errors(worker.result)
+        self._stop_delete(wait=wait)
         self.stop_scan(wait=wait)
         for worker in self._scan_workers.copy():
             worker.cancel()
@@ -1367,6 +1515,7 @@ class MainWindow(QMainWindow):
             ("export_report_html", None, lambda: self.export_report("html")),
             ("export_report_xlsx", None, lambda: self.export_report("xlsx")),
             ("trash", QKeySequence.StandardKey.Delete, self._trash_selected),
+            ("permanent_delete", "Shift+Del", self._delete_selected),
             ("find", QKeySequence.StandardKey.Find, self._find),
             ("compare", None, self.choose_saved_scan),
             ("recent_actions", None, self.show_recent_actions),
@@ -1389,6 +1538,7 @@ class MainWindow(QMainWindow):
             ("background_monitor", None, self.configure_background),
             ("folder_budgets", None, self.show_folder_budgets),
             ("volumes", None, self.show_volumes),
+            ("disks", None, self.show_disks),
             ("bins", None, self.show_bins),
             ("quit", "Ctrl+Q", self.quit_application),  # Windows has no standard Quit key
             ("hidden", None, lambda: self.settings.setValue("include_hidden", self._actions["hidden"].isChecked())),
@@ -1409,6 +1559,8 @@ class MainWindow(QMainWindow):
                 action.setShortcut(QKeySequence(shortcut))
             action.triggered.connect(lambda _checked=False, run=handler: run())
             self._actions[key] = action
+        self._reclaim_action = QAction(self)
+        self._reclaim_action.triggered.connect(lambda _checked=False: self.show_reclaim())
         self._configure_actions()
 
     def _configure_actions(self) -> None:
@@ -1460,12 +1612,15 @@ class MainWindow(QMainWindow):
                     "programs", "virtual_disks", "file_times", "recurring", "folder_budgets"):
             file_menu.addAction(self._actions[key])
         file_menu.addSeparator()
+        file_menu.addAction(self._reclaim_action)
         file_menu.addAction(self._actions["trash"])
+        file_menu.addAction(self._actions["permanent_delete"])
         file_menu.addAction(self._actions["elevate"])
         file_menu.addSeparator()
         file_menu.addAction(self._actions["quit"])
         view_menu = bar.addMenu("")
         view_menu.addAction(self._actions["volumes"])
+        view_menu.addAction(self._actions["disks"])
         view_menu.addAction(self._actions["bins"])
         unit_menu = view_menu.addMenu("")
         units = QActionGroup(self)
@@ -1551,6 +1706,7 @@ class MainWindow(QMainWindow):
         self.welcome.drives_changed.connect(self._update_actions)
         self.results.duplicates.link_requested.connect(self.show_duplicate_links)
         self.results.cleanup.review_requested.connect(self.move_to_trash)
+        self.results.cleanup.reclaim_requested.connect(self.show_reclaim)
         self.welcome.choose_folder_requested.connect(self.choose_folder)
         self.welcome.scan_requested.connect(self.start_scan)
         self.welcome.presets_requested.connect(self.configure_scan_presets)
@@ -1597,9 +1753,11 @@ class MainWindow(QMainWindow):
         self._actions["cleanup_policy"].setEnabled(not scanning)
         self._actions["live_compare"].setEnabled(not scanning)
         self._actions["volumes"].setEnabled(not scanning)
+        self._actions["disks"].setEnabled(not scanning)
         self._actions["bins"].setEnabled(not scanning)
         self._actions["rescan"].setEnabled(bool(self._last_path or self._last_roots) and not scanning)
-        for key in ("export_folders", "export_largest", "export_json", "export_chart_png", "trash", "find", "compare"):
+        for key in ("export_folders", "export_largest", "export_json", "export_chart_png", "trash", "permanent_delete",
+                    "find", "compare"):
             self._actions[key].setEnabled(has_results and not scanning)
         self._actions["export_chart_svg"].setEnabled(has_results and not scanning
                                                     and self.results.charts.mode in SVG_MODES)
@@ -1612,8 +1770,9 @@ class MainWindow(QMainWindow):
         self._actions['export_list'].setEnabled(has_results and not scanning
                                               and self.results.current_list() is not None)
         virtual = has_results and self.results.outcome.result.root.path is None
-        for key in ("trash", "history", "git_history"):
+        for key in ("trash", "permanent_delete", "history", "git_history"):
             self._actions[key].setEnabled(has_results and not scanning and not virtual)
+        self._reclaim_action.setEnabled(has_results and not scanning and not virtual)
         self._actions["multi_scan"].setEnabled(not self.operation_busy)
         self.welcome.scan_all.setEnabled(not scanning and bool(self.welcome.drive_rows))
         self._update_bin_buttons()
@@ -1786,8 +1945,19 @@ class MainWindow(QMainWindow):
         """Show mounted volumes and scan an explicitly activated root."""
         if self._worker is not None or self.operation_busy:
             return
-        dialog = VolumesDialog(self._unit, self)
+        dialog = VolumesDialog(self._unit, self, settings=self.settings)
         dialog.scan_requested.connect(self.start_scan)
+        try:
+            dialog.exec()
+        finally:
+            dialog.shutdown()
+            dialog.deleteLater()
+
+    def show_disks(self) -> None:
+        """Show the physical disks, their health and partitions; nothing on a disk is changed."""
+        if self._worker is not None or self.operation_busy:
+            return
+        dialog = DisksDialog(self._unit, self)
         try:
             dialog.exec()
         finally:
@@ -1937,6 +2107,25 @@ class MainWindow(QMainWindow):
             dialog.exec()
         finally:
             dialog.shutdown()
+            dialog.deleteLater()
+
+    def show_reclaim(self) -> None:
+        """Plan how to free a chosen amount; the checked entries go only through ``move_to_trash``."""
+        sources = reclaim_sources(self.results)
+        if sources is None or sources.root.path is None or self._worker is not None or self.operation_busy:
+            return
+        dialog = ReclaimDialog(sources, self._unit, self)
+        dialog.selected.connect(self.results.select_node)
+        dialog.review_requested.connect(self.move_to_trash)
+
+        def refresh() -> None:
+            dialog.update_sources(reclaim_sources(self.results))
+
+        self.results.cleanup.summary_changed.connect(refresh)
+        try:
+            dialog.exec()
+        finally:
+            self.results.cleanup.summary_changed.disconnect(refresh)
             dialog.deleteLater()
 
     def exclusions(self) -> list[str]:

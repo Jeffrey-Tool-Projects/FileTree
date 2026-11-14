@@ -188,6 +188,75 @@ EN: dict[str, str] = {
     "highlights_cleanup_hint": 'Candidate bytes require review and do not represent immediately recoverable space.',
     "highlights_coverage_unknown": 'Coverage not yet available',
     "highlights_coverage": 'Scan limits: {skipped} skipped, {denied} unreadable, {pending} pending',
+    "column_advice": 'Removal advice',
+    "advice_low": 'Cleanable',
+    "advice_review": 'Check first',
+    "advice_personal": 'Your call',
+    "advice_protected": 'Keep',
+    "advice_managed": "OS-managed",
+    "advice_pending": 'Checking…',
+    "advice_low_tip": (
+        'A lower-risk clean-up suggestion: programs can recreate this data. Review it before '
+        'moving it.'
+    ),
+    "advice_review_tip": 'A clean-up suggestion that needs your review: make sure nothing here is still needed.',
+    "advice_personal_tip": (
+        'No rule covers this entry, so only you can tell whether it is still needed. Nothing '
+        'is moved without your confirmation.'
+    ),
+    "advice_protected_tip": 'Keep it: {reason}. Removing it can break the system or installed programs.',
+    "advice_managed_tip": (
+        'The operating system manages this space and FileTree never moves it. Details names t'
+        'he system tool to use.'
+    ),
+    "advice_pending_tip": 'The clean-up analysis is still running.',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": (
+        "Advice from this scan's clean-up rules and the protected places of this computer. It"
+        ' is guidance only: every move still asks first.'
+    ),
+    "highlights_folders_label": 'Largest folders',
+    "highlights_files_label": 'Largest files',
+    "highlights_files": 'The largest files — select one to locate it. The dot shows the removal advice.',
+    "reclaim_action": "Free up space…",
+    "reclaim_action_tip": "Plan how to free a chosen amount of space from what this scan found",
+    "reclaim_title": "Free up space",
+    "reclaim_hint": (
+        "Choose how much space you need. FileTree lists what this scan already found, the safest first. Nothing is "
+        "selected for you, and nothing is moved until you review it and answer yes."
+    ),
+    "reclaim_target": "Space to free:",
+    "reclaim_custom": "Custom amount",
+    "reclaim_share": "Until the drive has this share free",
+    "reclaim_drive": "The drive had {free} free of {total} when it was scanned.",
+    "reclaim_column_entry": "Step or entry",
+    "reclaim_column_total": "Running total",
+    "reclaim_step": "{risk}: {title} ({count})",
+    "reclaim_duplicates": "Extra copies of duplicates",
+    "reclaim_duplicates_tip": (
+        "Files with the same content as the copy you chose to keep in the Duplicates tab. The kept copy is never "
+        "proposed."
+    ),
+    "reclaim_options": "Large files no rule covers — only if you are sure",
+    "reclaim_running": "{total} of {target}",
+    "reclaim_beyond": "{total} of {target} (past the target)",
+    "reclaim_more": "{count} more not listed",
+    "reclaim_overlap": "{size} on its own; part of it is already counted in an earlier step.",
+    "reclaim_reached": "These steps could free about {found}, enough for the {target} you asked for.",
+    "reclaim_short": (
+        "These steps could free only about {found}, {short} short of {target}. The large files listed last may make "
+        "up the rest, if you are sure you no longer need them."
+    ),
+    "reclaim_empty": "This scan found nothing that can be proposed.",
+    "reclaim_waiting": "Clean-up suggestions are still being looked for; the plan fills in when they are ready.",
+    "reclaim_undecided": "{count} duplicate groups are left out: choose the copy to keep in the Duplicates tab first.",
+    "reclaim_selected": "Selected: {selected} of {target}",
+    "reclaim_note": (
+        "These are estimates from the scan. What is really freed can differ: hard links, compressed and cloud files "
+        "take less space than their size, and the Recycle Bin keeps what is moved there until it is emptied."
+    ),
+    "reclaim_show": "Show in tree",
+    "reclaim_review": "Review and move to Recycle Bin…",
     "shell_reading": "Reading Explorer registration…",
     "shell_saving": "Saving Explorer registration…",
     "shell_waiting": "Waiting for the current Explorer settings request to finish… A started Save continues.",
@@ -824,6 +893,32 @@ EN: dict[str, str] = {
                 "Stop cancels surveys; active emptying must finish. macOS empties ALL mounted Finder Trash after "
                 "global review (native validation pending). Capacity/bin "
                 "values refresh afterwards; rescan to update the main tree.",
+    "forecast_column": "Free-space forecast",
+    "forecast_record": "Record used space for the forecast",
+    "forecast_record_tip": (
+        "Each time this overview opens, FileTree keeps the time and the used and total bytes of each drive in its "
+        "local data folder: at most one sample per drive every {hours} hours and {count} per drive. Nothing about "
+        "files is stored."
+    ),
+    "forecast_growing": "About {rate} per day — full around {date}",
+    "forecast_not_soon": "About {rate} per day — not full within {years} years",
+    "forecast_stable": "Not growing",
+    "forecast_not_enough": "Not enough history yet (needs a few days)",
+    "forecast_off": "Recording is off",
+    "forecast_unknown": "Unknown (used space not reported)",
+    "forecast_off_tip": "Turn on recording below to build a history of used space for this drive.",
+    "forecast_unknown_tip": "The system did not report used space for this drive, so nothing was recorded.",
+    "forecast_not_enough_tip": (
+        "{count} samples over {days} days so far; a forecast needs at least {needed} samples over {needed_days} "
+        "days. A sample is recorded when this overview opens, at most every few hours."
+    ),
+    "forecast_estimate_tip": (
+        "An estimate from {count} samples over {days} days of used space (at most the last {window} days, since "
+        "the total size last changed). It assumes the recent rate continues and is not a guarantee."
+    ),
+    "forecast_newer": "The free-space history was saved by a newer FileTree version; it is kept unchanged.",
+    "forecast_save_failed": "The free-space history could not be saved: {reason}",
+    "forecast_unavailable": "The free-space history is unavailable: the system reports no application data folder.",
     "action_volumes": "Drive overview…",
     "action_volumes_tip": "Inspect mounted volumes, capacity, allocation units and Recycle Bin totals",
     "volume_root": "Mounted root",
@@ -844,6 +939,66 @@ EN: dict[str, str] = {
                    "Windows totals or known POSIX logical payload bytes, not reclaimable space; directory/receipt "
                    "metadata and shared allocation are excluded. Errors remain unknown. Stop waits for current OS "
                    "calls; canceled surveys are discarded. Ctrl+C copies rows. No emptying action is provided here.",
+    "action_disks": "Physical disks…",
+    "action_disks_tip": "See the physical drives, their health and partition layout (read-only)",
+    "disks_title": "Physical disks",
+    "disks_hint": "Read-only: FileTree shows what the system reports about each physical drive and changes nothing "
+                  "on it. Serial numbers are not shown.",
+    "disks_reading": "Reading physical disks…",
+    "disks_summary": "Physical disks found: {count}.",
+    "disks_none": "The system reported no physical disks.",
+    "disks_problem_unsupported": "Physical disks cannot be listed on this system.",
+    "disks_problem_tool_missing": "The system tool that lists disks was not found.",
+    "disks_problem_timeout": "The system took too long to list the disks. Try Refresh.",
+    "disks_problem_failed": "The system could not list the disks.",
+    "disks_problem_malformed": "The system's list of disks could not be read.",
+    "disks_refresh": "Refresh",
+    "disks_select": "Select a disk to see its health and partitions.",
+    "disks_col_disk": "Disk",
+    "disks_col_model": "Model",
+    "disks_col_media": "Type",
+    "disks_col_bus": "Connection",
+    "disks_col_style": "Partition table",
+    "disks_col_size": "Size",
+    "disks_col_health": "Health",
+    "disks_col_number": "#",
+    "disks_col_kind": "Partition type",
+    "disks_col_label": "Label",
+    "disks_col_mounts": "Drive letters / mount points",
+    "disks_col_fs": "File system",
+    "disks_col_offset": "Starts at",
+    "disks_media_ssd": "SSD",
+    "disks_media_hdd": "Hard disk (HDD)",
+    "disks_media_unknown": "Unknown",
+    "disks_unknown": "Unknown",
+    "disks_state_healthy": "Healthy",
+    "disks_state_warning": "Warning",
+    "disks_state_unhealthy": "Failing",
+    "disks_state_unknown": "Unknown",
+    "disks_health_line": "Health: {state}. {meaning}",
+    "disks_meaning_healthy": "The drive reports no problems. Keep backups anyway: drives can fail without warning.",
+    "disks_meaning_warning": "The drive reports a problem. Back up important files soon and check the drive with "
+                             "its maker's tool.",
+    "disks_meaning_unhealthy": "The drive reports that it is failing. Back up important files now and plan to "
+                               "replace it.",
+    "disks_meaning_unknown": "The system does not report this drive's health, so FileTree cannot tell.",
+    "disks_counters": "Temperature: {temperature} · Wear: {wear} · Powered on: {hours}",
+    "disks_temperature_value": "{degrees} °C",
+    "disks_wear_value": "{percent}% of rated life used",
+    "disks_hours_value": "{hours} hours",
+    "disks_not_reported": "not available",
+    "disks_counters_denied": "Temperature, wear and power-on hours need administrator rights on this system. "
+                             "Restart FileTree as administrator to see them; it does not ask for them here.",
+    "disks_counters_missing": "This drive or its driver does not report temperature, wear or power-on hours.",
+    "disks_counters_unsupported": "On this system, wear and power-on hours need administrator tools (such as "
+                                  "smartctl), which FileTree does not run.",
+    "disks_no_partitions": "No partitions were reported.",
+    "disks_free_space": "Unallocated",
+    "disks_bar_name": "Partition layout",
+    "disks_tool_management": "Disk Management…",
+    "disks_tool_optimize": "Optimize Drives…",
+    "disks_tool_volumes": "Disks and volumes settings…",
+    "disks_tool_storage": "Storage settings…",
     "action_export_report_html": "Scan report (HTML)…",
     "action_export_report_html_tip": "Save a self-contained report with three embedded chart images",
     "action_export_report_xlsx": "Scan report (Excel)…",
@@ -1594,6 +1749,51 @@ EN: dict[str, str] = {
     "trash_failed_many": ("{count} items could not be moved to the Recycle Bin. "
                           "They may be in use or read-only:\n\n{names}"),
     "trash_done_many": "Moved {count} items to the Recycle Bin: {size} freed.",
+    "permanent_delete": "Delete permanently",
+    "permanent_delete_tip": ("Delete the selected files and folders permanently, without the Recycle Bin "
+                             "(you are asked first; it cannot be undone)"),
+    "permanent_menu_many": "Delete {count} items permanently",
+    "permanent_not_suggestions": ("Delete permanently works on entries you pick in the folder tree, the largest "
+                                  "files or search results, not on Clean up or duplicate suggestions."),
+    "permanent_title": "Delete permanently",
+    "permanent_confirm": ("Permanently delete “{name}” ({size})?\n\n{path}\n\n"
+                          "It does not go to the Recycle Bin. This cannot be undone."),
+    "permanent_confirm_many": ("Permanently delete these {count} items ({size} in total)?\n\n{names}\n\n"
+                               "They do not go to the Recycle Bin. This cannot be undone."),
+    "permanent_confirm_folders": ("Folders are deleted with what the scan recorded inside them. "
+                                  "Anything added or changed since the scan is left in place."),
+    "permanent_protected_question": ("{count} of the entries are system or program folders. Deleting them "
+                                     "permanently can make the system or programs stop working:\n\n{names}\n\n"
+                                     "Delete them anyway?"),
+    "permanent_managed": ("Windows manages these entries, so FileTree does not delete them. "
+                          "Use the system tool shown in Details instead:\n\n{names}"),
+    "permanent_running": "Deleting permanently… {count} entries removed. Press Esc to stop.",
+    "permanent_done": "Permanently deleted {removed} entries ({size}). Left in place: {refused}; failed: {failed}.",
+    "permanent_report_title": "Delete permanently: entries left in place",
+    "permanent_failed": "The system did not delete it: {reason}",
+    "permanent_pending": "Deletion is pending: another program still has it open",
+    "permanent_journal_reason": "Explicit permanent deletion",
+    "permanent_journal_deleted": "Permanently deleted",
+    "permanent_journal_partial": "Partly deleted (folder kept)",
+    "permanent_skip_outside": "outside the current scan; not deleted",
+    "permanent_skip_unverified": "no verified scan identity; not deleted",
+    "permanent_skip_incomplete": "the scan could not read all of this folder; not entered",
+    "permanent_skip_missing": "the entry or its folder is missing",
+    "permanent_skip_unreadable": "the entry cannot be read; not deleted",
+    "permanent_skip_link": "the entry or a folder above it became a link; not deleted",
+    "permanent_skip_kind": "the entry's kind changed; not deleted",
+    "permanent_skip_identity": "the entry was replaced since the scan; not deleted",
+    "permanent_skip_changed": "size or timestamps changed since the scan; not deleted",
+    "permanent_skip_protected": "a system or program folder your approval did not cover; not deleted",
+    "permanent_skip_system_managed": "Windows manages this entry; not deleted",
+    "permanent_skip_cancelled": "stopped before this entry; not deleted",
+    "permanent_skip_journal": "the approved action could not be recorded; nothing was deleted",
+    "permanent_skip_read_only": "read-only; FileTree does not clear the attribute, so it was not deleted",
+    "permanent_skip_mount_point": "a mounted volume or mount point; not deleted",
+    "permanent_skip_other_volume": "on another volume; not deleted",
+    "permanent_skip_arrived": "added after the scan; left in place",
+    "permanent_skip_not_empty": "folder kept: something inside it was left in place",
+    "permanent_skip_failed": "the system refused to delete something inside it",
     "status_selected_many": "{count} items selected: {size}",
     # export
     "export_title": "Export",
@@ -1834,6 +2034,60 @@ ZH_TW: dict[str, str] = {
     "highlights_cleanup_hint": '候選資料量需要審查，不代表可立即釋出的空間。',
     "highlights_coverage_unknown": '尚無掃描範圍資料',
     "highlights_coverage": '掃描限制：略過 {skipped}、無法讀取 {denied}、待掃描 {pending}',
+    "column_advice": '可否刪除',
+    "advice_low": '可清理',
+    "advice_review": '先確認',
+    "advice_personal": '自行決定',
+    "advice_protected": '勿刪除',
+    "advice_managed": '系統管理',
+    "advice_pending": '分析中…',
+    "advice_low_tip": '較低風險的清理建議：程式可以重新產生這些資料。移動前仍請先審查。',
+    "advice_review_tip": '需要您審查的清理建議：請確認其中沒有還要用的內容。',
+    "advice_personal_tip": '沒有規則涵蓋這個項目，只有您能判斷是否還需要。未經您確認不會移動任何項目。',
+    "advice_protected_tip": '請保留：{reason}。移除後可能使系統或已安裝的程式無法運作。',
+    "advice_managed_tip": '這些空間由作業系統管理，FileTree 不會移動它。「詳細資訊」會說明該使用的系統工具。',
+    "advice_pending_tip": '清理分析仍在進行。',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": '依據這次掃描的清理規則與這台電腦的受保護位置提供建議。僅供參考：每次移動前仍會先詢問。',
+    "highlights_folders_label": '最大的資料夾',
+    "highlights_files_label": '最大的檔案',
+    "highlights_files": '最大的檔案；點選即可定位。圓點代表可否刪除的建議。',
+    "reclaim_action": "釋放空間…",
+    "reclaim_action_tip": "依這次掃描找到的項目，規劃如何釋放指定的空間",
+    "reclaim_title": "釋放空間",
+    "reclaim_hint": (
+        "選擇您需要多少空間。FileTree 會列出這次掃描已找到的項目，最安全的排在最前面。不會替您勾選任何項目，在您審查"
+        "並回答「是」之前也不會移動任何項目。"
+    ),
+    "reclaim_target": "要釋放的空間：",
+    "reclaim_custom": "自訂大小",
+    "reclaim_share": "直到磁碟機有此比例的可用空間",
+    "reclaim_drive": "掃描時磁碟機共 {total}，可用 {free}。",
+    "reclaim_column_entry": "步驟或項目",
+    "reclaim_column_total": "累計",
+    "reclaim_step": "{risk}：{title}（{count}）",
+    "reclaim_duplicates": "重複檔案的多餘副本",
+    "reclaim_duplicates_tip": "與您在「重複檔案」分頁中選擇保留的副本內容相同的檔案。保留的副本絕不會列入。",
+    "reclaim_options": "沒有規則涵蓋的大型檔案——確定時才選",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target}（已超過目標）",
+    "reclaim_more": "另有 {count} 個未列出",
+    "reclaim_overlap": "本身為 {size}；其中一部分已計入前面的步驟。",
+    "reclaim_reached": "這些步驟約可釋放 {found}，足以達到您要求的 {target}。",
+    "reclaim_short": (
+        "這些步驟約只能釋放 {found}，距離 {target} 還差 {short}。"
+        "若確定不再需要，最後列出的大型檔案或許能補足。"
+    ),
+    "reclaim_empty": "這次掃描沒有找到可以建議的項目。",
+    "reclaim_waiting": "仍在尋找清理建議；完成後計畫會自動補上。",
+    "reclaim_undecided": "有 {count} 組重複檔案未列入：請先在「重複檔案」分頁選擇要保留的副本。",
+    "reclaim_selected": "已選取：{selected} / {target}",
+    "reclaim_note": (
+        "這些是依掃描結果的估計值，實際釋放的空間可能不同：硬連結、已壓縮的檔案與雲端檔案占用的空間比其大小少，而移到"
+        "資源回收筒的項目要等清空後才會釋放空間。"
+    ),
+    "reclaim_show": "在樹狀清單中顯示",
+    "reclaim_review": "審查並移到資源回收筒…",
     "shell_reading": "正在讀取檔案總管登錄…",
     "shell_saving": "正在儲存檔案總管登錄…",
     "shell_waiting": "正在等待目前的檔案總管設定作業完成…已開始的儲存會繼續執行。",
@@ -2418,6 +2672,31 @@ ZH_TW: dict[str, str] = {
                 "永久移除前以兩次詢問列出確切範圍與總量。停止可取消盤點；開始清空後必須等待完成。"
                 "macOS 經全域檢視後清空所有已掛載磁碟的 Finder 回收筒，原生驗證待完成。"
                 "完成後更新容量／回收筒數值；重新掃描可更新主樹狀圖。",
+    "forecast_column": "剩餘空間預測",
+    "forecast_record": "記錄已用空間以預測",
+    "forecast_record_tip": (
+        "每次開啟此總覽時，FileTree 會在本機資料夾保存各磁碟的時間、已用與總容量位元組：每個磁碟最多每 {hours} "
+        "小時一筆、最多 {count} 筆。不保存任何檔案資訊。"
+    ),
+    "forecast_growing": "每天約 {rate}，約 {date} 用滿",
+    "forecast_not_soon": "每天約 {rate}，{years} 年內不會用滿",
+    "forecast_stable": "沒有成長",
+    "forecast_not_enough": "歷史資料不足（需要幾天）",
+    "forecast_off": "記錄已關閉",
+    "forecast_unknown": "未知（系統未回報已用空間）",
+    "forecast_off_tip": "開啟下方的記錄，即可為此磁碟累積已用空間的歷史。",
+    "forecast_unknown_tip": "系統未回報此磁碟的已用空間，因此沒有記錄。",
+    "forecast_not_enough_tip": (
+        "目前有 {count} 筆、涵蓋 {days} 天；預測至少需要 {needed} 筆、涵蓋 {needed_days} "
+        "天。每次開啟此總覽時記錄一筆，最多每幾小時一筆。"
+    ),
+    "forecast_estimate_tip": (
+        "根據 {count} 筆、涵蓋 {days} 天的已用空間估計（最多最近 {window} "
+        "天，且自上次總容量變更後）。假設近期速度持續，並非保證。"
+    ),
+    "forecast_newer": "剩餘空間歷史由較新版本的 FileTree 儲存，已保持不變。",
+    "forecast_save_failed": "無法儲存剩餘空間歷史：{reason}",
+    "forecast_unavailable": "無法使用剩餘空間歷史：系統未提供應用程式資料夾。",
     "action_volumes": "磁碟總覽…",
     "action_volumes_tip": "查看已掛載磁碟、容量、配置單位與資源回收筒總量",
     "volume_root": "掛載根目錄",
@@ -2437,6 +2716,63 @@ ZH_TW: dict[str, str] = {
                    "回收筒列出 Windows 回報總量或 POSIX 已知邏輯內容大小，非可回收空間，"
                    "不含資料夾／收據中繼資料與共用配置。"
                    "錯誤維持未知。停止會等待目前系統呼叫，取消時捨棄檢查結果。Ctrl+C 複製列；此處不提供清空動作。",
+    "action_disks": "實體磁碟…",
+    "action_disks_tip": "查看實體磁碟機、健康狀態與分割區配置（唯讀）",
+    "disks_title": "實體磁碟",
+    "disks_hint": "唯讀：FileTree 只顯示系統回報的各實體磁碟機資訊，不會變更磁碟上的任何內容。不顯示序號。",
+    "disks_reading": "正在讀取實體磁碟…",
+    "disks_summary": "找到的實體磁碟：{count} 個。",
+    "disks_none": "系統未回報任何實體磁碟。",
+    "disks_problem_unsupported": "無法在此系統上列出實體磁碟。",
+    "disks_problem_tool_missing": "找不到列出磁碟的系統工具。",
+    "disks_problem_timeout": "系統列出磁碟的時間過長，請按「重新整理」再試一次。",
+    "disks_problem_failed": "系統無法列出磁碟。",
+    "disks_problem_malformed": "無法讀取系統回報的磁碟清單。",
+    "disks_refresh": "重新整理",
+    "disks_select": "選取一個磁碟以查看健康狀態與分割區。",
+    "disks_col_disk": "磁碟",
+    "disks_col_model": "型號",
+    "disks_col_media": "類型",
+    "disks_col_bus": "連接介面",
+    "disks_col_style": "分割表",
+    "disks_col_size": "大小",
+    "disks_col_health": "健康狀態",
+    "disks_col_number": "#",
+    "disks_col_kind": "分割區類型",
+    "disks_col_label": "標籤",
+    "disks_col_mounts": "磁碟機代號／掛載點",
+    "disks_col_fs": "檔案系統",
+    "disks_col_offset": "起始位置",
+    "disks_media_ssd": "SSD",
+    "disks_media_hdd": "硬碟（HDD）",
+    "disks_media_unknown": "未知",
+    "disks_unknown": "未知",
+    "disks_state_healthy": "良好",
+    "disks_state_warning": "警告",
+    "disks_state_unhealthy": "即將故障",
+    "disks_state_unknown": "未知",
+    "disks_health_line": "健康狀態：{state}。{meaning}",
+    "disks_meaning_healthy": "磁碟機未回報任何問題。仍請保留備份：磁碟機可能毫無預警地故障。",
+    "disks_meaning_warning": "磁碟機回報了問題。請盡快備份重要檔案，並用製造商的工具檢查。",
+    "disks_meaning_unhealthy": "磁碟機回報即將故障。請立即備份重要檔案，並準備更換。",
+    "disks_meaning_unknown": "系統未回報這個磁碟機的健康狀態，FileTree 無法判斷。",
+    "disks_counters": "溫度：{temperature} · 耗損：{wear} · 通電時數：{hours}",
+    "disks_temperature_value": "{degrees} °C",
+    "disks_wear_value": "已使用額定壽命的 {percent}%",
+    "disks_hours_value": "{hours} 小時",
+    "disks_not_reported": "無法取得",
+    "disks_counters_denied": "在此系統上，溫度、耗損與通電時數需要系統管理員權限。"
+                             "請以系統管理員身分重新啟動 FileTree 來查看；此處不會要求權限。",
+    "disks_counters_missing": "這個磁碟機或其驅動程式不回報溫度、耗損或通電時數。",
+    "disks_counters_unsupported": "在此系統上，耗損與通電時數需要系統管理工具（例如 smartctl），"
+                                  "FileTree 不會執行這些工具。",
+    "disks_no_partitions": "沒有回報任何分割區。",
+    "disks_free_space": "未配置",
+    "disks_bar_name": "分割區配置",
+    "disks_tool_management": "磁碟管理…",
+    "disks_tool_optimize": "最佳化磁碟機…",
+    "disks_tool_volumes": "磁碟與磁碟區設定…",
+    "disks_tool_storage": "儲存體設定…",
     "action_export_report_html": "掃描報告（HTML）…",
     "action_export_report_html_tip": "儲存內嵌三張圖表圖片的獨立報告",
     "action_export_report_xlsx": "掃描報告（Excel）…",
@@ -3119,6 +3455,49 @@ ZH_TW: dict[str, str] = {
     "trash_more": "……還有 {count} 個",
     "trash_failed_many": "有 {count} 個項目無法移到資源回收筒，可能正在使用中或是唯讀：\n\n{names}",
     "trash_done_many": "已把 {count} 個項目移到資源回收筒，釋出 {size}。",
+    "permanent_delete": "永久刪除",
+    "permanent_delete_tip": "永久刪除選取的檔案和資料夾，不經過資源回收筒（會先詢問，刪除後無法復原）",
+    "permanent_menu_many": "永久刪除 {count} 個項目",
+    "permanent_not_suggestions": ("永久刪除只用於您在資料夾樹狀結構、最大檔案或搜尋結果中挑選的項目，"
+                                  "不用於清理或重複檔案的建議。"),
+    "permanent_title": "永久刪除",
+    "permanent_confirm": ("要永久刪除「{name}」（{size}）嗎？\n\n{path}\n\n"
+                          "它不會移到資源回收筒，刪除後無法復原。"),
+    "permanent_confirm_many": ("要永久刪除這 {count} 個項目（共 {size}）嗎？\n\n{names}\n\n"
+                               "它們不會移到資源回收筒，刪除後無法復原。"),
+    "permanent_confirm_folders": ("資料夾會連同掃描時記錄的內容一起刪除；"
+                                  "掃描後新增或變更的項目會保留在原處。"),
+    "permanent_protected_question": ("其中 {count} 個是系統或程式的資料夾，永久刪除可能讓系統或程式"
+                                     "無法正常運作：\n\n{names}\n\n仍要刪除嗎？"),
+    "permanent_managed": ("這些項目由 Windows 管理，FileTree 不會刪除。"
+                          "請改用詳細資訊中列出的系統工具：\n\n{names}"),
+    "permanent_running": "正在永久刪除…已刪除 {count} 個項目。按 Esc 可停止。",
+    "permanent_done": "已永久刪除 {removed} 個項目（{size}）。保留在原處：{refused}；失敗：{failed}。",
+    "permanent_report_title": "永久刪除：保留在原處的項目",
+    "permanent_failed": "系統未刪除此項目：{reason}",
+    "permanent_pending": "刪除尚未完成：另一個程式仍開啟著它",
+    "permanent_journal_reason": "明確的永久刪除",
+    "permanent_journal_deleted": "已永久刪除",
+    "permanent_journal_partial": "部分刪除（保留資料夾）",
+    "permanent_skip_outside": "不在目前的掃描範圍，未刪除",
+    "permanent_skip_unverified": "沒有經核對的掃描身分，未刪除",
+    "permanent_skip_incomplete": "掃描無法讀取此資料夾的全部內容，未進入",
+    "permanent_skip_missing": "項目或所在資料夾已不存在",
+    "permanent_skip_unreadable": "無法讀取項目，未刪除",
+    "permanent_skip_link": "項目或上層資料夾變成連結，未刪除",
+    "permanent_skip_kind": "項目種類已變更，未刪除",
+    "permanent_skip_identity": "掃描後項目已被替換，未刪除",
+    "permanent_skip_changed": "掃描後大小或時間已變更，未刪除",
+    "permanent_skip_protected": "不在您確認範圍內的系統或程式資料夾，未刪除",
+    "permanent_skip_system_managed": "此項目由 Windows 管理，未刪除",
+    "permanent_skip_cancelled": "在處理此項目前已停止，未刪除",
+    "permanent_skip_journal": "無法記錄已確認的操作，未刪除任何項目",
+    "permanent_skip_read_only": "唯讀項目；FileTree 不會清除此屬性，因此未刪除",
+    "permanent_skip_mount_point": "已掛接的磁碟區或掛接點，未刪除",
+    "permanent_skip_other_volume": "位於其他磁碟區，未刪除",
+    "permanent_skip_arrived": "掃描後新增，保留在原處",
+    "permanent_skip_not_empty": "保留資料夾：其中仍有項目保留在原處",
+    "permanent_skip_failed": "系統拒絕刪除其中的項目",
     "status_selected_many": "已選取 {count} 個項目：{size}",
     "export_title": "匯出",
     "export_running": "正在儲存到 {path}…",
@@ -3343,6 +3722,60 @@ ZH_CN: dict[str, str] = {
     "highlights_cleanup_hint": '候选数据量需要检查，不代表可立即释放的空间。',
     "highlights_coverage_unknown": '暂无扫描范围数据',
     "highlights_coverage": '扫描限制：跳过 {skipped}、无法读取 {denied}、待扫描 {pending}',
+    "column_advice": '能否删除',
+    "advice_low": '可清理',
+    "advice_review": '先确认',
+    "advice_personal": '自行决定',
+    "advice_protected": '勿删除',
+    "advice_managed": '系统管理',
+    "advice_pending": '分析中…',
+    "advice_low_tip": '较低风险的清理建议：程序可以重新生成这些数据。移动前仍请先检查。',
+    "advice_review_tip": '需要您检查的清理建议：请确认其中没有还要用的内容。',
+    "advice_personal_tip": '没有规则涵盖这个项目，只有您能判断是否还需要。未经您确认不会移动任何项目。',
+    "advice_protected_tip": '请保留：{reason}。移除后可能导致系统或已安装的程序无法运行。',
+    "advice_managed_tip": '这些空间由操作系统管理，FileTree 不会移动它。“详细信息”会说明应使用的系统工具。',
+    "advice_pending_tip": '清理分析仍在进行。',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": '根据这次扫描的清理规则与这台电脑的受保护位置提供建议。仅供参考：每次移动前仍会先询问。',
+    "highlights_folders_label": '最大的文件夹',
+    "highlights_files_label": '最大的文件',
+    "highlights_files": '最大的文件；点击即可定位。圆点表示能否删除的建议。',
+    "reclaim_action": "释放空间…",
+    "reclaim_action_tip": "根据本次扫描找到的项目，规划如何释放指定的空间",
+    "reclaim_title": "释放空间",
+    "reclaim_hint": (
+        "选择你需要多少空间。FileTree 会列出本次扫描已找到的项目，最安全的排在最前面。不会替你勾选任何项目，在你审查"
+        "并回答“是”之前也不会移动任何项目。"
+    ),
+    "reclaim_target": "要释放的空间：",
+    "reclaim_custom": "自定义大小",
+    "reclaim_share": "直到驱动器有此比例的可用空间",
+    "reclaim_drive": "扫描时驱动器共 {total}，可用 {free}。",
+    "reclaim_column_entry": "步骤或项目",
+    "reclaim_column_total": "累计",
+    "reclaim_step": "{risk}：{title}（{count}）",
+    "reclaim_duplicates": "重复文件的多余副本",
+    "reclaim_duplicates_tip": "与你在“重复文件”标签页中选择保留的副本内容相同的文件。保留的副本绝不会列入。",
+    "reclaim_options": "没有规则涵盖的大文件——确定时才选",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target}（已超过目标）",
+    "reclaim_more": "另有 {count} 个未列出",
+    "reclaim_overlap": "本身为 {size}；其中一部分已计入前面的步骤。",
+    "reclaim_reached": "这些步骤约可释放 {found}，足以达到你要求的 {target}。",
+    "reclaim_short": (
+        "这些步骤约只能释放 {found}，距离 {target} 还差 {short}。"
+        "如果确定不再需要，最后列出的大文件或许能补足。"
+    ),
+    "reclaim_empty": "本次扫描没有找到可以建议的项目。",
+    "reclaim_waiting": "仍在查找清理建议；完成后计划会自动补上。",
+    "reclaim_undecided": "有 {count} 组重复文件未列入：请先在“重复文件”标签页选择要保留的副本。",
+    "reclaim_selected": "已选中：{selected} / {target}",
+    "reclaim_note": (
+        "这些是根据扫描结果的估计值，实际释放的空间可能不同：硬链接、已压缩的文件和云文件占用的空间比其大小少，而移到"
+        "回收站的项目要等清空后才会释放空间。"
+    ),
+    "reclaim_show": "在树状列表中显示",
+    "reclaim_review": "审查并移到回收站…",
     "shell_reading": "正在读取资源管理器注册项…",
     "shell_saving": "正在保存资源管理器注册项…",
     "shell_waiting": "正在等待当前资源管理器设置操作完成…已开始的保存会继续执行。",
@@ -3927,6 +4360,31 @@ ZH_CN: dict[str, str] = {
                 "永久移除前以两次询问列出确切范围与总量。停止可取消清点；开始清空后必须等待完成。"
                 "macOS 经全局检查后清空所有已挂载磁盘的 Finder 回收站，原生验证待完成。"
                 "完成后更新容量／回收站数值；重新扫描可更新主树。",
+    "forecast_column": "剩余空间预测",
+    "forecast_record": "记录已用空间以预测",
+    "forecast_record_tip": (
+        "每次打开此总览时，FileTree 会在本地数据目录保存各磁盘的时间、已用与总容量字节：每个磁盘最多每 {hours} "
+        "小时一条、最多 {count} 条。不保存任何文件信息。"
+    ),
+    "forecast_growing": "每天约 {rate}，约 {date} 用满",
+    "forecast_not_soon": "每天约 {rate}，{years} 年内不会用满",
+    "forecast_stable": "没有增长",
+    "forecast_not_enough": "历史数据不足（需要几天）",
+    "forecast_off": "记录已关闭",
+    "forecast_unknown": "未知（系统未报告已用空间）",
+    "forecast_off_tip": "打开下方的记录，即可为此磁盘积累已用空间的历史。",
+    "forecast_unknown_tip": "系统未报告此磁盘的已用空间，因此没有记录。",
+    "forecast_not_enough_tip": (
+        "目前有 {count} 条、覆盖 {days} 天；预测至少需要 {needed} 条、覆盖 {needed_days} "
+        "天。每次打开此总览时记录一条，最多每几小时一条。"
+    ),
+    "forecast_estimate_tip": (
+        "根据 {count} 条、覆盖 {days} 天的已用空间估算（最多最近 {window} "
+        "天，且自上次总容量变化后）。假设近期速度持续，并非保证。"
+    ),
+    "forecast_newer": "剩余空间历史由较新版本的 FileTree 保存，已保持不变。",
+    "forecast_save_failed": "无法保存剩余空间历史：{reason}",
+    "forecast_unavailable": "无法使用剩余空间历史：系统未提供应用数据目录。",
     "action_volumes": "磁盘总览…",
     "action_volumes_tip": "查看已挂载磁盘、容量、分配单位与回收站总量",
     "volume_root": "挂载根目录",
@@ -3946,6 +4404,63 @@ ZH_CN: dict[str, str] = {
                    "回收站列出 Windows 报告总量或 POSIX 已知逻辑内容大小，非可回收空间，"
                    "不含文件夹／回执元数据与共享分配。"
                    "错误保持未知。停止会等待当前系统调用，取消时丢弃检查结果。Ctrl+C 复制行；此处不提供清空操作。",
+    "action_disks": "物理磁盘…",
+    "action_disks_tip": "查看物理驱动器、健康状况与分区布局（只读）",
+    "disks_title": "物理磁盘",
+    "disks_hint": "只读：FileTree 只显示系统报告的各物理驱动器信息，不会更改磁盘上的任何内容。不显示序列号。",
+    "disks_reading": "正在读取物理磁盘…",
+    "disks_summary": "找到的物理磁盘：{count} 个。",
+    "disks_none": "系统未报告任何物理磁盘。",
+    "disks_problem_unsupported": "无法在此系统上列出物理磁盘。",
+    "disks_problem_tool_missing": "找不到列出磁盘的系统工具。",
+    "disks_problem_timeout": "系统列出磁盘的时间过长，请点“刷新”重试。",
+    "disks_problem_failed": "系统无法列出磁盘。",
+    "disks_problem_malformed": "无法读取系统报告的磁盘列表。",
+    "disks_refresh": "刷新",
+    "disks_select": "选中一个磁盘以查看健康状况与分区。",
+    "disks_col_disk": "磁盘",
+    "disks_col_model": "型号",
+    "disks_col_media": "类型",
+    "disks_col_bus": "接口",
+    "disks_col_style": "分区表",
+    "disks_col_size": "大小",
+    "disks_col_health": "健康状况",
+    "disks_col_number": "#",
+    "disks_col_kind": "分区类型",
+    "disks_col_label": "卷标",
+    "disks_col_mounts": "盘符／挂载点",
+    "disks_col_fs": "文件系统",
+    "disks_col_offset": "起始位置",
+    "disks_media_ssd": "固态硬盘（SSD）",
+    "disks_media_hdd": "机械硬盘（HDD）",
+    "disks_media_unknown": "未知",
+    "disks_unknown": "未知",
+    "disks_state_healthy": "良好",
+    "disks_state_warning": "警告",
+    "disks_state_unhealthy": "即将故障",
+    "disks_state_unknown": "未知",
+    "disks_health_line": "健康状况：{state}。{meaning}",
+    "disks_meaning_healthy": "驱动器未报告任何问题。仍请保留备份：驱动器可能毫无预兆地损坏。",
+    "disks_meaning_warning": "驱动器报告了问题。请尽快备份重要文件，并用厂商的工具检查。",
+    "disks_meaning_unhealthy": "驱动器报告即将故障。请立即备份重要文件，并准备更换。",
+    "disks_meaning_unknown": "系统未报告这个驱动器的健康状况，FileTree 无法判断。",
+    "disks_counters": "温度：{temperature} · 磨损：{wear} · 通电时间：{hours}",
+    "disks_temperature_value": "{degrees} °C",
+    "disks_wear_value": "已用额定寿命的 {percent}%",
+    "disks_hours_value": "{hours} 小时",
+    "disks_not_reported": "无法获取",
+    "disks_counters_denied": "在此系统上，温度、磨损与通电时间需要管理员权限。"
+                             "请以管理员身份重新启动 FileTree 来查看；此处不会申请权限。",
+    "disks_counters_missing": "这个驱动器或其驱动程序不报告温度、磨损或通电时间。",
+    "disks_counters_unsupported": "在此系统上，磨损与通电时间需要管理工具（例如 smartctl），"
+                                  "FileTree 不会运行这些工具。",
+    "disks_no_partitions": "没有报告任何分区。",
+    "disks_free_space": "未分配",
+    "disks_bar_name": "分区布局",
+    "disks_tool_management": "磁盘管理…",
+    "disks_tool_optimize": "优化驱动器…",
+    "disks_tool_volumes": "磁盘和卷设置…",
+    "disks_tool_storage": "存储设置…",
     "action_export_report_html": "扫描报告（HTML）…",
     "action_export_report_html_tip": "保存内嵌三张图表图片的独立报告",
     "action_export_report_xlsx": "扫描报告（Excel）…",
@@ -4628,6 +5143,49 @@ ZH_CN: dict[str, str] = {
     "trash_more": "……还有 {count} 个",
     "trash_failed_many": "有 {count} 个项目无法移到回收站，可能正在使用或是只读：\n\n{names}",
     "trash_done_many": "已把 {count} 个项目移到回收站，释放 {size}。",
+    "permanent_delete": "永久删除",
+    "permanent_delete_tip": "永久删除选中的文件和文件夹，不经过回收站（会先询问，删除后无法恢复）",
+    "permanent_menu_many": "永久删除 {count} 个项目",
+    "permanent_not_suggestions": ("永久删除只用于你在文件夹树、最大文件或搜索结果中挑出的项目，"
+                                  "不用于清理或重复文件的建议。"),
+    "permanent_title": "永久删除",
+    "permanent_confirm": ("要永久删除“{name}”（{size}）吗？\n\n{path}\n\n"
+                          "它不会移到回收站，删除后无法恢复。"),
+    "permanent_confirm_many": ("要永久删除这 {count} 个项目（共 {size}）吗？\n\n{names}\n\n"
+                               "它们不会移到回收站，删除后无法恢复。"),
+    "permanent_confirm_folders": ("文件夹会连同扫描时记录的内容一起删除；"
+                                  "扫描后新增或更改的项目会保留在原处。"),
+    "permanent_protected_question": ("其中 {count} 个是系统或程序的文件夹，永久删除可能让系统或程序"
+                                     "无法正常运行：\n\n{names}\n\n仍要删除吗？"),
+    "permanent_managed": ("这些项目由 Windows 管理，FileTree 不会删除。"
+                          "请改用详细信息中列出的系统工具：\n\n{names}"),
+    "permanent_running": "正在永久删除…已删除 {count} 个项目。按 Esc 可停止。",
+    "permanent_done": "已永久删除 {removed} 个项目（{size}）。保留在原处：{refused}；失败：{failed}。",
+    "permanent_report_title": "永久删除：保留在原处的项目",
+    "permanent_failed": "系统未删除此项目：{reason}",
+    "permanent_pending": "删除尚未完成：另一个程序仍打开着它",
+    "permanent_journal_reason": "明确的永久删除",
+    "permanent_journal_deleted": "已永久删除",
+    "permanent_journal_partial": "部分删除（保留文件夹）",
+    "permanent_skip_outside": "不在当前的扫描范围，未删除",
+    "permanent_skip_unverified": "没有经过核对的扫描身份，未删除",
+    "permanent_skip_incomplete": "扫描无法读取此文件夹的全部内容，未进入",
+    "permanent_skip_missing": "项目或所在文件夹已不存在",
+    "permanent_skip_unreadable": "无法读取项目，未删除",
+    "permanent_skip_link": "项目或父文件夹变成链接，未删除",
+    "permanent_skip_kind": "项目类型已更改，未删除",
+    "permanent_skip_identity": "扫描后项目已被替换，未删除",
+    "permanent_skip_changed": "扫描后大小或时间已更改，未删除",
+    "permanent_skip_protected": "不在你确认范围内的系统或程序文件夹，未删除",
+    "permanent_skip_system_managed": "此项目由 Windows 管理，未删除",
+    "permanent_skip_cancelled": "在处理此项目前已停止，未删除",
+    "permanent_skip_journal": "无法记录已确认的操作，未删除任何项目",
+    "permanent_skip_read_only": "只读项目；FileTree 不会清除此属性，因此未删除",
+    "permanent_skip_mount_point": "已挂载的卷或挂载点，未删除",
+    "permanent_skip_other_volume": "位于其他卷，未删除",
+    "permanent_skip_arrived": "扫描后新增，保留在原处",
+    "permanent_skip_not_empty": "保留文件夹：其中仍有项目保留在原处",
+    "permanent_skip_failed": "系统拒绝删除其中的项目",
     "status_selected_many": "已选中 {count} 个项目：{size}",
     "export_title": "导出",
     "export_running": "正在保存到 {path}…",
@@ -4876,6 +5434,77 @@ JA: dict[str, str] = {
     "highlights_cleanup_hint": '候補の容量は確認が必要で、すぐに空く容量ではありません。',
     "highlights_coverage_unknown": 'スキャン範囲はまだ不明です',
     "highlights_coverage": 'スキャン制限：除外 {skipped}、読取不可 {denied}、未読 {pending}',
+    "column_advice": '削除の目安',
+    "advice_low": '整理できる',
+    "advice_review": '要確認',
+    "advice_personal": '自分で判断',
+    "advice_protected": '削除しない',
+    "advice_managed": 'システム管理',
+    "advice_pending": '分析中…',
+    "advice_low_tip": (
+        'リスクが低い整理候補です。プログラムがこのデータを再作成できます。移動する前に確認し'
+        'てください。'
+    ),
+    "advice_review_tip": '確認が必要な整理候補です。まだ必要なものが含まれていないか確かめてください。',
+    "advice_personal_tip": (
+        'この項目に当てはまるルールはありません。必要かどうかはご自身で判断してください。確認'
+        'なしに移動することはありません。'
+    ),
+    "advice_protected_tip": (
+        '残してください：{reason}。削除するとシステムやインストール済みのプログラムが動かなく'
+        'なることがあります。'
+    ),
+    "advice_managed_tip": (
+        'この領域はオペレーティングシステムが管理しており、FileTree は移動しません。使用する'
+        'システムツールは「詳細」に表示されます。'
+    ),
+    "advice_pending_tip": '整理の分析を実行中です。',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": (
+        'このスキャンの整理ルールと、このコンピューターの保護された場所に基づく目安です。参考'
+        '情報であり、移動の前には必ず確認します。'
+    ),
+    "highlights_folders_label": '大きいフォルダー',
+    "highlights_files_label": '大きいファイル',
+    "highlights_files": '大きいファイルを選んで表示します。丸印は削除の目安です。',
+    "reclaim_action": "空き容量を増やす…",
+    "reclaim_action_tip": "このスキャンで見つかった項目から、指定した容量を空ける計画を立てます",
+    "reclaim_title": "空き容量を増やす",
+    "reclaim_hint": (
+        "必要な容量を選んでください。FileTree はこのスキャンで見つかった項目を、安全なものから順に表示します。自動で"
+        "選択されるものはなく、確認して「はい」と答えるまで何も移動しません。"
+    ),
+    "reclaim_target": "空ける容量:",
+    "reclaim_custom": "任意の容量",
+    "reclaim_share": "ドライブの空きがこの割合になるまで",
+    "reclaim_drive": "スキャン時、ドライブは {total} 中 {free} が空いていました。",
+    "reclaim_column_entry": "ステップまたは項目",
+    "reclaim_column_total": "累計",
+    "reclaim_step": "{risk}: {title} ({count})",
+    "reclaim_duplicates": "重複ファイルの余分なコピー",
+    "reclaim_duplicates_tip": (
+        "「重複」タブで残すと選んだコピーと同じ内容のファイルです。残すコピーが提案されることはありません。"
+    ),
+    "reclaim_options": "どの規則にも当てはまらない大きなファイル — 確かな場合のみ",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target}(目標超過)",
+    "reclaim_more": "ほかに {count} 件(表示していません)",
+    "reclaim_overlap": "単独では {size}。一部は前のステップで計上済みです。",
+    "reclaim_reached": "これらのステップで約 {found} を空けられ、指定した {target} に届きます。",
+    "reclaim_short": (
+        "これらのステップで空けられるのは約 {found} で、{target} まで {short} "
+        "足りません。不要だと確かな場合は、最後に並ぶ大きなファイルで補える場合があります。"
+    ),
+    "reclaim_empty": "このスキャンでは提案できる項目が見つかりませんでした。",
+    "reclaim_waiting": "整理の候補をまだ探しています。見つかり次第、計画に反映されます。",
+    "reclaim_undecided": "{count} 組の重複は含まれていません。先に「重複」タブで残すコピーを選んでください。",
+    "reclaim_selected": "選択: {selected} / {target}",
+    "reclaim_note": (
+        "これはスキャン結果からの推定です。実際に空く容量は異なる場合があります。ハードリンク、圧縮されたファイル、ク"
+        "ラウドのファイルはサイズより使用量が少なく、ごみ箱に移動した項目はごみ箱を空にするまで容量を使い続けます。"
+    ),
+    "reclaim_show": "ツリーで表示",
+    "reclaim_review": "確認してごみ箱に移動…",
     "shell_reading": "エクスプローラーの登録を読み取り中…",
     "shell_saving": "エクスプローラーの登録を保存中…",
     "shell_waiting": "現在のエクスプローラー設定の処理が終わるまで待機中…開始済みの保存は続行します。",
@@ -5583,6 +6212,31 @@ JA: dict[str, str] = {
         '、グローバル レビュー後にマウントされた Finder ゴミ箱をすべて空にします (ネイティブ検証保留中)。容量'
         '/ビンの値は後で更新されます。再スキャンしてメイン ツリーを更新します。'
     ),
+    "forecast_column": "空き容量の予測",
+    "forecast_record": "予測のために使用量を記録する",
+    "forecast_record_tip": (
+        "この概要を開くたびに、FileTree は各ドライブの時刻・使用量・総容量のバイト数をローカルのデータフォルダーに"
+        "保存します。1 ドライブにつき最大 {hours} 時間に 1 件、最大 {count} 件です。ファイルの情報は保存しません。"
+    ),
+    "forecast_growing": "1 日あたり約 {rate} — {date} ごろにいっぱい",
+    "forecast_not_soon": "1 日あたり約 {rate} — {years} 年以内にはいっぱいになりません",
+    "forecast_stable": "増えていません",
+    "forecast_not_enough": "履歴がまだ足りません (数日必要です)",
+    "forecast_off": "記録はオフです",
+    "forecast_unknown": "不明 (使用量が報告されていません)",
+    "forecast_off_tip": "下の記録をオンにすると、このドライブの使用量の履歴がたまります。",
+    "forecast_unknown_tip": "システムがこのドライブの使用量を報告しなかったため、記録していません。",
+    "forecast_not_enough_tip": (
+        "現在 {count} 件、{days} 日分です。予測には {needed_days} 日以上にわたる {needed} "
+        "件以上が必要です。この概要を開くと記録されます (最大数時間に 1 件)。"
+    ),
+    "forecast_estimate_tip": (
+        "{days} 日分・{count} 件の使用量からの推定です (最大で直近 {window} "
+        "日、総容量が最後に変わって以降)。最近の速度が続くと仮定しており、保証ではありません。"
+    ),
+    "forecast_newer": "空き容量の履歴は新しいバージョンの FileTree で保存されたため、変更せずに残しています。",
+    "forecast_save_failed": "空き容量の履歴を保存できませんでした: {reason}",
+    "forecast_unavailable": "空き容量の履歴を使用できません: システムがアプリのデータフォルダーを提供していません。",
     'action_volumes': 'ドライブの概要…',
     'action_volumes_tip': 'マウントされたボリューム、容量、割り当て単位、およびごみ箱の合計を検査する',
     'volume_root': 'マウントされたルート',
@@ -5609,6 +6263,67 @@ JA: dict[str, str] = {
         'のままです。 Stop は現在の OS 呼び出しを待ちます。キャンセルされたアンケートは破棄されます。 Ctrl+C '
         'で行をコピーします。ここでは空にするアクションは提供されません。'
     ),
+    'action_disks': '物理ディスク…',
+    'action_disks_tip': '物理ドライブ、その正常性とパーティション構成を確認します (読み取り専用)',
+    'disks_title': '物理ディスク',
+    'disks_hint': '読み取り専用: FileTree はシステムが報告する各物理ドライブの情報を表示するだけで、ディスク上の'
+                  '内容は何も変更しません。シリアル番号は表示しません。',
+    'disks_reading': '物理ディスクを読み取り中…',
+    'disks_summary': '見つかった物理ディスク: {count} 台。',
+    'disks_none': 'システムは物理ディスクを報告しませんでした。',
+    'disks_problem_unsupported': 'このシステムでは物理ディスクを一覧表示できません。',
+    'disks_problem_tool_missing': 'ディスクを一覧表示するシステム ツールが見つかりません。',
+    'disks_problem_timeout': 'ディスクの一覧表示に時間がかかりすぎました。[最新の情報に更新] を試してください。',
+    'disks_problem_failed': 'システムはディスクを一覧表示できませんでした。',
+    'disks_problem_malformed': 'システムが報告したディスク一覧を読み取れませんでした。',
+    'disks_refresh': '最新の情報に更新',
+    'disks_select': 'ディスクを選ぶと、正常性とパーティションが表示されます。',
+    'disks_col_disk': 'ディスク',
+    'disks_col_model': 'モデル',
+    'disks_col_media': '種類',
+    'disks_col_bus': '接続',
+    'disks_col_style': 'パーティション テーブル',
+    'disks_col_size': 'サイズ',
+    'disks_col_health': '正常性',
+    'disks_col_number': '#',
+    'disks_col_kind': 'パーティションの種類',
+    'disks_col_label': 'ラベル',
+    'disks_col_mounts': 'ドライブ文字 / マウント ポイント',
+    'disks_col_fs': 'ファイル システム',
+    'disks_col_offset': '開始位置',
+    'disks_media_ssd': 'SSD',
+    'disks_media_hdd': 'ハード ディスク (HDD)',
+    'disks_media_unknown': '不明',
+    'disks_unknown': '不明',
+    'disks_state_healthy': '正常',
+    'disks_state_warning': '警告',
+    'disks_state_unhealthy': '故障の兆候',
+    'disks_state_unknown': '不明',
+    'disks_health_line': '正常性: {state}。{meaning}',
+    'disks_meaning_healthy': 'ドライブは問題を報告していません。ドライブは予告なく故障することがあるため、'
+                             'バックアップは続けてください。',
+    'disks_meaning_warning': 'ドライブが問題を報告しています。早めに重要なファイルをバックアップし、'
+                             'メーカーのツールで確認してください。',
+    'disks_meaning_unhealthy': 'ドライブが故障しかけていると報告しています。今すぐ重要なファイルをバックアップし、'
+                               '交換を検討してください。',
+    'disks_meaning_unknown': 'システムがこのドライブの正常性を報告しないため、FileTree には判断できません。',
+    'disks_counters': '温度: {temperature} · 摩耗: {wear} · 電源投入時間: {hours}',
+    'disks_temperature_value': '{degrees} °C',
+    'disks_wear_value': '定格寿命の {percent}% を使用',
+    'disks_hours_value': '{hours} 時間',
+    'disks_not_reported': '取得できません',
+    'disks_counters_denied': 'このシステムでは、温度、摩耗、電源投入時間の取得に管理者権限が必要です。'
+                             '表示するには FileTree を管理者として再起動してください。ここでは権限を求めません。',
+    'disks_counters_missing': 'このドライブまたはドライバーは、温度、摩耗、電源投入時間を報告しません。',
+    'disks_counters_unsupported': 'このシステムでは、摩耗と電源投入時間の取得に管理ツール (smartctl など) が'
+                                  '必要ですが、FileTree はそれらを実行しません。',
+    'disks_no_partitions': 'パーティションは報告されませんでした。',
+    'disks_free_space': '未割り当て',
+    'disks_bar_name': 'パーティション構成',
+    'disks_tool_management': 'ディスクの管理…',
+    'disks_tool_optimize': 'ドライブの最適化…',
+    'disks_tool_volumes': 'ディスクとボリュームの設定…',
+    'disks_tool_storage': 'ストレージの設定…',
     'action_export_report_html': 'スキャンレポート(HTML)…',
     'action_export_report_html_tip': '3 つのチャート画像が埋め込まれた自己完結型レポートを保存する',
     'action_export_report_xlsx': 'スキャンレポート（Excel）…',
@@ -6518,6 +7233,67 @@ JA: dict[str, str] = {
         'ります:\n\n{names}'
     ),
     'trash_done_many': '{count} 個のアイテムをごみ箱に移動しました: {size} が解放されました。',
+    'permanent_delete': '完全に削除',
+    'permanent_delete_tip': (
+        '選択したファイルとフォルダーをごみ箱を使わずに完全に削除します'
+        '（最初に確認し、元に戻せません）'
+    ),
+    'permanent_menu_many': '{count} 個の項目を完全に削除',
+    'permanent_not_suggestions': (
+        '完全に削除は、フォルダーツリー、最大のファイル、検索結果で選んだ項目にだけ使えます。'
+        'クリーンアップや重複の候補には使えません。'
+    ),
+    'permanent_title': '完全に削除',
+    'permanent_confirm': (
+        '「{name}」({size}) を完全に削除しますか?\n\n{path}\n\n'
+        'ごみ箱には移動されず、元に戻せません。'
+    ),
+    'permanent_confirm_many': (
+        'これらの {count} 個の項目 (合計 {size}) を完全に削除しますか?\n\n{names}\n\n'
+        'ごみ箱には移動されず、元に戻せません。'
+    ),
+    'permanent_confirm_folders': (
+        'フォルダーは、スキャン時に記録された中身と一緒に削除されます。'
+        'スキャン後に追加または変更された項目はそのまま残ります。'
+    ),
+    'permanent_protected_question': (
+        '項目のうち {count} 個はシステムまたはプログラムのフォルダーです。完全に削除すると、'
+        'システムやプログラムが動作しなくなる可能性があります:\n\n{names}\n\nそれでも削除しますか?'
+    ),
+    'permanent_managed': (
+        'これらの項目は Windows が管理しているため、FileTree は削除しません。'
+        '代わりに詳細に表示されるシステムツールを使ってください:\n\n{names}'
+    ),
+    'permanent_running': '完全に削除しています… {count} 個の項目を削除しました。Esc で停止します。',
+    'permanent_done': (
+        '{removed} 個の項目 ({size}) を完全に削除しました。'
+        '残した項目: {refused}、失敗: {failed}。'
+    ),
+    'permanent_report_title': '完全に削除: 残した項目',
+    'permanent_failed': 'システムが削除しませんでした: {reason}',
+    'permanent_pending': '削除は保留中です: 別のプログラムがまだ開いています',
+    'permanent_journal_reason': '明示的な完全削除',
+    'permanent_journal_deleted': '完全に削除しました',
+    'permanent_journal_partial': '一部を削除 (フォルダーは残しました)',
+    'permanent_skip_outside': '現在のスキャン範囲外のため削除しません',
+    'permanent_skip_unverified': '確認済みのスキャン識別情報がないため削除しません',
+    'permanent_skip_incomplete': 'スキャンでこのフォルダーをすべて読み取れなかったため、中に入りません',
+    'permanent_skip_missing': '項目またはそのフォルダーが見つかりません',
+    'permanent_skip_unreadable': '項目を読み取れないため削除しません',
+    'permanent_skip_link': '項目または上位フォルダーがリンクに変わったため削除しません',
+    'permanent_skip_kind': '項目の種類が変わったため削除しません',
+    'permanent_skip_identity': 'スキャン後に項目が置き換えられたため削除しません',
+    'permanent_skip_changed': 'スキャン後にサイズまたは日時が変わったため削除しません',
+    'permanent_skip_protected': '承認の対象外のシステムまたはプログラムのフォルダーのため削除しません',
+    'permanent_skip_system_managed': 'Windows が管理する項目のため削除しません',
+    'permanent_skip_cancelled': 'この項目の前に停止したため削除しません',
+    'permanent_skip_journal': '承認した操作を記録できなかったため、何も削除しませんでした',
+    'permanent_skip_read_only': '読み取り専用です。FileTree は属性を解除しないため削除しません',
+    'permanent_skip_mount_point': 'マウントされたボリュームまたはマウントポイントのため削除しません',
+    'permanent_skip_other_volume': '別のボリューム上にあるため削除しません',
+    'permanent_skip_arrived': 'スキャン後に追加されたため残しました',
+    'permanent_skip_not_empty': '中に残った項目があるため、フォルダーを残しました',
+    'permanent_skip_failed': '中の項目の削除をシステムが拒否しました',
     'status_selected_many': '{count} 個のアイテムが選択されました: {size}',
     'export_title': 'エクスポート',
     'export_running': '{path} に保存中…',
@@ -6757,6 +7533,77 @@ KO: dict[str, str] = {
     "highlights_cleanup_hint": '후보 데이터 크기는 검토가 필요하며 즉시 확보할 수 있는 공간이 아닙니다.',
     "highlights_coverage_unknown": '스캔 범위 정보가 아직 없습니다',
     "highlights_coverage": '스캔 제한: 제외 {skipped}, 읽기 불가 {denied}, 대기 {pending}',
+    "column_advice": '삭제 가능 여부',
+    "advice_low": '정리 가능',
+    "advice_review": '확인 필요',
+    "advice_personal": '직접 판단',
+    "advice_protected": '삭제 금지',
+    "advice_managed": '시스템 관리',
+    "advice_pending": '분석 중…',
+    "advice_low_tip": (
+        '위험이 낮은 정리 후보입니다. 프로그램이 이 데이터를 다시 만들 수 있습니다. 이동하기 '
+        '전에 검토하세요.'
+    ),
+    "advice_review_tip": '검토가 필요한 정리 후보입니다. 아직 필요한 내용이 없는지 확인하세요.',
+    "advice_personal_tip": (
+        '이 항목에 해당하는 규칙이 없으므로 필요한지는 직접 판단해야 합니다. 확인 없이는 아무'
+        '것도 이동하지 않습니다.'
+    ),
+    "advice_protected_tip": (
+        '유지하세요: {reason}. 제거하면 시스템이나 설치된 프로그램이 동작하지 않을 수 있습니'
+        '다.'
+    ),
+    "advice_managed_tip": (
+        "이 공간은 운영 체제가 관리하며 FileTree는 이동하지 않습니다. 사용할 시스템 도구는 '"
+        "세부 정보'에 표시됩니다."
+    ),
+    "advice_pending_tip": '정리 분석이 아직 진행 중입니다.',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": (
+        '이 스캔의 정리 규칙과 이 컴퓨터의 보호된 위치를 바탕으로 한 안내입니다. 참고용이며 '
+        '이동하기 전에 항상 먼저 묻습니다.'
+    ),
+    "highlights_folders_label": '가장 큰 폴더',
+    "highlights_files_label": '가장 큰 파일',
+    "highlights_files": '가장 큰 파일을 선택하여 위치를 확인하세요. 점은 삭제 가능 여부 안내입니다.',
+    "reclaim_action": "공간 확보…",
+    "reclaim_action_tip": "이번 스캔에서 찾은 항목으로 원하는 만큼 공간을 확보하는 계획을 세웁니다",
+    "reclaim_title": "공간 확보",
+    "reclaim_hint": (
+        "필요한 공간을 선택하세요. FileTree는 이번 스캔에서 이미 찾은 항목을 가장 안전한 것부터 보여 줍니다. "
+        "자동으로 선택되는 항목은 없으며, 검토하고 '예'라고 답하기 전에는 아무것도 이동하지 않습니다."
+    ),
+    "reclaim_target": "확보할 공간:",
+    "reclaim_custom": "직접 입력",
+    "reclaim_share": "드라이브 여유 공간이 이 비율이 될 때까지",
+    "reclaim_drive": "스캔 당시 여유 공간: {free} / {total}",
+    "reclaim_column_entry": "단계 또는 항목",
+    "reclaim_column_total": "누계",
+    "reclaim_step": "{risk}: {title} ({count})",
+    "reclaim_duplicates": "중복 파일의 추가 사본",
+    "reclaim_duplicates_tip": (
+        "'중복' 탭에서 유지하기로 선택한 사본과 내용이 같은 파일입니다. 유지할 사본은 절대 제안되지 않습니다."
+    ),
+    "reclaim_options": "어떤 규칙에도 해당하지 않는 큰 파일 — 확실할 때만",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target} (목표 초과)",
+    "reclaim_more": "표시되지 않은 항목 {count}개",
+    "reclaim_overlap": "단독 크기 {size}. 일부는 이전 단계에서 이미 계산되었습니다.",
+    "reclaim_reached": "이 단계들로 약 {found} 확보 가능 — 요청한 {target}에 충분합니다.",
+    "reclaim_short": (
+        "이 단계들로는 약 {found}만 확보할 수 있어 {target}까지 {short} 부족합니다. 더 이상 필요 없다고 확실하면 "
+        "마지막에 나열된 큰 파일로 나머지를 채울 수 있습니다."
+    ),
+    "reclaim_empty": "이번 스캔에서 제안할 수 있는 항목을 찾지 못했습니다.",
+    "reclaim_waiting": "정리 제안을 아직 찾는 중입니다. 준비되면 계획에 반영됩니다.",
+    "reclaim_undecided": "중복 그룹 {count}개는 제외되었습니다. 먼저 '중복' 탭에서 유지할 사본을 선택하세요.",
+    "reclaim_selected": "선택됨: {selected} / {target}",
+    "reclaim_note": (
+        "스캔 결과에 따른 추정치입니다. 실제로 확보되는 공간은 다를 수 있습니다. 하드 링크, 압축된 파일, 클라우드 "
+        "파일은 크기보다 사용량이 적고, 휴지통으로 이동한 항목은 휴지통을 비울 때까지 공간을 계속 차지합니다."
+    ),
+    "reclaim_show": "트리에서 표시",
+    "reclaim_review": "검토 후 휴지통으로 이동…",
     "shell_reading": "탐색기 등록을 읽는 중…",
     "shell_saving": "탐색기 등록을 저장하는 중…",
     "shell_waiting": "현재 탐색기 설정 요청이 끝날 때까지 기다리는 중…이미 시작한 저장은 계속됩니다.",
@@ -7410,6 +8257,31 @@ KO: dict[str, str] = {
         ' 비웁니다(기본 유효성 검사 보류 중). 용량/bin 값은 나중에 새로 고쳐집니다. 메인 트리를 업데이트하려'
         '면 다시 스캔하세요.'
     ),
+    "forecast_column": "여유 공간 예측",
+    "forecast_record": "예측을 위해 사용 공간 기록",
+    "forecast_record_tip": (
+        "이 개요를 열 때마다 FileTree는 각 드라이브의 시각, 사용 바이트와 전체 바이트를 로컬 데이터 폴더에 "
+        "저장합니다. 드라이브마다 최대 {hours}시간에 1개, 최대 {count}개입니다. 파일 정보는 저장하지 않습니다."
+    ),
+    "forecast_growing": "하루 약 {rate} — {date}쯤 가득 참",
+    "forecast_not_soon": "하루 약 {rate} — {years}년 안에는 가득 차지 않음",
+    "forecast_stable": "늘지 않음",
+    "forecast_not_enough": "아직 기록이 부족합니다(며칠 필요)",
+    "forecast_off": "기록이 꺼져 있음",
+    "forecast_unknown": "알 수 없음(사용 공간이 보고되지 않음)",
+    "forecast_off_tip": "아래에서 기록을 켜면 이 드라이브의 사용 공간 기록이 쌓입니다.",
+    "forecast_unknown_tip": "시스템이 이 드라이브의 사용 공간을 보고하지 않아 기록하지 않았습니다.",
+    "forecast_not_enough_tip": (
+        "지금까지 {days}일 동안 {count}개입니다. 예측하려면 {needed_days}일 이상에 걸친 {needed}개 이상이 "
+        "필요합니다. 이 개요를 열 때 기록됩니다(최대 몇 시간에 1개)."
+    ),
+    "forecast_estimate_tip": (
+        "{days}일 동안의 사용 공간 {count}개로 추정한 값입니다(최대 최근 {window}일, 전체 크기가 마지막으로 바뀐 "
+        "이후). 최근 속도가 계속된다고 가정하며 보장되지 않습니다."
+    ),
+    "forecast_newer": "여유 공간 기록이 더 새 버전의 FileTree로 저장되어 그대로 두었습니다.",
+    "forecast_save_failed": "여유 공간 기록을 저장할 수 없습니다: {reason}",
+    "forecast_unavailable": "여유 공간 기록을 사용할 수 없습니다: 시스템이 앱 데이터 폴더를 제공하지 않습니다.",
     'action_volumes': '드라이브 개요…',
     'action_volumes_tip': '마운트된 볼륨, 용량, 할당 단위 및 휴지통 총계를 검사합니다.',
     'volume_root': '마운트된 루트',
@@ -7432,6 +8304,66 @@ KO: dict[str, str] = {
         '외됩니다. 오류는 아직 알려지지 않았습니다. 중지는 현재 OS 호출을 기다립니다. 취소된 설문조사는 폐기'
         '됩니다. Ctrl+C는 행을 복사합니다. 여기서는 비우기 작업이 제공되지 않습니다.'
     ),
+    'action_disks': '물리 디스크…',
+    'action_disks_tip': '물리 드라이브, 상태 및 파티션 구성 보기(읽기 전용)',
+    'disks_title': '물리 디스크',
+    'disks_hint': '읽기 전용: FileTree는 시스템이 보고하는 각 물리 드라이브 정보만 보여 주며 디스크의 내용은 '
+                  '아무것도 바꾸지 않습니다. 일련 번호는 표시하지 않습니다.',
+    'disks_reading': '물리 디스크를 읽는 중…',
+    'disks_summary': '찾은 물리 디스크: {count}개.',
+    'disks_none': '시스템이 물리 디스크를 보고하지 않았습니다.',
+    'disks_problem_unsupported': '이 시스템에서는 물리 디스크를 나열할 수 없습니다.',
+    'disks_problem_tool_missing': '디스크를 나열하는 시스템 도구를 찾을 수 없습니다.',
+    'disks_problem_timeout': '시스템이 디스크를 나열하는 데 너무 오래 걸렸습니다. 새로 고침을 눌러 보세요.',
+    'disks_problem_failed': '시스템이 디스크를 나열하지 못했습니다.',
+    'disks_problem_malformed': '시스템이 보고한 디스크 목록을 읽을 수 없습니다.',
+    'disks_refresh': '새로 고침',
+    'disks_select': '디스크를 선택하면 상태와 파티션이 표시됩니다.',
+    'disks_col_disk': '디스크',
+    'disks_col_model': '모델',
+    'disks_col_media': '종류',
+    'disks_col_bus': '연결',
+    'disks_col_style': '파티션 테이블',
+    'disks_col_size': '크기',
+    'disks_col_health': '상태',
+    'disks_col_number': '#',
+    'disks_col_kind': '파티션 종류',
+    'disks_col_label': '레이블',
+    'disks_col_mounts': '드라이브 문자 / 마운트 지점',
+    'disks_col_fs': '파일 시스템',
+    'disks_col_offset': '시작 위치',
+    'disks_media_ssd': 'SSD',
+    'disks_media_hdd': '하드 디스크(HDD)',
+    'disks_media_unknown': '알 수 없음',
+    'disks_unknown': '알 수 없음',
+    'disks_state_healthy': '정상',
+    'disks_state_warning': '경고',
+    'disks_state_unhealthy': '고장 징후',
+    'disks_state_unknown': '알 수 없음',
+    'disks_health_line': '상태: {state}. {meaning}',
+    'disks_meaning_healthy': '드라이브가 문제를 보고하지 않았습니다. 드라이브는 예고 없이 고장 날 수 있으니 백업은 '
+                             '계속하세요.',
+    'disks_meaning_warning': '드라이브가 문제를 보고했습니다. 중요한 파일을 곧 백업하고 제조사 도구로 확인하세요.',
+    'disks_meaning_unhealthy': '드라이브가 고장 나고 있다고 보고했습니다. 지금 중요한 파일을 백업하고 교체를 '
+                               '준비하세요.',
+    'disks_meaning_unknown': '시스템이 이 드라이브의 상태를 보고하지 않아 FileTree가 판단할 수 없습니다.',
+    'disks_counters': '온도: {temperature} · 마모: {wear} · 전원 켜짐 시간: {hours}',
+    'disks_temperature_value': '{degrees} °C',
+    'disks_wear_value': '정격 수명의 {percent}% 사용',
+    'disks_hours_value': '{hours}시간',
+    'disks_not_reported': '사용할 수 없음',
+    'disks_counters_denied': '이 시스템에서는 온도, 마모, 전원 켜짐 시간을 읽으려면 관리자 권한이 필요합니다. '
+                             '보려면 FileTree를 관리자로 다시 시작하세요. 여기서는 권한을 요청하지 않습니다.',
+    'disks_counters_missing': '이 드라이브 또는 드라이버는 온도, 마모, 전원 켜짐 시간을 보고하지 않습니다.',
+    'disks_counters_unsupported': '이 시스템에서는 마모와 전원 켜짐 시간을 읽으려면 관리 도구(예: smartctl)가 '
+                                  '필요하지만 FileTree는 이를 실행하지 않습니다.',
+    'disks_no_partitions': '보고된 파티션이 없습니다.',
+    'disks_free_space': '할당되지 않음',
+    'disks_bar_name': '파티션 구성',
+    'disks_tool_management': '디스크 관리…',
+    'disks_tool_optimize': '드라이브 최적화…',
+    'disks_tool_volumes': '디스크 및 볼륨 설정…',
+    'disks_tool_storage': '저장소 설정…',
     'action_export_report_html': '스캔 보고서(HTML)…',
     'action_export_report_html_tip': '3개의 차트 이미지가 포함된 독립형 보고서 저장',
     'action_export_report_xlsx': '보고서 스캔(Excel)…',
@@ -8261,6 +9193,67 @@ KO: dict[str, str] = {
         '{count} 항목을 휴지통으로 이동할 수 없습니다. 사용 중이거나 읽기 전용일 수 있습니다. \n\n{names}'
     ),
     'trash_done_many': '{count} 항목을 휴지통으로 이동했습니다: {size}이 해제되었습니다.',
+    'permanent_delete': '영구 삭제',
+    'permanent_delete_tip': (
+        '선택한 파일과 폴더를 휴지통을 거치지 않고 영구 삭제합니다'
+        '(먼저 확인하며 되돌릴 수 없습니다)'
+    ),
+    'permanent_menu_many': '항목 {count}개 영구 삭제',
+    'permanent_not_suggestions': (
+        '영구 삭제는 폴더 트리, 가장 큰 파일, 검색 결과에서 고른 항목에만 사용할 수 있으며 '
+        '정리나 중복 제안에는 사용할 수 없습니다.'
+    ),
+    'permanent_title': '영구 삭제',
+    'permanent_confirm': (
+        '“{name}”({size})을(를) 영구 삭제하시겠습니까?\n\n{path}\n\n'
+        '휴지통으로 이동하지 않으며 되돌릴 수 없습니다.'
+    ),
+    'permanent_confirm_many': (
+        '이 항목 {count}개(총 {size})를 영구 삭제하시겠습니까?\n\n{names}\n\n'
+        '휴지통으로 이동하지 않으며 되돌릴 수 없습니다.'
+    ),
+    'permanent_confirm_folders': (
+        '폴더는 스캔할 때 기록된 내용과 함께 삭제됩니다. '
+        '스캔 후 추가되거나 바뀐 항목은 그대로 남습니다.'
+    ),
+    'permanent_protected_question': (
+        '항목 중 {count}개는 시스템 또는 프로그램 폴더입니다. 영구 삭제하면 시스템이나 프로그램이 '
+        '작동하지 않을 수 있습니다.\n\n{names}\n\n그래도 삭제하시겠습니까?'
+    ),
+    'permanent_managed': (
+        '이 항목은 Windows가 관리하므로 FileTree가 삭제하지 않습니다. '
+        '대신 세부 정보에 표시된 시스템 도구를 사용하세요.\n\n{names}'
+    ),
+    'permanent_running': '영구 삭제 중… 항목 {count}개를 삭제했습니다. 중지하려면 Esc를 누르세요.',
+    'permanent_done': (
+        '항목 {removed}개({size})를 영구 삭제했습니다. '
+        '남긴 항목: {refused}, 실패: {failed}.'
+    ),
+    'permanent_report_title': '영구 삭제: 남긴 항목',
+    'permanent_failed': '시스템이 삭제하지 않았습니다: {reason}',
+    'permanent_pending': '삭제 대기 중: 다른 프로그램이 아직 열어 두고 있습니다',
+    'permanent_journal_reason': '명시적 영구 삭제',
+    'permanent_journal_deleted': '영구 삭제됨',
+    'permanent_journal_partial': '일부 삭제됨(폴더 유지)',
+    'permanent_skip_outside': '현재 스캔 범위 밖이므로 삭제하지 않음',
+    'permanent_skip_unverified': '확인된 스캔 식별 정보가 없어 삭제하지 않음',
+    'permanent_skip_incomplete': '스캔에서 이 폴더 전체를 읽지 못해 들어가지 않음',
+    'permanent_skip_missing': '항목 또는 해당 폴더가 없음',
+    'permanent_skip_unreadable': '항목을 읽을 수 없어 삭제하지 않음',
+    'permanent_skip_link': '항목 또는 상위 폴더가 링크로 바뀌어 삭제하지 않음',
+    'permanent_skip_kind': '항목 종류가 바뀌어 삭제하지 않음',
+    'permanent_skip_identity': '스캔 후 항목이 교체되어 삭제하지 않음',
+    'permanent_skip_changed': '스캔 후 크기나 시간이 바뀌어 삭제하지 않음',
+    'permanent_skip_protected': '승인 범위에 없는 시스템 또는 프로그램 폴더이므로 삭제하지 않음',
+    'permanent_skip_system_managed': 'Windows가 관리하는 항목이므로 삭제하지 않음',
+    'permanent_skip_cancelled': '이 항목 전에 중지되어 삭제하지 않음',
+    'permanent_skip_journal': '승인한 작업을 기록할 수 없어 아무것도 삭제하지 않음',
+    'permanent_skip_read_only': '읽기 전용입니다. FileTree는 속성을 해제하지 않으므로 삭제하지 않음',
+    'permanent_skip_mount_point': '마운트된 볼륨 또는 마운트 지점이므로 삭제하지 않음',
+    'permanent_skip_other_volume': '다른 볼륨에 있어 삭제하지 않음',
+    'permanent_skip_arrived': '스캔 후 추가되어 그대로 둠',
+    'permanent_skip_not_empty': '안에 남은 항목이 있어 폴더를 유지함',
+    'permanent_skip_failed': '안의 항목 삭제를 시스템이 거부함',
     'status_selected_many': '{count} 선택한 항목: {size}',
     'export_title': '수출',
     'export_running': '{path}에 저장 중…',

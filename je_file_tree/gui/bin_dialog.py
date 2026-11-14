@@ -96,6 +96,7 @@ class BinDialog(VolumesDialog):
     """Current bin metadata and two-question Windows/Linux scopes or Finder-wide emptying."""
 
     emptied = Signal(str)
+    records_forecast = False
 
     def __init__(self, unit: str, parent: QWidget | None = None) -> None:
         super().__init__(unit, parent)

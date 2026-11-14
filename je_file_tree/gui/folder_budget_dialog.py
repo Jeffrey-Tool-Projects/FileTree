@@ -19,6 +19,7 @@ from je_file_tree.gui.folder_budget_store import (
 )
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.search_ranges import UNITS, editable_size, exact_bytes
+from je_file_tree.gui.window_fit import fit_window
 
 BudgetFilter = Literal["all", "over", "unknown"]
 
@@ -61,7 +62,7 @@ class FolderBudgetDialog(QDialog):
             button.clicked.connect(slot)
         self._build()
         self._clean_input = self._input()
-        self.resize(990, 620)
+        fit_window(self, 990, 620)
         store.changed.connect(self.refresh)
         self.retranslate()
         self.set_filter(status_filter)

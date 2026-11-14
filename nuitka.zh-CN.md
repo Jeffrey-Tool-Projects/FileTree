@@ -49,6 +49,18 @@ pip install nuitka ordered-set zstandard
 | Linux | `build-essential` 与 `patchelf`（Debian／Ubuntu：`sudo apt install build-essential patchelf`） |
 | macOS | 命令行工具：`xcode-select --install` |
 
+### 1.3 原生文件夹读取模块（Windows，可选）
+
+在 Windows 上，FileTree 搭配它的小型 C++ 模块 `je_file_tree._native` 扫描会更快（80,000 个小文件、四个线程：Python 2.70 秒，使用模块 0.93 秒）。Nuitka 不会编译它；包旁边有已构建的模块时，Nuitka 会把它复制进去。编译前先用 §1.2 的编译器构建：
+
+```bash
+pip install setuptools
+python setup.py build_ext --inplace
+python -m tools.require_native_reader
+```
+
+模块不存在或与这个 Python 不一致时，最后一条命令会以错误结束。不做这些步骤也能照常编译，只是改用 Python 读取，扫描结果相同。模块不需要用户的电脑安装 Visual C++ 可再发行组件包：它自带 C++ 运行时，只加载 `python3.dll` 与 `KERNEL32.dll`。发布工作流会执行这些步骤，接着运行 `python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist`；编译文件夹里没有模块时，发布会停止。
+
 ## 2. 编译
 
 在仓库根目录、激活虚拟环境后运行。`tools/build_nuitka.py` 会找出 PySide6 装在哪里，再用 §3 的选项运行 Nuitka，也会打印完整的命令。
@@ -132,6 +144,7 @@ Desktop builds CI 使用 Ubuntu 22.04 x86_64 与 macOS 15 arm64，保留开发�
 1. 从编译出来的文件夹启动程序，扫描一个文件夹。
 2. 在“视图 → 语言”切换到另一种语言，然后把某个项目移到回收站并点取消：“是／否”按钮也要是那种语言。如果还是英文，表示编译结果里缺了 Qt 的翻译文件。
 3. 打开“帮助 → 使用说明”。
+4. 在 Windows 上做过 §1.3 之后：编译文件夹里有 `je_file_tree\_native.pyd`。
 
 ## 5. 常见问题
 

@@ -20,6 +20,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.tree_model import NODE_ROLE
+from je_file_tree.gui.window_fit import fit_window
 
 
 class ProjectsModel(_TableModel[Project]):
@@ -72,7 +73,7 @@ class ProjectsDialog(WorkerDialog):
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("action_projects"))
-        self.resize(1200, 610)
+        fit_window(self, 1200, 610)
         self._closed = False
         self.model = ProjectsModel(self)
         self.model.unit = unit

@@ -17,8 +17,17 @@ from je_file_tree.gui.i18n import tr
 
 _TOOLS = {'memory': 'SystemPropertiesAdvanced.exe', 'restore': 'SystemPropertiesProtection.exe',
           'cleanup': 'cleanmgr.exe'}
-_SETTINGS = {'power': 'ms-settings:powersleep', 'storage': 'ms-settings:storagesense'}
+_SETTINGS = {'power': 'ms-settings:powersleep', 'storage': 'ms-settings:storagesense',
+             'disks_volumes': 'ms-settings:disksandvolumes'}
+# Tools whose manifests ask for elevation open through the shell's own "open" verb, so Windows shows its
+# usual consent prompt instead of CreateProcess refusing them; FileTree passes no arguments to them.
+_SHELL_TOOLS = {'disk_management': 'diskmgmt.msc', 'optimize': 'dfrgui.exe'}
 _DRIVE_LENGTH = 2
+
+
+def _system32() -> str | None:
+    windows = os.environ.get('SYSTEMROOT') or os.environ.get('WINDIR', '')
+    return ntpath.join(windows, 'System32') if windows and ntpath.isabs(windows) else None
 
 
 def open_system_tool(tool: str, path: str) -> bool:
@@ -27,12 +36,12 @@ def open_system_tool(tool: str, path: str) -> bool:
         return False
     if tool in _SETTINGS:
         return QDesktopServices.openUrl(QUrl(_SETTINGS[tool]))
-    if tool not in _TOOLS:
+    system32 = _system32()
+    if system32 is None or (tool not in _TOOLS and tool not in _SHELL_TOOLS):
         return False
-    windows = os.environ.get('SYSTEMROOT') or os.environ.get('WINDIR', '')
-    if not windows or not ntpath.isabs(windows):
-        return False
-    command = [ntpath.join(windows, 'System32', _TOOLS[tool])]
+    if tool in _SHELL_TOOLS:
+        return QDesktopServices.openUrl(QUrl.fromLocalFile(ntpath.join(system32, _SHELL_TOOLS[tool])))
+    command = [ntpath.join(system32, _TOOLS[tool])]
     drive = ntpath.splitdrive(path)[0]
     if tool == 'cleanup' and len(drive) == _DRIVE_LENGTH and drive[0].isalpha() and drive[1] == ':':
         command.extend(['/d', drive[0]])
