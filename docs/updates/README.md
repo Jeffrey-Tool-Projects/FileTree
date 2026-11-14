@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261114-17 | 2026-11-14 | 0.2.10 發行驗證：佔用空間少算的修正已在正式套件中生效 | #verification #release #windows | [2026-11](2026-11.md) |
 | U-20261114-16 | 2026-11-14 | 操作前的檢查不再採信路徑查詢的 recall-on-open 位元 | #done #fix #windows | [2026-11](2026-11.md) |
 | U-20261114-15 | 2026-11-14 | 移除實驗性的 MFT 稽核掃描 | #done #removal #scanner #windows | [2026-11](2026-11.md) |
 | U-20261114-14 | 2026-11-14 | 修正尚未被開啟過的檔案被算成不佔空間，並放寬 MFT 稽核的連結數規則 | #fix #scanner #native #windows | [2026-11](2026-11.md) |
