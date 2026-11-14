@@ -141,6 +141,14 @@ bool query(const wchar_t* path, int how, StatBasic& out) {
     return query_by_handle(path, how == QUERY_BY_HANDLE_SHORT, out);
 }
 
+const ULONG RECALL_ON_OPEN = 0x40000;
+
+// ``attributes`` of a path with the recall-on-open bit replaced by the listing's (core/snapshot.py).
+ULONG listed_recall(ULONG attributes, ULONG listed) {
+    ULONG wanted = (attributes & ~RECALL_ON_OPEN) | (listed & RECALL_ON_OPEN);
+    return wanted == 0 && attributes != 0 ? FILE_ATTRIBUTE_NORMAL : wanted;  // nothing left is "normal"
+}
+
 struct Entry {
     std::wstring name;
     int kind = KIND_ASK_PYTHON;
@@ -239,8 +247,12 @@ DWORD list_folder(const std::wstring& folder, int how, bool file_times, bool cha
         Entry entry;
         entry.name = name;
         path.assign(prefix).append(entry.name);
+        // Only a directory listing may say "recall on open"; a query by name can set the same bit on
+        // an ordinary file nobody has opened yet (see core/snapshot.py), so the listing's bit is kept.
+        entry.attributes = found.dwFileAttributes & RECALL_ON_OPEN;
         StatBasic info;
         if (query(path.c_str(), how, info)) {
+            info.FileAttributes = listed_recall(info.FileAttributes, entry.attributes);
             describe(info, file_times, change_time, entry);
         }
         entries.push_back(std::move(entry));
@@ -356,7 +368,11 @@ PyObject* snapshot(PyObject*, PyObject* arguments) {
     Entry entry;
     bool known = false;
     Py_BEGIN_ALLOW_THREADS
-    known = query(path.c_str(), how, info) && describe(info, file_times != 0, change_time != 0, entry);
+    known = query(path.c_str(), how, info);
+    if (known) {
+        info.FileAttributes = listed_recall(info.FileAttributes, 0);  // no listing here to confirm it
+        known = describe(info, file_times != 0, change_time != 0, entry);
+    }
     Py_END_ALLOW_THREADS
     if (!known) {
         Py_RETURN_NONE;

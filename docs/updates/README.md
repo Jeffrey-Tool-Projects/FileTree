@@ -70,6 +70,13 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261114-16 | 2026-11-14 | 操作前的檢查不再採信路徑查詢的 recall-on-open 位元 | #done #fix #windows | [2026-11](2026-11.md) |
+| U-20261114-15 | 2026-11-14 | 移除實驗性的 MFT 稽核掃描 | #done #removal #scanner #windows | [2026-11](2026-11.md) |
+| U-20261114-14 | 2026-11-14 | 修正尚未被開啟過的檔案被算成不佔空間，並放寬 MFT 稽核的連結數規則 | #fix #scanner #native #windows | [2026-11](2026-11.md) |
+| U-20261114-13 | 2026-11-14 | 真實系統磁碟上的 MFT 稽核量測與 OneDrive 預留位置量測 | #verification #fix #scanner #windows | [2026-11](2026-11.md) |
+| U-20261114-12 | 2026-11-14 | 檔案總管實際選取驗證，並修正磁碟根目錄開到桌面的問題 | #done #fix #verification #windows | [2026-11](2026-11.md) |
+| U-20261114-11 | 2026-11-14 | 原生讀取在 FAT32 磁碟區會退回 Python 讀取，結果相同 | #verification #scanner #windows | [2026-11](2026-11.md) |
+| U-20261114-10 | 2026-11-14 | 0.2.9 發行驗證：Windows wheel 與獨立版內含原生讀取模組 | #done #release #verification #windows | [2026-11](2026-11.md) |
 | U-20261114-09 | 2026-11-14 | 發行工作流程建置含原生讀取模組的 Windows wheel 與獨立版 | #done #release #ci #build #windows | [2026-11](2026-11.md) |
 | U-20261114-08 | 2026-11-14 | Windows 測試工作建置並要求原生讀取模組；修正 Python 3.11 與編譯版無法採用的問題 | #done #ci #build #core #windows | [2026-11](2026-11.md) |
 | U-20261114-07 | 2026-11-14 | Windows 掃描新增選用的 C++ 資料夾讀取模組 | #done #perf #core #windows | [2026-11](2026-11.md) |

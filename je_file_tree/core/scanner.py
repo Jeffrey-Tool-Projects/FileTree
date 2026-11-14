@@ -23,7 +23,7 @@ import threading
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from typing import cast
 
 from je_file_tree.core import native_scan
@@ -35,7 +35,7 @@ from je_file_tree.core.owner_id import file_owner
 from je_file_tree.core.mounts import MOUNT_BOUNDARY, MountChangedError, MountSurvey, boundary_path, mount_points
 from je_file_tree.core.pacing import give_way
 from je_file_tree.core.priority import background_priority
-from je_file_tree.core.snapshot import pack_snapshot, stat_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import pack_snapshot, path_metadata, stat_snapshot, unpack_snapshot
 
 # Windows reparse tags of links that must not be followed. A junction (and a
 # volume mounted into a folder) is a mount point; ``is_symlink()`` is False for
@@ -65,7 +65,6 @@ NOT_SCANNED = "not scanned: the scan was stopped first"
 EXCLUDED = "excluded: skipped by the exclusions"
 HIDDEN_OMITTED = "excluded: hidden entries omitted"
 PARTIAL_FOLDER = "incomplete: some entries could not be read"
-MFT_FALLBACK = "experimental NTFS scan unavailable; ordinary scan used"
 
 
 class ScanCancelledError(Exception):
@@ -86,8 +85,6 @@ class ScanOptions:
     """What a scan includes and how many folders it reads at once.
 
     ``count_hard_links`` adds counted totals from recorded identities without changing named bytes.
-    ``experimental_mft`` opts into a serial checked NTFS metadata audit; ordinary fallback/default
-    remains available without elevation. Native ACL/parity/performance baselines are still required.
     """
 
     include_hidden: bool = True
@@ -98,7 +95,6 @@ class ScanOptions:
     windows_owners: bool = False
     exact_windows_allocation: bool = False
     count_hard_links: bool = False
-    experimental_mft: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,14 +109,13 @@ class ScanProgress:
 
 @dataclass(slots=True)
 class ScanResult:
-    """A finished tree, coverage and duration; backend is ordinary or the opt-in mft audit."""
+    """A finished tree, coverage and duration."""
 
     root: Node
     errors: list[tuple[str, str]] = field(default_factory=list)
     elapsed: float = 0.0
     warnings: list[str] = field(default_factory=list)
     hard_links: HardLinkAccounting | None = None
-    backend: str = "ordinary"
 
 
 ProgressCallback = Callable[[ScanProgress], None]
@@ -150,9 +145,6 @@ def scan(path: str | os.PathLike[str], *, options: ScanOptions | None = None,  #
     calling thread. Setting ``cancel`` stops the scan within one interval.
     While ``pause`` is set, workers take no new folders; in-flight folder reads finish.
     Clearing it resumes within 0.1 seconds. Cancellation works while paused.
-    Experimental MFT stages a separate candidate and adopts success/cancelled partial results into
-    the single published root. Raw/unsupported failures discard the candidate before ordinary
-    fallback; progress may restart. Per-path native ACL metadata remains mandatory, without elevation.
     Windows native directory entries use ordinary no-follow path stat even with a cached file ID,
     so full snapshot attributes do not depend on the enumeration API. Audited adapters retain their
     already verified metadata; other platforms keep cached stat with missing-identity fallback.
@@ -172,19 +164,7 @@ def scan(path: str | os.PathLike[str], *, options: ScanOptions | None = None,  #
         raise NotADirectoryError("scan roots must not be links or junctions")
     if on_root is not None:
         on_root(root)
-    if options.experimental_mft:
-        try:
-            candidate = _mft_candidate(root, options, progress, cancel, pause, progress_interval)
-        except ScanCancelledError as stopped:
-            if stopped.partial is not None:
-                stopped.partial.elapsed = time.monotonic() - started
-            raise
-        if candidate is not None:
-            candidate.elapsed = time.monotonic() - started
-            return candidate
     crawler = _Crawler(root, root_path, options, cancel, pause)
-    if options.experimental_mft:
-        crawler.warnings.append(MFT_FALLBACK)
     try:
         crawler.run(progress, cancel, progress_interval)
     except ScanCancelledError:
@@ -204,36 +184,6 @@ def scan(path: str | os.PathLike[str], *, options: ScanOptions | None = None,  #
     crawler.verify_mounts()
     return ScanResult(root=root, errors=crawler.errors, elapsed=time.monotonic() - started,
                       warnings=sorted(set(crawler.warnings)), hard_links=accounting)
-
-
-def _adopt_mft(root: Node, result: ScanResult) -> ScanResult:
-    for item in fields(Node):
-        if item.name not in ("name", "parent", "snapshot"):
-            setattr(root, item.name, getattr(result.root, item.name))
-    for child in root.children:
-        child.parent = root
-    result.root = root
-    return result
-
-
-def _mft_candidate(root: Node, options: ScanOptions, progress: ProgressCallback | None,
-                   cancel: threading.Event | None, pause: threading.Event | None,
-                   interval: float) -> ScanResult | None:
-    from je_file_tree.core.mft_scan import build  # noqa: PLC0415 - optional metadata backend, no Qt
-
-    try:
-        result = build(root, options, progress=progress, cancel=cancel, pause=pause, interval=interval)
-    except ScanCancelledError as stopped:
-        if stopped.partial is not None:
-            _adopt_mft(root, stopped.partial)
-            if options.count_hard_links:
-                stopped.partial.hard_links = account_hard_links(root)
-        raise
-    if result is None:
-        if unpack_snapshot(stat_snapshot(root.name)).identity != unpack_snapshot(cast(bytes, root.snapshot)).identity:
-            raise OSError("NTFS scan root changed before ordinary fallback")
-        return None
-    return _adopt_mft(root, result)
 
 
 class _Crawler:
@@ -469,14 +419,14 @@ class _Reading:
 class _NamedEntry:
     """A listed name for the ``os.lstat`` code: the entries the native reader leaves to Python."""
 
-    __slots__ = ("name", "path")
+    __slots__ = ("name", "path", "_listed")
 
-    def __init__(self, name: str, path: str) -> None:
-        self.name, self.path = name, path
+    def __init__(self, name: str, path: str, listed_attributes: int) -> None:
+        self.name, self.path, self._listed = name, path, listed_attributes
 
     def stat(self, *, follow_symlinks: bool = True) -> os.stat_result:
         """The entry's metadata, of the entry itself unless ``follow_symlinks``."""
-        return os.stat(self.path) if follow_symlinks else os.lstat(self.path)
+        return os.stat(self.path) if follow_symlinks else path_metadata(os.lstat(self.path), self._listed)
 
     def is_dir(self, *, follow_symlinks: bool = True) -> bool:
         """Whether it is a folder (or, following links, leads to one)."""
@@ -534,7 +484,7 @@ def _read_native(folder: Node, path: str, native: _NativeRead, reading: _Reading
             child: Node | None = Node(name, True, modified=modified, error=EXCLUDED if skipped else NOT_SCANNED,
                                       children=[], snapshot=snapshot)
         else:
-            child = _entry_node(cast("os.DirEntry[str]", _NamedEntry(name, child_path)), options, read,
+            child = _entry_node(cast("os.DirEntry[str]", _NamedEntry(name, child_path, attributes)), options, read,
                                 reading.allocation, reading.excluded)
         if child is not None:
             _adopt(folder, child, child_path, reading.boundaries, read)
@@ -558,7 +508,7 @@ def _entry_node(entry: os.DirEntry[str], options: ScanOptions, read: _FolderRead
         if not info.st_ino or (os.name == "nt" and isinstance(entry, os.DirEntry)):
             # Windows cached enumeration can omit native attributes even with a valid file ID.
             # Audited adapters already supply checked no-follow metadata; retain that exact result.
-            info = os.lstat(entry.path)
+            info = path_metadata(os.lstat(entry.path), getattr(info, "st_file_attributes", 0))
     except FileNotFoundError:
         return None  # removed while we were scanning
     except OSError as error:

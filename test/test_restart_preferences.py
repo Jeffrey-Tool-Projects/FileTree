@@ -83,7 +83,6 @@ def test_captured_choices_are_independent_of_later_ui_changes(workspace):
     ("exclude", ["cache"]), ("exclude", ("null\0pattern",)), ("exclude", (True,)),
     ("include_hidden", 1), ("gentle", "true"), ("file_times", None),
     ("windows_owners", 0), ("exact_windows_allocation", "false"), ("count_hard_links", []),
-    ("experimental_mft", True),
 ])
 def test_invalid_or_private_options_are_never_exported(field, value):
     with pytest.raises(ValueError):

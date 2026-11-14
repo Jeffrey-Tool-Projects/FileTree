@@ -9,7 +9,7 @@ import threading
 
 from je_file_tree.core.node import Node
 from je_file_tree.core.pacing import give_way
-from je_file_tree.core.snapshot import pack_snapshot, stable_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import pack_snapshot, path_metadata, stable_snapshot, stat_snapshot, unpack_snapshot
 from je_file_tree.core.virtual_disk_sources import DiskRegistration, DiskRegistrations, registered_disks
 from je_file_tree.core.windows_allocation import file_allocation
 
@@ -81,14 +81,14 @@ def _external(source: DiskRegistration) -> VirtualDisk:
     row = VirtualDisk(source.path, _kind(source.path), source.source, source.name, None, None, None, None,
                       distro=source.distro)
     try:
-        info = os.lstat(source.path)
+        info = path_metadata(os.lstat(source.path))
         if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not info.st_ino
                 or getattr(info, "st_file_attributes", 0) & _UNAVAILABLE):
             return replace(row, issue="unavailable")
         allocation = (file_allocation(source.path, info) if os.name == "nt" else
                       info.st_blocks * 512 if hasattr(info, "st_blocks") else None)
         snapshot = pack_snapshot(info)
-        if stable_snapshot(pack_snapshot(os.lstat(source.path))) != stable_snapshot(snapshot):
+        if stable_snapshot(stat_snapshot(source.path)) != stable_snapshot(snapshot):
             return replace(row, issue="changed")
         return replace(row, size=info.st_size, allocated=allocation, snapshot=snapshot)
     except OSError as exc:

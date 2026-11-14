@@ -10,8 +10,7 @@ folders. `summarise` computes it on the same caller/worker as the existing stati
 construction remains valid because the new field defaults to an empty tuple.
 
 Worker failures are re-raised by `scan` after its worker pool joins; the first failure wins over
-cancellation. `ScanResult.warnings` also reports an explicitly requested experimental MFT scan
-falling back to the ordinary backend. Existing signatures, result fields and CLI JSON keys remain.
+cancellation. Existing signatures, result fields and CLI JSON keys remain.
 Partial pool-start failures join only successfully started threads. Calling-thread progress failures
 also stop/join the pool and cannot replace an earlier recorded worker failure.
 
@@ -23,53 +22,14 @@ interactive application.
 
 ## Supported interface
 
-`core.mft` provides bounded NTFS 3.1 raw metadata parsers: `parse_record`, `parse_runs`,
-`parse_attribute_list`, `parse_file_name` and `parse_standard_information`. `MFTParseError` rejects
-corrupt/unsupported input. Raw FILE records require complete sector update-sequence validation;
-already repaired native replies are not raw input. File and parent references retain reuse sequences,
-and FILE flags retain known system/view-index bits; only the filename-index bit marks a directory.
-Unknown FILE flag bits remain unsupported. Attribute continuation sizes remain unknown,
-and resident main/named DATA never retains payload contents.
-Live segments can have zero links; unused formatted segments can have sequence zero.
-Neither establishes a visible tree entry: consumers must check a live name, parent reference
-and native directory permissions/visibility. Live zero-sequence records remain invalid.
-Resident `Attribute.allocated == 0` denotes no separately allocated DATA clusters, while
-`Attribute.size` retains its logical byte length. `Attribute.resident_capacity` retains the bounded
-space between ValueOffset and RecordLength, including alignment padding; it is None for nonresident
-attributes. Native `FILE_STANDARD_INFO` can report resident space rather than logical length;
-do not treat those values as identical physical-storage observations. The native diagnostic retains
-`raw_allocated`, `resident_capacity` and `native_allocated` separately and compares the padded capacity.
-This parser performs no volume I/O. `core.mft_reader.NTFSReader(path)` is a context-managed read-only
-metadata reader for an ordinary directory on fixed local NTFS 3.1 with an existing administrator
-token. It never elevates, changes privileges, locks/dismounts a volume or exposes a DATA payload API.
-`record(ordinal)`, `attributes(base, check=None)`, `records(check=None, directories_only=False)` and `verify()`
-bound reads/caches, reject torn records, stale/foreign/nested extensions, sparse/off-volume metadata,
-unsupported geometry and changed root/volume/MFT mappings. `records` propagates the caller's check
-exception before each batch; `close()` closes only its owned handle. Observations are not transactional.
-Refused records include their ordinal and bounded numeric header fields, retaining the original
-parse exception as cause; diagnostic errors never include raw records or DATA payloads.
-Split attribute-list streams and unsupported bootstrap mappings refuse. Raw access does not establish
-directory ACL coverage. Enumeration/path comparisons normalize only NTFS's internal directory bit
-(`0x10000000`) for independently proven ordinary nonreparse/noncloud directories; full snapshot
-attributes remain unchanged and every other attribute, file ID and modification date must agree. `scan` defaults to its ordinary backend. `ScanOptions(experimental_mft=True)`
-explicitly requests a serial metadata audit on eligible Windows volumes. Every name must have ordinary
-directory visibility and no-follow per-path stat authority; raw sequence/name/parent/date/link/size
-metadata must agree. Allocation, owners, exclusions, links, hidden entries and hard-link counting use
-the ordinary Node rules. No elevation occurs. Unsupported/raw errors discard the staged candidate
-and restart the ordinary scan after a root identity check; progress may restart. Success or cancellation
-adopts the sorted candidate into the same root published once by on_root. Native ACL/parity/full-drive
-and performance baselines remain required before default enabling; this is no speed claim.
-Private-image CI now compares option/snapshot/ACL/cancellation behavior and whole-private-drive
-timings, including exact restoration of an owned denied-listing DACL. Native results await review;
-private-drive timings never establish large-volume performance.
 `core.windows_directory.directory_entries(path, expected, check=None)` streams checked
 `WindowsEntry` metadata from FILE_ID_EXTD_DIR_INFO: native 128-bit file identity, name, sizes,
 attributes/reparse tag and four nanosecond dates. `expected` is a captured directory `Snapshot`.
 An ordinary scandir permission check precedes the metadata handle; reparse/cloud directories,
 identity changes, invalid bounds, unsafe names and native failures refuse. Only the owned handle
 is closed; consumers must anchor ancestors and consume/close the iterator on their worker.
-Checks propagate before each batch/entry. This performs no raw access or privilege changes and
-does not itself enable the MFT backend. Directory allocation remains a separate native observation.
+Checks propagate before each batch/entry. This performs no raw access or privilege changes.
+Directory allocation remains a separate native observation.
 
 Windows ordinary scanning re-queries native os.DirEntry metadata through os.lstat even when
 a cached ID is nonzero, retaining full native attributes for later path revalidation. Path failures
@@ -84,7 +44,7 @@ Capacity and recovery estimates are experimental measurements with the limits de
 
 | Module | Public entry points | Result and meaning |
 |---|---|---|
-| `scanner` | `scan(path, *, options=None, progress=None, cancel=None, progress_interval=0.1, on_root=None, pause=None)`; `ScanOptions(include_hidden=True, workers=..., exclude=(), gentle=False, file_times=False, windows_owners=False, exact_windows_allocation=False, count_hard_links=False, experimental_mft=False)` | `ScanResult.root`, `.errors` as `(path, reason)` pairs, `.warnings` for priority failures or explicit MFT fallback, `.elapsed` in seconds including pauses, `.backend` (`ordinary` or explicitly selected `mft` audit) |
+| `scanner` | `scan(path, *, options=None, progress=None, cancel=None, progress_interval=0.1, on_root=None, pause=None)`; `ScanOptions(include_hidden=True, workers=..., exclude=(), gentle=False, file_times=False, windows_owners=False, exact_windows_allocation=False, count_hard_links=False)` | `ScanResult.root`, `.errors` as `(path, reason)` pairs, `.warnings` for priority failures, `.elapsed` in seconds including pauses |
 | `node` | `Node.path`, `.iter_nodes()`, `.iter_files()` | Nodes are returned by scans; `name`, `is_dir`, `is_link`, `size`, `allocated`, `file_count`, `dir_count`, `modified`, `error`, `children`, `parent` describe the snapshot; optional `accessed`/`created` return timestamps or None; `owner` is a file's POSIX uid, captured Windows SID bytes or None |
 | `analysis` | `summarise(root, limit=1000, *, now=None, cancel=None)`, `largest_files`, `extension_stats`, `category_stats`, `age_stats` | `Summary.largest`, `.extensions`, `.ages`, `.now` retain named totals; optional `.counted_categories` supplies counted chart bytes with named counts, or None when accounting is off |
 | `hard_links` | `account_hard_links(root, *, cancel=None)`; `ScanOptions(count_hard_links=False)` | Optional `ScanResult.hard_links` describes `.aliases`, `.logical_overcount`, `.allocation_overcount`, `.unknown`; worker-only recorded-stat accounting without OS/payload queries; `Node.accounted_size/accounted_allocated` preserve named size/allocation; lexical first observed name contributes, proven aliases count zero; inconsistent/unknown groups stay named; reapply after tree mutation; canceled surveys retain previous accounting |

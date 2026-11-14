@@ -52,8 +52,9 @@ def test_missing_linked_and_cloud_provider_files_remain_visible_as_unknown(tmp_p
     def cloud(path):
         actual = native(path)
         if str(path) == unavailable.path:
+            # Recall on data access: a path query cannot assert recall on open (core/snapshot.py).
             return SimpleNamespace(st_mode=actual.st_mode, st_nlink=1, st_ino=actual.st_ino,
-                                   st_file_attributes=0x40000)
+                                   st_file_attributes=0x400000)
         return actual
 
     monkeypatch.setattr(disks.os, "lstat", cloud)
