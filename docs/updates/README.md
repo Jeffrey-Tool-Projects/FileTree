@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261114-14 | 2026-11-14 | 修正尚未被開啟過的檔案被算成不佔空間，並放寬 MFT 稽核的連結數規則 | #fix #scanner #native #windows | [2026-11](2026-11.md) |
 | U-20261114-13 | 2026-11-14 | 真實系統磁碟上的 MFT 稽核量測與 OneDrive 預留位置量測 | #verification #fix #scanner #windows | [2026-11](2026-11.md) |
 | U-20261114-12 | 2026-11-14 | 檔案總管實際選取驗證，並修正磁碟根目錄開到桌面的問題 | #done #fix #verification #windows | [2026-11](2026-11.md) |
 | U-20261114-11 | 2026-11-14 | 原生讀取在 FAT32 磁碟區會退回 Python 讀取，結果相同 | #verification #scanner #windows | [2026-11](2026-11.md) |

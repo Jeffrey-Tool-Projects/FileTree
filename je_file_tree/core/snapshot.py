@@ -8,11 +8,15 @@ import stat
 import struct
 import sys
 from dataclasses import dataclass
+from types import SimpleNamespace
+from typing import cast
 
 _FORMAT = struct.Struct("<Q16sq16s16sIII")
 _TIMES = struct.Struct("<dd")
 _LINK_TAGS = frozenset({0xA0000003, 0xA000000C})
 _LINK_FLAG = 0x10000
+RECALL_ON_OPEN = 0x40000
+_NORMAL = 0x80
 
 
 @dataclass(frozen=True, slots=True)
@@ -91,6 +95,27 @@ def _usable_time(value: float) -> float | None:
     return value if math.isfinite(value) and value > 0 else None
 
 
+def path_metadata(info: os.stat_result, listed_attributes: int = 0) -> os.stat_result:
+    """``info`` of a path with the recall-on-open attribute taken from its directory listing instead.
+
+    Windows documents ``FILE_ATTRIBUTE_RECALL_ON_OPEN`` (0x40000) for directory listings only. A query
+    of one path by name (``os.lstat`` since Python 3.12) can report the same bit for an ordinary file
+    that no program has opened yet, and stops once one has. Measured 2026-11-14 on Windows 11: 1,606
+    of 6,265 files of the SysWOW64 system folder had it, their listing and a query by handle did not, and
+    the scan counted them as taking no space. Without a listing (the default) the bit is cleared.
+    A file with no other attribute then reads as ``FILE_ATTRIBUTE_NORMAL``, which is what its listing
+    and a query by handle report for it.
+    """
+    attributes = getattr(info, "st_file_attributes", 0)
+    wanted = attributes & ~RECALL_ON_OPEN | listed_attributes & RECALL_ON_OPEN
+    if wanted == attributes:
+        return info
+    wanted = wanted or _NORMAL
+    copy = SimpleNamespace(**{name: getattr(info, name) for name in dir(info) if name.startswith("st_")})
+    copy.st_file_attributes = wanted
+    return cast(os.stat_result, copy)
+
+
 def stat_snapshot(path: str) -> bytes:
     """Read the entry without following a link, including Windows file identity."""
-    return pack_snapshot(os.lstat(path))
+    return pack_snapshot(path_metadata(os.lstat(path)))

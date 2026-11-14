@@ -26,7 +26,7 @@ from je_file_tree.core.priority import background_priority
 from je_file_tree.core.scanner import (ACCESS_DENIED, HIDDEN_OMITTED, NOT_SCANNED, PARTIAL_FOLDER,
                                       ProgressCallback, ScanCancelledError, ScanOptions, ScanProgress,
                                       ScanResult, _add_up, _FolderRead, _record_entries)
-from je_file_tree.core.snapshot import unpack_snapshot
+from je_file_tree.core.snapshot import path_metadata, unpack_snapshot
 from je_file_tree.core.windows_directory import WindowsEntry, directory_entries
 
 _UNAVAILABLE = 0x400 | 0x1000 | 0x40000 | 0x400000
@@ -78,10 +78,16 @@ def _audit(native: NTFSReader, info: os.stat_result, visible: WindowsEntry,
                  if item.kind in (mft.FILE_NAME, mft.STANDARD_INFORMATION)),
              "MFT name/standard metadata must be resident and bounded")
     names = [mft.parse_file_name(item.value) for item in attributes if item.kind == mft.FILE_NAME]
-    # The record counts an 8.3 alias as a link of its own; Windows does not report it as one. Observed
-    # 2026-11-14 on a system volume with short names on: raw 2 (namespaces DOS + Win32), st_nlink 1.
-    links = record.links - sum(item.namespace == _DOS_NAMESPACE for item in names)
-    _require(links == info.st_nlink, "Native path differs from MFT link count/type")
+    # A link is a name record that is not an 8.3 alias: the record header counts the alias too, and
+    # Windows does not report it. Observed 2026-11-14 on a system volume with short names on: header 2
+    # (namespaces DOS + Win32), st_nlink 1. Once names have moved to extension records the header of
+    # the base record no longer equals the name records at all (4,707 of the first entries of the
+    # Windows folder: header above the names, the extension headers holding 0 or 16-bit negative
+    # counts, st_nlink always the names without aliases), so it is required only without a list.
+    links = sum(item.namespace != _DOS_NAMESPACE for item in names)
+    listed = any(item.kind == mft.ATTRIBUTE_LIST for item in attributes)
+    _require(links == info.st_nlink and (listed or record.links == len(names)),
+             "Native path differs from MFT link count/type")
     _require(any(item.name == visible.name and item.parent == parent and item.namespace != _DOS_NAMESPACE
                  for item in names),
              "MFT name/parent lacks native directory visibility")
@@ -112,7 +118,8 @@ class _Entry:
         self._check = check
         self.error, self.info = None, None
         try:
-            info = os.lstat(self.path)  # Ordinary no-follow path permission/identity remains mandatory.
+            # Ordinary no-follow path permission/identity remains mandatory.
+            info = path_metadata(os.lstat(self.path), visible.attributes)
         except OSError as error:
             self.error = error
             return

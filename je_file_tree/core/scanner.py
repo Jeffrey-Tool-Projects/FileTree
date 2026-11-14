@@ -35,7 +35,7 @@ from je_file_tree.core.owner_id import file_owner
 from je_file_tree.core.mounts import MOUNT_BOUNDARY, MountChangedError, MountSurvey, boundary_path, mount_points
 from je_file_tree.core.pacing import give_way
 from je_file_tree.core.priority import background_priority
-from je_file_tree.core.snapshot import pack_snapshot, stat_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import pack_snapshot, path_metadata, stat_snapshot, unpack_snapshot
 
 # Windows reparse tags of links that must not be followed. A junction (and a
 # volume mounted into a folder) is a mount point; ``is_symlink()`` is False for
@@ -469,14 +469,14 @@ class _Reading:
 class _NamedEntry:
     """A listed name for the ``os.lstat`` code: the entries the native reader leaves to Python."""
 
-    __slots__ = ("name", "path")
+    __slots__ = ("name", "path", "_listed")
 
-    def __init__(self, name: str, path: str) -> None:
-        self.name, self.path = name, path
+    def __init__(self, name: str, path: str, listed_attributes: int) -> None:
+        self.name, self.path, self._listed = name, path, listed_attributes
 
     def stat(self, *, follow_symlinks: bool = True) -> os.stat_result:
         """The entry's metadata, of the entry itself unless ``follow_symlinks``."""
-        return os.stat(self.path) if follow_symlinks else os.lstat(self.path)
+        return os.stat(self.path) if follow_symlinks else path_metadata(os.lstat(self.path), self._listed)
 
     def is_dir(self, *, follow_symlinks: bool = True) -> bool:
         """Whether it is a folder (or, following links, leads to one)."""
@@ -534,7 +534,7 @@ def _read_native(folder: Node, path: str, native: _NativeRead, reading: _Reading
             child: Node | None = Node(name, True, modified=modified, error=EXCLUDED if skipped else NOT_SCANNED,
                                       children=[], snapshot=snapshot)
         else:
-            child = _entry_node(cast("os.DirEntry[str]", _NamedEntry(name, child_path)), options, read,
+            child = _entry_node(cast("os.DirEntry[str]", _NamedEntry(name, child_path, attributes)), options, read,
                                 reading.allocation, reading.excluded)
         if child is not None:
             _adopt(folder, child, child_path, reading.boundaries, read)
@@ -558,7 +558,7 @@ def _entry_node(entry: os.DirEntry[str], options: ScanOptions, read: _FolderRead
         if not info.st_ino or (os.name == "nt" and isinstance(entry, os.DirEntry)):
             # Windows cached enumeration can omit native attributes even with a valid file ID.
             # Audited adapters already supply checked no-follow metadata; retain that exact result.
-            info = os.lstat(entry.path)
+            info = path_metadata(os.lstat(entry.path), getattr(info, "st_file_attributes", 0))
     except FileNotFoundError:
         return None  # removed while we were scanning
     except OSError as error:

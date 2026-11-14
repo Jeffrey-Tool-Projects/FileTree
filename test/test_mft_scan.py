@@ -227,6 +227,18 @@ def test_a_real_second_link_beside_a_short_name_still_has_to_agree(monkeypatch):
         mft_scan._audit(native, info, visible, 123, lambda: None)
 
 
+def test_names_moved_to_extension_records_are_counted_instead_of_the_base_header(monkeypatch):
+    # With an attribute list the base header was above the name records on a real volume.
+    native, info, visible, record, data, metadata = _audit_fixture(monkeypatch)
+    listing = SimpleNamespace(kind=mft.ATTRIBUTE_LIST, resident=True, value=b"list")
+    native.attributes = lambda _r, _c: (listing, *metadata, data)
+    record.links = 3
+    assert mft_scan._audit(native, info, visible, 123, lambda: None).st_nlink == 1
+    info.st_nlink = 2  # the path must still report exactly the name records
+    with pytest.raises(mft.MFTParseError, match="link count"):
+        mft_scan._audit(native, info, visible, 123, lambda: None)
+
+
 @pytest.mark.parametrize("path_attributes, listed_attributes", [(0x10000010, 0x10), (0x10, 0x10000010)])
 def test_known_ntfs_directory_attribute_representation_keeps_complete_native_snapshot(
         monkeypatch, path_attributes, listed_attributes):

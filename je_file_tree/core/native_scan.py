@@ -24,7 +24,7 @@ import sys
 import threading
 from collections.abc import Callable
 
-from je_file_tree.core.snapshot import pack_snapshot
+from je_file_tree.core.snapshot import pack_snapshot, path_metadata
 
 Row = tuple[str, int, int, float, bytes | None, int]
 """name, kind, size, modified, snapshot, attributes; see the kinds below."""
@@ -108,11 +108,11 @@ def _matched(native: object, path: str, query: int, change_time: bool) -> int | 
     matched = 0
     for file_times in (False, True):
         try:
-            expected = pack_snapshot(os.lstat(path), file_times=file_times)
+            expected = pack_snapshot(path_metadata(os.lstat(path)), file_times=file_times)
             found = native.snapshot(path, file_times, change_time, query)  # type: ignore[attr-defined]
             if found is None:
                 continue  # a link or special entry: Python answers for those anyway
-            confirmed = pack_snapshot(os.lstat(path), file_times=file_times)
+            confirmed = pack_snapshot(path_metadata(os.lstat(path)), file_times=file_times)
         except (OSError, ValueError):
             return None
         if found not in (expected, confirmed):  # two reads rule out a change in between
