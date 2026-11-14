@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261114-13 | 2026-11-14 | 真實系統磁碟上的 MFT 稽核量測與 OneDrive 預留位置量測 | #verification #fix #scanner #windows | [2026-11](2026-11.md) |
 | U-20261114-12 | 2026-11-14 | 檔案總管實際選取驗證，並修正磁碟根目錄開到桌面的問題 | #done #fix #verification #windows | [2026-11](2026-11.md) |
 | U-20261114-11 | 2026-11-14 | 原生讀取在 FAT32 磁碟區會退回 Python 讀取，結果相同 | #verification #scanner #windows | [2026-11](2026-11.md) |
 | U-20261114-10 | 2026-11-14 | 0.2.9 發行驗證：Windows wheel 與獨立版內含原生讀取模組 | #done #release #verification #windows | [2026-11](2026-11.md) |

@@ -72,13 +72,16 @@ def _audit(native: NTFSReader, info: os.stat_result, visible: WindowsEntry,
     record = native.record(info.st_ino & ((1 << 48) - 1))
     _require(record.in_use and not record.base_reference and record.reference == info.st_ino,
              "Native path differs from live sequence-qualified MFT identity")
-    _require(record.links == info.st_nlink and record.is_dir == stat.S_ISDIR(info.st_mode),
-             "Native path differs from MFT link count/type")
+    _require(record.is_dir == stat.S_ISDIR(info.st_mode), "Native path differs from MFT link count/type")
     attributes = native.attributes(record, check)
     _require(all(item.resident and item.value is not None for item in attributes
                  if item.kind in (mft.FILE_NAME, mft.STANDARD_INFORMATION)),
              "MFT name/standard metadata must be resident and bounded")
     names = [mft.parse_file_name(item.value) for item in attributes if item.kind == mft.FILE_NAME]
+    # The record counts an 8.3 alias as a link of its own; Windows does not report it as one. Observed
+    # 2026-11-14 on a system volume with short names on: raw 2 (namespaces DOS + Win32), st_nlink 1.
+    links = record.links - sum(item.namespace == _DOS_NAMESPACE for item in names)
+    _require(links == info.st_nlink, "Native path differs from MFT link count/type")
     _require(any(item.name == visible.name and item.parent == parent and item.namespace != _DOS_NAMESPACE
                  for item in names),
              "MFT name/parent lacks native directory visibility")
@@ -91,7 +94,7 @@ def _audit(native: NTFSReader, info: os.stat_result, visible: WindowsEntry,
              "Native path differs from MFT modification/creation dates")
     result = SimpleNamespace(**{name: getattr(info, name, 0) for name in _STAT_FIELDS})
     result.st_birthtime = getattr(info, "st_birthtime", info.st_ctime)
-    result.st_mtime_ns, result.st_ctime_ns, result.st_nlink = standard.modified_ns, created, record.links
+    result.st_mtime_ns, result.st_ctime_ns, result.st_nlink = standard.modified_ns, created, links
     if not record.is_dir:
         heads = [item for item in attributes if item.kind == mft.DATA and not item.name and not item.lowest_vcn]
         _require(len(heads) == 1 and heads[0].size == info.st_size,

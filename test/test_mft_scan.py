@@ -202,6 +202,31 @@ def test_raw_metadata_constructs_the_same_snapshot_without_payload_or_windows_ch
     assert unpack_snapshot(pack_snapshot(result)).changed_ns == 100  # Windows stat ctime is creation.
 
 
+def _with_short_name(monkeypatch, native, metadata, data):
+    """Give the fixture's record a second name record: the 8.3 alias beside the long name."""
+    names = iter([mft.FileName(123, 2, "KEEP~1"), mft.FileName(123, 1, "keep")])
+    monkeypatch.setattr(mft_scan.mft, "parse_file_name", lambda _value: next(names))
+    native.attributes = lambda _r, _c: (metadata[0], *metadata, data)
+
+
+def test_a_short_name_alias_is_not_counted_as_a_hard_link(monkeypatch):
+    # A volume with 8.3 names stores two name records per file and counts both in the record.
+    native, info, visible, record, data, metadata = _audit_fixture(monkeypatch)
+    _with_short_name(monkeypatch, native, metadata, data)
+    record.links = 2
+    result = mft_scan._audit(native, info, visible, 123, lambda: None)
+    assert result.st_nlink == info.st_nlink == 1
+    assert pack_snapshot(result) == pack_snapshot(info)
+
+
+def test_a_real_second_link_beside_a_short_name_still_has_to_agree(monkeypatch):
+    native, info, visible, record, data, metadata = _audit_fixture(monkeypatch)
+    _with_short_name(monkeypatch, native, metadata, data)
+    record.links = 3  # alias + two links, while the path reports one
+    with pytest.raises(mft.MFTParseError, match="link count"):
+        mft_scan._audit(native, info, visible, 123, lambda: None)
+
+
 @pytest.mark.parametrize("path_attributes, listed_attributes", [(0x10000010, 0x10), (0x10, 0x10000010)])
 def test_known_ntfs_directory_attribute_representation_keeps_complete_native_snapshot(
         monkeypatch, path_attributes, listed_attributes):
