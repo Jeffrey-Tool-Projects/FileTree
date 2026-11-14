@@ -274,6 +274,8 @@ python start_file_tree.py
 
 `python -m je_file_tree`도 마찬가지입니다.
 
+Windows에서는 소스 사본으로 선택 사항인 네이티브 폴더 읽기 모듈도 빌드할 수 있으며, 검사가 약 3배 빨라집니다. C++ 컴파일러를 설치한 뒤 `pip install setuptools`와 `python setup.py build_ext --inplace`를 실행하십시오. 사용 중인지는 `python -m tools.require_native_reader`로 확인할 수 있습니다. 모듈이 없으면 FileTree는 Python으로 검사하며 결과는 같습니다. PyPI의 패키지와 게시된 프로그램에는 아직 포함되어 있지 않습니다. 환경 변수 `FILE_TREE_NATIVE_SCAN=0`을 설정하면 끌 수 있습니다.
+
 ### 독립형 프로그램 구축
 
 Python이 없는 사람에게 FileTree를 제공하려면 Nuitka를 사용하여 프로그램 폴더 또는 단일 `.exe`로 컴파일하십시오. 명령과 각 옵션의 기능은 [nuitka.md](../nuitka.ko.md)을 참조하세요.

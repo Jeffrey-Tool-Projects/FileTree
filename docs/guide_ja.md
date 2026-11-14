@@ -274,6 +274,8 @@ python start_file_tree.py
 
 `python -m je_file_tree` も同様です。
 
+Windows では、ソースのコピーから任意のネイティブ フォルダー読み取りモジュールもビルドでき、スキャンが約 3 倍速くなります。C++ コンパイラをインストールしたうえで、`pip install setuptools` と `python setup.py build_ext --inplace` を実行してください。使用されているかどうかは `python -m tools.require_native_reader` で確認できます。モジュールがない場合、FileTree は Python でスキャンし、結果は同じです。PyPI のパッケージと公開されているプログラムには、まだ含まれていません。環境変数 `FILE_TREE_NATIVE_SCAN=0` を設定すると無効になります。
+
 ### スタンドアロン プログラムを構築する
 
 FileTree を Python を持たない人に渡すには、Nuitka を使用してプログラム フォルダーまたは単一の `.exe` にコンパイルします。コマンドと各オプションの機能については、[nuitka.md](../nuitka.ja.md) を参照してください。

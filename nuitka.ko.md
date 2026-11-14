@@ -49,6 +49,18 @@ macOS 및 Linux에서는 대신 `source .venv/bin/activate`을 사용하여 활�
 | Linux | `build-essential` 및 `patchelf` (Debian / Ubuntu: `sudo apt install build-essential patchelf`) |
 | macOS | 명령줄 도구: `xcode-select --install` |
 
+### 1.3 네이티브 폴더 읽기 모듈 (Windows, 선택 사항)
+
+Windows에서는 작은 C++ 모듈 `je_file_tree._native`가 있으면 FileTree의 검사가 더 빨라집니다(작은 파일 80,000개, 스레드 4개: Python 2.70초, 모듈 사용 시 0.93초). Nuitka는 이 모듈을 컴파일하지 않습니다. 패키지 옆에 빌드된 모듈이 있으면 그것을 복사합니다. 컴파일하기 전에 §1.2의 컴파일러로 빌드하십시오:
+
+```bash
+pip install setuptools
+python setup.py build_ext --inplace
+python -m tools.require_native_reader
+```
+
+모듈이 없거나 이 Python과 결과가 일치하지 않으면 마지막 명령이 오류로 끝납니다. 이 단계를 생략해도 빌드는 그대로 되지만 검사는 Python 읽기로 수행되며 결과는 같습니다. 이 모듈은 사용자의 컴퓨터에 Visual C++ 재배포 가능 패키지가 필요하지 않습니다. C++ 런타임을 포함하고 `python3.dll`과 `KERNEL32.dll`만 불러옵니다. 릴리스 워크플로는 아직 이 단계를 실행하지 않으므로 게시된 프로그램은 계속 Python 읽기로 검사합니다.
+
 ## 2. 빌드
 
 가상 환경이 활성화된 리포지토리 루트에서 이를 실행합니다. `tools/build_nuitka.py`은 PySide6이 설치된 위치를 찾고 §3의 옵션을 사용하여 Nuitka를 실행합니다. 또한 전체 명령을 인쇄합니다.
@@ -132,6 +144,7 @@ python tools/package_posix.py --platform linux --source build/standalone/start_f
 1. 빌드 폴더에서 프로그램을 시작하고 폴더를 스캔합니다.
 2. **보기 → 언어**에서 다른 언어로 전환한 다음 항목을 휴지통으로 이동하고 취소합니다. 예/아니요 버튼도 해당 언어로 되어 있어야 합니다. 영어로 유지되면 Qt의 번역 파일이 빌드에서 누락됩니다.
 3. **도움말 → 사용 방법**을 엽니다.
+4. Windows에서 §1.3을 수행한 경우: 빌드 폴더에 `je_file_tree\_native.pyd`가 있습니다.
 
 ## 5. 문제
 

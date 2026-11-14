@@ -38,6 +38,9 @@ constexpr int KIND_ASK_PYTHON = 2;
 
 constexpr int QUERY_BY_NAME = 1;    // GetFileInformationByName (Windows 11 24H2 and later)
 constexpr int QUERY_BY_HANDLE = 2;  // open the entry itself and ask the handle
+// The same, with the identity Python 3.11 reports: the 32-bit volume number and 64-bit file number of
+// GetFileInformationByHandle. Python 3.12 and later report the 64-bit and 128-bit ones.
+constexpr int QUERY_BY_HANDLE_SHORT = 3;
 
 constexpr std::uint32_t MODE_FOLDER = 0040000;
 constexpr std::uint32_t MODE_FILE = 0100000;
@@ -91,7 +94,7 @@ bool is_disk(ULONG device) {
         || device == FILE_DEVICE_DFS;
 }
 
-bool query_by_handle(const wchar_t* path, StatBasic& out) {
+bool query_by_handle(const wchar_t* path, bool short_identity, StatBasic& out) {
     HANDLE handle = CreateFileW(path, FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                                 nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
                                 nullptr);
@@ -104,7 +107,7 @@ bool query_by_handle(const wchar_t* path, StatBasic& out) {
     bool known = GetFileType(handle) == FILE_TYPE_DISK
         && GetFileInformationByHandle(handle, &plain)
         && GetFileInformationByHandleEx(handle, FileBasicInfo, &basic, sizeof(basic))
-        && GetFileInformationByHandleEx(handle, FileIdInfo, &identity, sizeof(identity));
+        && (short_identity || GetFileInformationByHandleEx(handle, FileIdInfo, &identity, sizeof(identity)));
     CloseHandle(handle);
     if (!known) {
         return false;
@@ -119,6 +122,12 @@ bool query_by_handle(const wchar_t* path, StatBasic& out) {
     out.FileAttributes = plain.dwFileAttributes;
     out.NumberOfLinks = plain.nNumberOfLinks;
     out.DeviceType = FILE_DEVICE_DISK;
+    if (short_identity) {
+        out.VolumeSerialNumber.QuadPart = static_cast<LONGLONG>(plain.dwVolumeSerialNumber);
+        std::memcpy(out.FileId128, &plain.nFileIndexLow, sizeof(plain.nFileIndexLow));
+        std::memcpy(out.FileId128 + sizeof(plain.nFileIndexLow), &plain.nFileIndexHigh, sizeof(plain.nFileIndexHigh));
+        return true;  // the upper eight bytes stay zero
+    }
     out.VolumeSerialNumber.QuadPart = static_cast<LONGLONG>(identity.VolumeSerialNumber);
     std::memcpy(out.FileId128, identity.FileId.Identifier, sizeof(out.FileId128));
     return true;
@@ -129,7 +138,7 @@ bool query(const wchar_t* path, int how, StatBasic& out) {
         ByNameQuery by_name = by_name_query();
         return by_name != nullptr && by_name(path, STAT_BASIC_BY_NAME, &out, sizeof(out));
     }
-    return query_by_handle(path, out);
+    return query_by_handle(path, how == QUERY_BY_HANDLE_SHORT, out);
 }
 
 struct Entry {
@@ -266,13 +275,20 @@ PyObject* row_of(const Entry& entry) {
         PyObject* row = Py_BuildValue("(NiLdOI)", name, entry.kind, 0LL, 0.0, Py_None, 0U);
         return row;
     }
-    return Py_BuildValue("(NiLdy#I)", name, entry.kind, static_cast<long long>(entry.size), entry.modified,
-                         reinterpret_cast<const char*>(entry.snapshot), static_cast<Py_ssize_t>(entry.snapshot_size),
+    // No "#" format: built with the headers of Python 3.13 or later it calls a function that
+    // Python 3.11 and 3.12 refuse ("PY_SSIZE_T_CLEAN macro must be defined"), found 2026-11-14.
+    PyObject* snapshot = PyBytes_FromStringAndSize(reinterpret_cast<const char*>(entry.snapshot),
+                                                   static_cast<Py_ssize_t>(entry.snapshot_size));
+    if (snapshot == nullptr) {
+        Py_DECREF(name);
+        return nullptr;
+    }
+    return Py_BuildValue("(NiLdNI)", name, entry.kind, static_cast<long long>(entry.size), entry.modified, snapshot,
                          static_cast<unsigned int>(entry.attributes));
 }
 
 bool known_query(int how) {
-    if (how == QUERY_BY_HANDLE || (how == QUERY_BY_NAME && by_name_query() != nullptr)) {
+    if (how == QUERY_BY_HANDLE || how == QUERY_BY_HANDLE_SHORT || (how == QUERY_BY_NAME && by_name_query() != nullptr)) {
         return true;
     }
     PyErr_SetString(PyExc_ValueError, "unknown or unavailable metadata query");
@@ -378,7 +394,8 @@ PyMODINIT_FUNC PyInit__native(void) {
         || PyModule_AddIntConstant(module, "KIND_FOLDER", KIND_FOLDER) != 0
         || PyModule_AddIntConstant(module, "KIND_ASK_PYTHON", KIND_ASK_PYTHON) != 0
         || PyModule_AddIntConstant(module, "QUERY_BY_NAME", QUERY_BY_NAME) != 0
-        || PyModule_AddIntConstant(module, "QUERY_BY_HANDLE", QUERY_BY_HANDLE) != 0) {
+        || PyModule_AddIntConstant(module, "QUERY_BY_HANDLE", QUERY_BY_HANDLE) != 0
+        || PyModule_AddIntConstant(module, "QUERY_BY_HANDLE_SHORT", QUERY_BY_HANDLE_SHORT) != 0) {
         Py_DECREF(module);
         return nullptr;
     }

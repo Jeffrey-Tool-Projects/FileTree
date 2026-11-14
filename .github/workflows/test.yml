@@ -355,6 +355,14 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: 'python -m pip install --require-hashes --only-binary :all: -r .github/requirements/test.txt'
+    # The native folder reader is optional, so a build that fails is skipped silently and its parity
+    # tests with it; the last step makes that a failure here.
+    - name: Install the locked build backend
+      run: 'python -m pip install --require-hashes --only-binary :all: -r .github/requirements/native.txt'
+    - name: Build the native folder reader
+      run: python setup.py build_ext --inplace
+    - name: Require the native folder reader to agree with this Python
+      run: python -m tools.require_native_reader
     - name: Run tests
       env:
         QT_QPA_PLATFORM: offscreen

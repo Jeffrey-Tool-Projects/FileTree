@@ -1,3 +1,6 @@
+# The source of the optional native folder reader. setup.py declares the extension on Windows only, so an
+# sdist built on Linux (the release job) would otherwise leave it out and no Windows user could build it.
+include je_file_tree/_native.cpp
 # The source distribution carries no tests. setuptools adds test*/test*.py to an sdist by default;
 # this line takes them out again (test/test_sdist_manifest.py).
 prune test

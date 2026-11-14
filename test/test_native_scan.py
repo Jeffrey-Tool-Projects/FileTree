@@ -112,6 +112,8 @@ def test_both_metadata_queries_give_the_same_rows(native, made_up):
     assert [row[0] for row in by_handle] == sorted(os.listdir(folder), key=[row[0] for row in by_handle].index)
     if _native.by_name_available():
         assert _native.read_folder(folder, True, False, _native.QUERY_BY_NAME) == by_handle
+    if sys.version_info < (3, 12):  # Python 3.11 reports the short volume and file numbers
+        by_handle = _native.read_folder(folder, True, False, _native.QUERY_BY_HANDLE_SHORT)
     for name, _kind, _size, _modified, snapshot, _attributes in by_handle:
         assert snapshot == pack_snapshot(os.lstat(os.path.join(folder, name)), file_times=True)
 
@@ -172,3 +174,52 @@ def test_embedded_nulls_and_unknown_queries_are_refused(native):
         _native.read_folder("C:\\a\0b", False, False, _native.QUERY_BY_HANDLE)
     with pytest.raises(ValueError):
         _native.read_folder("C:\\", False, False, 99)
+
+
+def test_the_short_identity_query_gives_what_python_3_11_reports(native, made_up):
+    from je_file_tree import _native
+    from je_file_tree.core.snapshot import unpack_snapshot
+
+    folder = str(made_up / "plain")
+    full = {row[0]: row for row in _native.read_folder(folder, True, False, _native.QUERY_BY_HANDLE)}
+    short = {row[0]: row for row in _native.read_folder(folder, True, False, _native.QUERY_BY_HANDLE_SHORT)}
+    assert list(short) == list(full) and len(short) >= 5
+    for name, row in short.items():
+        assert row[:4] == full[name][:4] and row[5] == full[name][5]
+        mine, theirs = unpack_snapshot(row[4]), unpack_snapshot(full[name][4])
+        assert mine.device == theirs.device & 0xFFFFFFFF and mine.inode == theirs.inode & (2 ** 64 - 1)
+        assert (mine.size, mine.modified_ns, mine.changed_ns, mine.mode, mine.attributes, mine.links) == (
+            theirs.size, theirs.modified_ns, theirs.changed_ns, theirs.mode, theirs.attributes, theirs.links)
+        assert row[4][76:] == full[name][4][76:]  # the same file times
+
+
+def test_a_scan_starts_natively_only_where_its_first_folder_agrees(native, made_up, monkeypatch):
+    assert native_scan.agrees_on(str(made_up))
+    assert not native_scan.agrees_on(str(made_up / "no-such-folder"))
+    used = []
+    counting = lambda folder, times: used.append(folder) or native(folder, times)  # noqa: E731
+    monkeypatch.setattr(native_scan, "reader", lambda: counting)
+    monkeypatch.setattr(native_scan, "agrees_on", lambda path: False)  # as on a volume that answers differently
+    refused = scan(made_up)
+    assert not used
+    monkeypatch.undo()
+    monkeypatch.setattr(native_scan, "reader", lambda: None)
+    assert _flat(refused.root) == _flat(scan(made_up).root)
+
+
+def test_agreement_needs_a_calibrated_reader(made_up, monkeypatch):
+    native_scan.reset()
+    monkeypatch.setenv(native_scan.DISABLE_VARIABLE, "0")
+    assert not native_scan.agrees_on(str(made_up))
+    native_scan.reset()
+
+
+def test_a_compiled_program_without_source_files_still_calibrates(native, tmp_path, monkeypatch):
+    # In a Nuitka build ``__file__`` names a source file that was never copied.
+    native_scan.reset()
+    monkeypatch.setattr(native_scan, "__file__", str(tmp_path / "not-copied" / "core" / "native_scan.py"))
+    assert native_scan.reader() is not None
+    native_scan.reset()
+    monkeypatch.setattr(native_scan.sys, "executable", str(tmp_path / "gone" / "program.exe"))
+    assert native_scan.reader() is None  # nothing left to compare with: read in Python
+    native_scan.reset()

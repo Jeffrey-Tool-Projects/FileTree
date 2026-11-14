@@ -569,7 +569,10 @@ stable ABI for Python 3.11+, static C++ runtime, imports only `python3.dll` and 
 one folder and reads each entry's metadata with the interpreter lock released, so the scanner's worker
 threads overlap. It is read-only. `core.native_scan.reader()` hands it out only after its packed
 snapshots equal `pack_snapshot(os.lstat(path))` on this interpreter and system (once per process,
-choosing the one-call query of Windows 11 24H2 or the handle query, and which time is `st_ctime`);
+choosing the one-call query of Windows 11 24H2, the handle query, or the handle query with the short
+volume and file numbers Python 3.11 reports, and which time is `st_ctime`), and
+`native_scan.agrees_on(root)` repeats the comparison for the folder each scan starts from, because
+another volume or file system may identify files differently;
 `FILE_TREE_NATIVE_SCAN=0`, a missing module or a disagreement mean the Python reader, with the same
 tree. `scanner._read_native` builds plain files and folders from the rows; reparse points, sparse/
 compressed/cloud files and anything the module could not read go through `_entry_node` as before, and
@@ -577,7 +580,11 @@ scans that capture Windows owners or exact allocation stay entirely in Python. M
 small files (warm cache, 8 logical processors): Python 2.70 s with 4 threads, native 0.93 s. Tests run
 on the Python reader (their seams are `os.scandir` and `MountSurvey.listing`);
 `test/test_native_scan.py` proves both readers record identical trees. Build it for development with
-`python setup.py build_ext --inplace`; without a compiler everything works, only slower.
+`python setup.py build_ext --inplace`; without a compiler everything works, only slower. The Windows
+test jobs install the hash-locked backend (`.github/requirements/native.txt`), build the module and
+run `tools/require_native_reader.py`, which fails when the scanner would still read in Python, so the
+parity tests cannot be skipped unnoticed (`test/test_native_build.py`). `MANIFEST.in` puts the source
+into the sdist, which is built on Linux where `setup.py` declares no extension.
 
 `core.report` prepares immutable translated scalar tables from the recorded whole scan, with bounded
 largest-folder/file and type lists, complete counts, overlap/coverage notes and cancellable traversal.

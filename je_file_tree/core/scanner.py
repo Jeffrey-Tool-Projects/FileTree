@@ -246,7 +246,7 @@ class _Crawler:
         self._allocation = (allocation_for(root_path, exact_windows=True) if options.exact_windows_allocation
                             else allocation_for(root_path))
         self._excluded = exclusion_test(options.exclude)
-        self._native = _native_reader(options, self._allocation, self._mounts)
+        self._native = _native_reader(options, self._allocation, self._mounts, root_path)
         self._cancel = cancel
         self._pause = pause
         self._pending: list[tuple[Node, str]] = [(root, root_path)]
@@ -484,13 +484,19 @@ class _NamedEntry:
 
 
 def _native_reader(options: ScanOptions, allocation: Allocation,
-                   boundaries: MountSurvey) -> _NativeRead | None:
-    """The native reader when this scan's choices leave every entry to the ordinary rules."""
+                   boundaries: MountSurvey, root_path: str) -> _NativeRead | None:
+    """The native reader when this scan's choices leave every entry to the ordinary rules.
+
+    It was checked against ``os.lstat`` on this interpreter's own files; the scan's first folder is
+    compared too, because another volume or file system may identify its files differently.
+    """
     if options.windows_owners or options.exact_windows_allocation or not boundaries.plain_listing:
         return None  # per-file owner and exact allocation queries need the full Python path
     ordinary = ordinary_allocation(allocation)
     read = native_scan.reader() if ordinary is not None else None
-    return None if read is None or ordinary is None else _NativeRead(read, ordinary)
+    if read is None or ordinary is None or not native_scan.agrees_on(root_path):
+        return None
+    return _NativeRead(read, ordinary)
 
 
 def _read_native(folder: Node, path: str, native: _NativeRead, reading: _Reading) -> None:

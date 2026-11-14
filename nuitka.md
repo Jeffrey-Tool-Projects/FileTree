@@ -52,6 +52,18 @@ On macOS and Linux activate it with `source .venv/bin/activate` instead.
 | Linux | `build-essential` and `patchelf` (Debian / Ubuntu: `sudo apt install build-essential patchelf`) |
 | macOS | The Command Line Tools: `xcode-select --install` |
 
+### 1.3 The native folder reader (Windows, optional)
+
+On Windows FileTree scans faster with its small C++ module `je_file_tree._native` (80,000 small files with four threads: 2.70 s in Python, 0.93 s with the module). Nuitka does not compile it; it copies the built module when one lies next to the package. Build it before compiling, with the compiler of §1.2:
+
+```bash
+pip install setuptools
+python setup.py build_ext --inplace
+python -m tools.require_native_reader
+```
+
+The last command stops with an error when the module is missing or does not agree with this Python. Without these steps the build works all the same and scans with the Python reader, with the same results. The module needs no Visual C++ redistributable on the user's machine: it carries its C++ runtime and loads only `python3.dll` and `KERNEL32.dll`. The release workflow does not run these steps yet, so the published program still scans with the Python reader.
+
 ## 2. Build
 
 Run these from the repository root with the virtual environment active. `tools/build_nuitka.py` finds
@@ -170,6 +182,7 @@ The entry point is `start_file_tree.py`, the same program as `python -m je_file_
    cancel: the Yes / No buttons must be in that language too. If they stay in English, Qt's translation
    files are missing from the build.
 3. Open **Help → How to use**.
+4. On Windows, after §1.3: `je_file_tree\_native.pyd` is in the build folder.
 
 ## 5. Problems
 

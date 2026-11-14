@@ -49,6 +49,18 @@ macOS および Linux では、代わりに `source .venv/bin/activate` を使�
 | Linux | `build-essential` および `patchelf` (Debian / Ubuntu: `sudo apt install build-essential patchelf`) |
 | macOS | コマンド ライン ツール: `xcode-select --install` |
 
+### 1.3 ネイティブのフォルダー読み取りモジュール (Windows、任意)
+
+Windows では、小さな C++ モジュール `je_file_tree._native` があると FileTree のスキャンが速くなります (小さなファイル 80,000 個、4 スレッド: Python 2.70 秒、モジュール使用時 0.93 秒)。Nuitka はこのモジュールをコンパイルしません。パッケージの隣にビルド済みのモジュールがあれば、それをコピーします。コンパイルの前に、§1.2 のコンパイラでビルドしてください:
+
+```bash
+pip install setuptools
+python setup.py build_ext --inplace
+python -m tools.require_native_reader
+```
+
+モジュールがない場合や、この Python と結果が一致しない場合、最後のコマンドはエラーで終了します。これらの手順を省いてもビルドはできますが、スキャンは Python の読み取りで行われ、結果は同じです。このモジュールは利用者のコンピューターに Visual C++ 再頒布可能パッケージを必要としません。C++ ランタイムを内蔵し、`python3.dll` と `KERNEL32.dll` だけを読み込みます。リリース ワークフローはまだこれらの手順を実行しないため、公開されているプログラムは引き続き Python の読み取りでスキャンします。
+
 ## 2.ビルドする
 
 仮想環境をアクティブにして、リポジトリ ルートからこれらを実行します。 `tools/build_nuitka.py` は、PySide6 がインストールされている場所を見つけ、§3 のオプションを使用して Nuitka を実行します。また、完全なコマンドも出力されます。
@@ -132,6 +144,7 @@ python tools/package_posix.py --platform linux --source build/standalone/start_f
 1. ビルド フォルダーからプログラムを起動し、フォルダーをスキャンします。
 2. **View → Language** で別の言語に切り替え、何かをごみ箱に移動してキャンセルします。Yes / No ボタンもその言語である必要があります。英語のままの場合、Qt の翻訳ファイルがビルドに含まれません。
 3. **ヘルプ→**の使用方法を開きます。
+4. Windows で §1.3 を行った場合: ビルド フォルダーに `je_file_tree\_native.pyd` があります。
 
 ## 5.問題点
 

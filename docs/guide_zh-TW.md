@@ -274,6 +274,8 @@ python start_file_tree.py
 
 `python -m je_file_tree` 的效果相同。
 
+在 Windows 上，原始碼副本還可以建置選用的原生資料夾讀取模組，掃描大約快三倍：安裝 C++ 編譯器後，執行 `pip install setuptools` 與 `python setup.py build_ext --inplace`。`python -m tools.require_native_reader` 會告訴您它是否已在使用。沒有它時，FileTree 以 Python 掃描，結果相同；PyPI 上的套件與已發布的程式目前還不包含它。設定環境變數 `FILE_TREE_NATIVE_SCAN=0` 可以把它關閉。
+
 ### 編譯成獨立程式
 
 要把 FileTree 給沒有安裝 Python 的人使用，可以用 Nuitka 編譯成程式資料夾或單一 `.exe`：指令與每個選項的用途請見 [nuitka.zh-TW.md](../nuitka.zh-TW.md)。
