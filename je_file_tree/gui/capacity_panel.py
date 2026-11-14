@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 from je_file_tree.core.capacity import CapacityLedger
 from je_file_tree.core.formatting import format_count, format_size
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.window_fit import fit_window
 
 
 class CapacityPanel(QWidget):
@@ -55,7 +56,7 @@ class CapacityPanel(QWidget):
             return
         dialog = QDialog(self)
         dialog.setWindowTitle(tr("capacity_details"))
-        dialog.resize(640, 600)
+        fit_window(dialog, 640, 600)
         layout = QVBoxLayout(dialog)
         state = QLabel(tr("capacity_" + ledger.status))
         state.setWordWrap(True)

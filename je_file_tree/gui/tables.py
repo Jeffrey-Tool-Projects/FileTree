@@ -12,6 +12,7 @@ from PySide6.QtCore import (
     QSortFilterProxyModel, Qt,
 )
 
+from je_file_tree.core.advice import Advice, Adviser
 from je_file_tree.core.analysis import AGES, AgeStat, ExtensionStat
 from je_file_tree.core.compare import FolderChange
 from je_file_tree.core.formatting import (
@@ -23,6 +24,7 @@ from je_file_tree.core.formatting import (
     format_time,
 )
 from je_file_tree.core.node import Node
+from je_file_tree.gui import advice_text
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.reasons import problem_text
 from je_file_tree.gui.tree_model import NODE_ROLE, SHARE_ROLE
@@ -42,6 +44,8 @@ class Column(Generic[Row]):
     text: Callable[[Row], str]
     sort_value: Callable[[Row], Any]
     numeric: bool = False
+    icon: Callable[[Row], Any] | None = None  # a marker in front of the text
+    tip: Callable[[Row], str | None] | None = None  # this cell's own tooltip, instead of the row's
 
 
 class _TableModel(QAbstractTableModel, Generic[Row]):
@@ -171,6 +175,14 @@ class _TableModel(QAbstractTableModel, Generic[Row]):
             return column.sort_value(row)
         if role == Qt.ItemDataRole.TextAlignmentRole and column.numeric:
             return _RIGHT
+        return self._cell_data(column, row, role)
+
+    def _cell_data(self, column: Column[Row], row: Row, role: int) -> Any:
+        """A column's own marker or tooltip, else what the whole row answers (``extra_data``)."""
+        if role == Qt.ItemDataRole.DecorationRole and column.icon is not None:
+            return column.icon(row)
+        if role == Qt.ItemDataRole.ToolTipRole and column.tip is not None:
+            return column.tip(row)
         return self.extra_data(row, role)
 
     def extra_data(self, row: Row, role: int) -> Any:
@@ -215,25 +227,49 @@ class TableProxy(QSortFilterProxyModel):
 
 
 class LargestFilesModel(_TableModel[Node]):
-    """The largest files of the scan."""
+    """The largest files of the scan: how big each is beside the biggest, and whether it can go."""
+
+    def __init__(self, parent: QObject | None = None) -> None:
+        self._largest = 0
+        self._adviser: Adviser | None = None
+        super().__init__(parent)
+
+    def set_rows(self, rows: Sequence[Node]) -> None:
+        """Replace the rows; the size bars are relative to the biggest of them."""
+        self._largest = max((node.size for node in rows), default=0)
+        super().set_rows(rows)
+
+    def set_adviser(self, adviser: Adviser | None) -> None:
+        """Answer *can it go?* from ``adviser`` (None: the column stays empty)."""
+        self._adviser = adviser
+        self.refresh()
 
     def build_columns(self) -> Sequence[Column[Node]]:
-        """Name, size, folder, modified."""
+        """Name, size, removal advice, folder, modified."""
         return (
             Column("column_name", lambda node: node.name, lambda node: node.name.lower()),
             Column("column_size", lambda node: format_size(node.size, self.unit), lambda node: node.size,
                    numeric=True),
+            Column("column_advice", lambda node: self._advice(node, advice_text.label, ""),
+                   lambda node: self._advice(node, lambda advice: advice.rank, -1),
+                   icon=lambda node: self._advice(node, lambda advice: advice_text.dot(advice.kind), None),
+                   tip=lambda node: self._advice(node, advice_text.summary, None)),
             Column("column_folder", _folder_of, _folder_of),
             Column("column_modified", lambda node: format_time(node.modified), lambda node: node.modified),
         )
 
     def extra_data(self, row: Node, role: int) -> Any:
-        """The node itself, and its full path as the tooltip."""
+        """The node itself, its full path as the tooltip and its size beside the biggest row's, for the bar."""
         if role == NODE_ROLE:
             return row
         if role == Qt.ItemDataRole.ToolTipRole:
             return row.path
+        if role == SHARE_ROLE:
+            return row.size / self._largest if self._largest > 0 else 0.0
         return None
+
+    def _advice(self, node: Node, show: Callable[[Advice], Any], missing: Any) -> Any:
+        return missing if self._adviser is None else show(self._adviser.advice(node))
 
 
 class ChangesModel(_TableModel[FolderChange]):

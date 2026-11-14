@@ -9,6 +9,7 @@ from je_file_tree.gui import elevation
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads
+from je_file_tree.gui.window_fit import fit_window
 
 
 class ElevationWorker(QThread):
@@ -43,7 +44,7 @@ class ElevationDialog(WorkerDialog):
         layout = QVBoxLayout(self)
         layout.addWidget(self.status)
         layout.addWidget(self.buttons)
-        self.resize(560, 170)
+        fit_window(self, 560, 170)
         self.worker = ElevationWorker(arguments, self)
         self.worker.finished.connect(lambda: after_threads((self.worker,), self._completed, self))
         self.worker.start()

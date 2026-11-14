@@ -49,6 +49,10 @@ je-file-tree-cli = "je_file_tree.cli:main"
 [tool.setuptools.packages.find]
 include = ["je_file_tree*"]
 
+# MANIFEST.in puts the native module's source into the sdist; installed packages need only the built module.
+[tool.setuptools.exclude-package-data]
+"*" = ["*.cpp"]
+
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = "-p no:cacheprovider"

@@ -21,6 +21,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.tree_model import NODE_ROLE
+from je_file_tree.gui.window_fit import fit_window
 
 
 def _size(amount: int | None, unit: str) -> str:
@@ -85,7 +86,7 @@ class ProgramsDialog(WorkerDialog):
         super().__init__(parent)
         self._closed = False
         self.setWindowTitle(tr("action_programs"))
-        self.resize(1200, 580)
+        fit_window(self, 1200, 580)
         self.model = ProgramsModel(self)
         self.model.unit = unit
         self.proxy = QSortFilterProxyModel(self)

@@ -23,6 +23,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.virtual_disk_compaction import VirtualDiskCompactionDialog
+from je_file_tree.gui.window_fit import fit_window
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,7 +138,7 @@ class VirtualDisksDialog(WorkerDialog):
         self.compaction: VirtualDiskCompactionDialog | None = None
         self.info_worker: VirtualDiskInfoWorker | None = None
         self.setWindowTitle(tr("action_virtual_disks"))
-        self.resize(1400, 640)
+        fit_window(self, 1400, 640)
         self.model = VirtualDisksModel(self)
         self.model.unit = unit
         self.proxy = QSortFilterProxyModel(self)

@@ -20,6 +20,7 @@ from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.cleanup_text import explanation
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
+from je_file_tree.gui.window_fit import fit_window
 
 _HEADERS = ("review_select", "column_path", "review_logical_size", "review_risk")
 
@@ -139,7 +140,7 @@ class CleanupReview(WorkerDialog):
                  unit: str, root: Node, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("review_title"))
-        self.resize(980, 640)
+        fit_window(self, 980, 640)
         self.model = ReviewModel(nodes, reasons, places, unit, self)
         self._build_table()
         self.summary = QLabel()

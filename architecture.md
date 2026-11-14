@@ -7,7 +7,8 @@ this file in the same commit.
 
 A disk-usage viewer: scan a folder or drive, add up every file, and show where the space goes — a folder
 tree sorted largest first, a squarified treemap, the largest files and the space per file type — with a
-safe way to free space (move to the Recycle Bin / Trash, never a permanent delete).
+safe way to free space (move to the Recycle Bin / Trash by default; a permanent delete only on an
+explicit, always-confirmed request).
 
 ## 2. Layers and directories
 
@@ -75,6 +76,30 @@ Running workers retain immutable options. Invalid stored data is reported withou
 The editor is registered with read-only settings dialogs, outside source-operation exclusion, so
 opening it does not suspend readers. Its explicit shutdown rejects the editor during application close.
 
+`core.advice.Adviser` answers *can it go?* for one entry from recorded paths and parents only:
+`system_files` (managed), then `protected` (keep), then membership of the current clean-up groups or
+of a suggested folder above (lower risk / manual review), else the user's own call; without
+completed clean-up groups an unprotected entry is pending. Answers are cached (4,096) and grant no
+authority. `ResultsView._refresh_advice` rebuilds the adviser on the GUI thread only when
+`CleanupPanel` publishes a different result (it reads the suggested entries, never the tree) and
+hands it to `LargestFilesModel` (Largest files and Search: advice column, size bar relative to the
+biggest row), `ResultHighlights.show_files` (three captured largest files) and `DetailsPanel`.
+`gui.advice_text` owns wording, colours and the drawn dot. `MainWindow.move_to_trash` is unchanged.
+Because that hand-over changes list data, `MainWindow.export_list` starts its `ListCapture` only after
+`ResultsView.advice_arriving(view)` is false: for Largest files and Search it waits for the running
+clean-up analysis (`CleanupPanel.summary_changed`) instead of failing with a changed list; a replaced
+outcome reports the failure and a closing window drops the request.
+
+`core.reclaim.build_plan` turns a space target and the results already in memory (clean-up groups,
+duplicate groups with an explicitly kept copy, the captured largest files and the `Adviser`) into
+ranked steps: lower-risk clean-up first, then duplicate extras and review-needed rules by size, then
+a separate list of files no rule covers. It reads recorded nodes only, counts an entry once (nested
+entries add only the remainder), never proposes protected, OS-managed, root or linked entries or a
+kept copy, and is bounded (200 entries per step, 100 options, 10x look-ups: measured 0.24 s against
+3.4 s unbounded on 50,000 refused extras), so it runs on the GUI thread without a tree walk.
+`gui.reclaim_dialog` (File → Free up space, and a Clean up button) pre-selects nothing and only
+emits the ticked nodes; removal still goes through `MainWindow.move_to_trash` and its questions.
+
 `Summary.top_folders` captures at most three direct nonlinked folders on the analysis worker;
 `ScanOutcome.top_folders` carries them to `ResultHighlights`. The collapsible guidance renders those
 references, the captured capacity coverage and `CleanupPanel.proposal_summary` only. Its buttons
@@ -99,8 +124,8 @@ shutdown. A queued finished callback is idempotent; closing readiness does not d
 
 | Layer | Path | Depends on | Holds |
 |---|---|---|---|
-| Core | `je_file_tree/core/` | standard library only | `node.py` (the tree), `scanner.py` (parallel scan), `allocation.py` (size on disk), `protected.py` (system and program folders), `exclusions.py` (folders to skip), `analysis.py` (largest files, per-type and per-age totals), `search.py` (find by name), `duplicates.py` (same content), `cleanup.py` (clean-up suggestions), `compare.py` (against a saved scan), `pacing.py` (background work gives way to the window), `treemap.py` (layout), `sunburst.py` (rings), `tree_layout.py` (bounded hierarchy rows), `formatting.py`, `export.py` (CSV / JSON) |
-| GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings.py`, `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
+| Core | `je_file_tree/core/` | standard library only | `node.py` (the tree), `scanner.py` (parallel scan), `allocation.py` (size on disk), `protected.py` (system and program folders), `advice.py` (whether an entry can go), `exclusions.py` (folders to skip), `analysis.py` (largest files, per-type and per-age totals), `search.py` (find by name), `duplicates.py` (same content), `cleanup.py` (clean-up suggestions), `reclaim.py` (free-up-space plan), `permanent_delete.py` (confirmed permanent removal), `compare.py` (against a saved scan), `pacing.py` (background work gives way to the window), `treemap.py` (layout), `sunburst.py` (rings), `tree_layout.py` (bounded hierarchy rows), `formatting.py`, `export.py` (CSV / JSON) |
+| GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `advice_text.py`, `reclaim_dialog.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings.py`, `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
 | Entry script | `start_file_tree.py` | GUI | Starts the window from a source copy; the file Nuitka compiles |
 | Tools | `tools/` | GUI | `make_screenshots.py` (README pictures), `build_nuitka.py` (stand-alone builds, see `nuitka.md`) |
 | Tests | `test/` | both | one file per area; Qt tests on the offscreen platform |
@@ -500,6 +525,71 @@ from the scanner's fallback estimate. VolumesDialog owns a worker that refreshes
 retains up to 256 ready mounted roots and complete counts, queries bins and delivers scalar rows to a
 numeric-sort proxy and native free-space delegate. Welcome/View entry points activate the same modal
 flow; double-click joins the worker then asks MainWindow to scan a root. Closing discards late replies.
+
+`core.disks` reads physical drives and their partitions read-only behind one provider function: a
+fixed, shell-less System32 PowerShell storage query on Windows (constant script, 60 s timeout, 8 MiB
+output cap), `lsblk`/`/sys/block` on Linux and `diskutil` plists on macOS. Parsers are pure; serials
+are dropped and unreported fields stay unknown. `gui.disks_dialog.DisksDialog` runs the query on a
+worker (View → Physical disks, unavailable during a scan) and shows health, counters and a to-scale
+partition bar; its buttons use fixed entries of `gui.system_files.open_system_tool`. Nothing here
+writes to a disk: formatting, partitioning and volume removal stay out of scope.
+
+`core.forecast` keeps a bounded observation store (`forecast/volumes.json` beside `history/` and
+`journal/`: format-versioned JSON, one sample per volume per 3 hours, 400 per volume with older
+halves thinned, 256 volumes, 8 MiB read limit, atomic write; corrupt files read as empty, newer
+formats are left untouched) and a pure forecast: Theil–Sen median slope over the last 30 days from
+at most 80 evenly spaced samples (measured: 256 volumes x 400 samples take 0.48 s capped, 10.4 s
+uncapped), a new series after a total-size change above 1 %, a clock passed in, and a 5-year horizon.
+The Volumes worker records and forecasts off the GUI thread; `gui.forecast` owns the setting
+(`forecast_enabled`), wording and the sparkline delegate. `BinDialog` reuses the survey without
+recording. Nothing outside the store file is written or removed, and no clear action exists.
+
+`gui.window_fit.fit_window(window, width, height)` is how every top-level window and dialog takes its
+opening size: the preferred size for a 1920 x 1040 available area, bounded to 92 % of the parent
+screen's available geometry and grown by at most 1.5x on larger screens. `test_window_fit.py` rejects
+a literal `resize(w, h)` in `gui/`; tests pin the design screen through `conftest._design_screen`.
+
+`MainWindow.delete_permanently` is the only way into permanent deletion (Shift+Del, File and context
+menus; never from Clean up, duplicate or recurring suggestions). It refuses Windows-managed entries,
+asks the protected-folder question, then one default-No question, and only then creates
+`gui.permanent_delete.PermanentDeleteWorker`. `core.permanent_delete.delete_entries` walks the scan
+record iteratively, bottom-up, never the disk: before each removal it rechecks the no-follow snapshot
+(link state, kind, identity, and for files size, times, attributes, link count), protection and
+containment under the recorded parents, and calls the single `remove_entry`. Windows opens the entry
+itself, compares the open object identity and marks that object for deletion; POSIX anchors the
+parent by descriptor and uses `unlinkat`/`rmdir` (a swap between check and unlink cannot be excluded
+there). Links go as links; mount points, other volumes, read-only entries and incompletely scanned
+folders are refused; later arrivals stay and keep their folder. The batch is journaled first
+(`deleted`/`partial` statuses), offers no Undo, reports every refusal and failure, and rescans the
+parents. `test/conftest.py` wraps `remove_entry` and refuses any path outside pytest's temporary
+directory; AST tests pin the single entry point.
+
+`je_file_tree/_native.cpp` (built by `setup.py` as the optional `je_file_tree._native`, Windows only,
+stable ABI for Python 3.11+, static C++ runtime, imports only `python3.dll` and `KERNEL32.dll`) lists
+one folder and reads each entry's metadata with the interpreter lock released, so the scanner's worker
+threads overlap. It is read-only. `core.native_scan.reader()` hands it out only after its packed
+snapshots equal `pack_snapshot(os.lstat(path))` on this interpreter and system (once per process,
+choosing the one-call query of Windows 11 24H2, the handle query, or the handle query with the short
+volume and file numbers Python 3.11 reports, and which time is `st_ctime`), and
+`native_scan.agrees_on(root)` repeats the comparison for the folder each scan starts from, because
+another volume or file system may identify files differently;
+`FILE_TREE_NATIVE_SCAN=0`, a missing module or a disagreement mean the Python reader, with the same
+tree. `scanner._read_native` builds plain files and folders from the rows; reparse points, sparse/
+compressed/cloud files and anything the module could not read go through `_entry_node` as before, and
+scans that capture Windows owners or exact allocation stay entirely in Python. Measured on 80,000
+small files (warm cache, 8 logical processors): Python 2.70 s with 4 threads, native 0.93 s. Tests run
+on the Python reader (their seams are `os.scandir` and `MountSurvey.listing`);
+`test/test_native_scan.py` proves both readers record identical trees. Build it for development with
+`python setup.py build_ext --inplace`; without a compiler everything works, only slower. The Windows
+test jobs install the hash-locked backend (`.github/requirements/native.txt`), build the module and
+run `tools/require_native_reader.py`, which fails when the scanner would still read in Python, so the
+parity tests cannot be skipped unnoticed (`test/test_native_build.py`). `MANIFEST.in` puts the source
+into the sdist, which is built on Linux where `setup.py` declares no extension. A release builds a
+second wheel on Windows (`build-windows-wheel` in `release.yml`, tag `cp311-abi3-win_amd64`) that
+`tools/check_native_wheel.py` installs into a fresh environment before `publish-pypi` uploads it beside
+the pure wheel and the sdist; the job that builds it never holds the PyPI token. The Nuitka jobs
+(`release.yml` and `build.yml`) build and require the module before compiling and require it again
+inside the stand-alone folder (`require_native_reader --compiled`).
 
 `core.report` prepares immutable translated scalar tables from the recorded whole scan, with bounded
 largest-folder/file and type lists, complete counts, overlap/coverage notes and cancellable traversal.
@@ -1809,7 +1899,8 @@ pytest PID roles distinct for Windows virtual environments. See `docs/testing.md
   with two workers, 872 MB resident memory (419 incremental bytes/entry). Snapshot storage is 76 packed
   bytes / 109-byte Python bytes object plus an 8-byte Node slot. Diagnostic budget: 1 GiB / 240 s.
 - Links are never followed; unreadable folders are recorded, never fatal.
-- Nothing is deleted permanently; every move to the trash is confirmed.
+- Nothing is removed without a confirmation. The default is the trash; an explicit permanent delete
+  goes only through `MainWindow.delete_permanently` and removes only the approved entries.
 
 ## 8. When to update this file
 

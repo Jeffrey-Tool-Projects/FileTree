@@ -26,7 +26,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field, fields
 from typing import cast
 
-from je_file_tree.core.allocation import Allocation, allocation_for
+from je_file_tree.core import native_scan
+from je_file_tree.core.allocation import Allocation, OrdinaryAllocation, allocation_for, ordinary_allocation
 from je_file_tree.core.exclusions import Excluded, exclusion_test
 from je_file_tree.core.node import Node
 from je_file_tree.core.hard_links import HardLinkAccounting, account_hard_links
@@ -245,6 +246,7 @@ class _Crawler:
         self._allocation = (allocation_for(root_path, exact_windows=True) if options.exact_windows_allocation
                             else allocation_for(root_path))
         self._excluded = exclusion_test(options.exclude)
+        self._native = _native_reader(options, self._allocation, self._mounts, root_path)
         self._cancel = cancel
         self._pause = pause
         self._pending: list[tuple[Node, str]] = [(root, root_path)]
@@ -332,7 +334,11 @@ class _Crawler:
         while (task := self._take()) is not None:
             try:
                 give_way()
-                read = _read_folder(task[0], task[1], self._options, self._allocation, self._excluded, self._mounts)
+                # The native reader is an extra argument only when it is in use: the six-argument call
+                # is what tests and callers of the Python reader replace.
+                extra = () if self._native is None else (self._native,)
+                read = _read_folder(task[0], task[1], self._options, self._allocation, self._excluded, self._mounts,
+                                    *extra)
                 self._finish(task[0], task[1], read)
             except BaseException as error:  # noqa: BLE001 - handed to the calling thread, which re-raises it
                 self._fail(error)
@@ -382,17 +388,21 @@ def _add_to_ancestors(folder: Node, read: _FolderRead) -> None:
         node = node.parent
 
 
-def _read_folder(folder: Node, path: str, options: ScanOptions, allocation: Allocation,
+def _read_folder(folder: Node, path: str, options: ScanOptions, allocation: Allocation,  # noqa: PLR0913
                  excluded: Excluded | None = None,
-                 boundaries: frozenset[str] | MountSurvey = frozenset()) -> _FolderRead:
+                 boundaries: frozenset[str] | MountSurvey = frozenset(),
+                 native: _NativeRead | None = None) -> _FolderRead:
     """Add ``folder``'s entries as its children and report what was found."""
     read = _FolderRead()
     try:
-        listing_context = (boundaries.listing(path, folder.snapshot) if isinstance(boundaries, MountSurvey)
-                           else _path_listing(path))
-        with listing_context as entries:
-            listing = list(entries)
-            _record_entries(folder, listing, options, allocation, excluded, boundaries, read)
+        if native is not None:
+            _read_native(folder, path, native, _Reading(options, allocation, excluded, boundaries, read))
+        else:
+            listing_context = (boundaries.listing(path, folder.snapshot) if isinstance(boundaries, MountSurvey)
+                               else _path_listing(path))
+            with listing_context as entries:
+                listing = list(entries)
+                _record_entries(folder, listing, options, allocation, excluded, boundaries, read)
     except MountChangedError:
         raise
     except OSError as error:
@@ -417,19 +427,121 @@ def _record_entries(folder: Node, listing: list[os.DirEntry[str]], options: Scan
     children = cast(list[Node], folder.children)  # folders are always created with a list
     for entry in listing:
         child = _entry_node(entry, options, read, allocation, excluded)
-        if child is None:
+        if child is not None:
+            _adopt(folder, child, entry.path, boundaries, read)
+            children.append(child)
+
+
+def _adopt(folder: Node, child: Node, path: str, boundaries: frozenset[str] | MountSurvey,
+           read: _FolderRead) -> None:
+    """Give ``child`` its place under ``folder``: mount boundaries are listed and never entered."""
+    if boundaries and child.is_dir and not child.is_link and boundary_path(path) in boundaries:
+        child.is_link = True
+        child.error = MOUNT_BOUNDARY
+        read.errors.append((path, MOUNT_BOUNDARY))
+    elif _other_volume(folder, child):
+        child.is_link = True  # a mount boundary is listed, never traversed
+        child.error = None
+    child.parent = folder
+    if child.is_dir and not child.is_link and child.error == NOT_SCANNED:
+        read.subfolders.append((child, path))
+
+
+@dataclass(frozen=True, slots=True)
+class _NativeRead:
+    """The calibrated native reader and the allocation rule for files without unusual attributes."""
+
+    read: native_scan.Reader
+    ordinary: OrdinaryAllocation
+
+
+@dataclass(frozen=True, slots=True)
+class _Reading:
+    """What reading one folder needs besides the folder itself."""
+
+    options: ScanOptions
+    allocation: Allocation
+    excluded: Excluded | None
+    boundaries: frozenset[str] | MountSurvey
+    read: _FolderRead
+
+
+class _NamedEntry:
+    """A listed name for the ``os.lstat`` code: the entries the native reader leaves to Python."""
+
+    __slots__ = ("name", "path")
+
+    def __init__(self, name: str, path: str) -> None:
+        self.name, self.path = name, path
+
+    def stat(self, *, follow_symlinks: bool = True) -> os.stat_result:
+        """The entry's metadata, of the entry itself unless ``follow_symlinks``."""
+        return os.stat(self.path) if follow_symlinks else os.lstat(self.path)
+
+    def is_dir(self, *, follow_symlinks: bool = True) -> bool:
+        """Whether it is a folder (or, following links, leads to one)."""
+        return stat.S_ISDIR(self.stat(follow_symlinks=follow_symlinks).st_mode)
+
+
+def _native_reader(options: ScanOptions, allocation: Allocation,
+                   boundaries: MountSurvey, root_path: str) -> _NativeRead | None:
+    """The native reader when this scan's choices leave every entry to the ordinary rules.
+
+    It was checked against ``os.lstat`` on this interpreter's own files; the scan's first folder is
+    compared too, because another volume or file system may identify its files differently.
+    """
+    if options.windows_owners or options.exact_windows_allocation or not boundaries.plain_listing:
+        return None  # per-file owner and exact allocation queries need the full Python path
+    ordinary = ordinary_allocation(allocation)
+    read = native_scan.reader() if ordinary is not None else None
+    if read is None or ordinary is None or not native_scan.agrees_on(root_path):
+        return None
+    return _NativeRead(read, ordinary)
+
+
+def _read_native(folder: Node, path: str, native: _NativeRead, reading: _Reading) -> None:
+    """``_record_entries`` from one native listing: the same nodes, without an ``os.lstat`` per entry.
+
+    Measured 2026-11-14 on 80,000 small files (warm cache, 8 logical processors, median of three):
+    Python reader 2.70 / 2.09 / 2.70 / 3.05 s with 1 / 2 / 4 / 8 threads, native 1.97 / 1.16 / 0.93 / 0.81 s.
+    Plain files and folders come packed from the native module, whose snapshot bytes equal
+    ``pack_snapshot(os.lstat(path))`` (checked by ``native_scan`` before use). Links, files with
+    sparse/compressed/cloud attributes and anything the module could not read go through
+    ``_entry_node`` exactly as before.
+    """
+    options, read = reading.options, reading.read
+    rounded, unusual = native.ordinary.rounded, native.ordinary.unusual
+    hidden = 0 if options.include_hidden else _FILE_ATTRIBUTE_HIDDEN
+    children = cast(list[Node], folder.children)  # folders are always created with a list
+    files = size = allocated = 0
+    for name, kind, length, modified, snapshot, attributes in native.read(path, options.file_times):
+        if kind == native_scan.KIND_FILE and not attributes & unusual:
+            if not options.include_hidden and (attributes & hidden or name.startswith(".")):
+                read.errors.append((os.path.join(path, name), HIDDEN_OMITTED))
+                continue
+            space = rounded(length)
+            files += 1
+            size += length
+            allocated += space
+            children.append(Node(name, False, length, 1, 0, modified, False, None, space, (), folder, snapshot))
             continue
-        if boundaries and child.is_dir and not child.is_link and boundary_path(entry.path) in boundaries:
-            child.is_link = True
-            child.error = MOUNT_BOUNDARY
-            read.errors.append((entry.path, MOUNT_BOUNDARY))
-        elif _other_volume(folder, child):
-            child.is_link = True  # a mount boundary is listed, never traversed
-            child.error = None
-        child.parent = folder
-        children.append(child)
-        if child.is_dir and not child.is_link and child.error == NOT_SCANNED:
-            read.subfolders.append((child, entry.path))
+        child_path = os.path.join(path, name)
+        if kind == native_scan.KIND_FOLDER:
+            if not options.include_hidden and (attributes & hidden or name.startswith(".")):
+                read.errors.append((child_path, HIDDEN_OMITTED))
+                continue
+            skipped = reading.excluded is not None and reading.excluded(name, child_path)
+            child: Node | None = Node(name, True, modified=modified, error=EXCLUDED if skipped else NOT_SCANNED,
+                                      children=[], snapshot=snapshot)
+        else:
+            child = _entry_node(cast("os.DirEntry[str]", _NamedEntry(name, child_path)), options, read,
+                                reading.allocation, reading.excluded)
+        if child is not None:
+            _adopt(folder, child, child_path, reading.boundaries, read)
+            children.append(child)
+    read.files += files
+    read.size += size
+    read.allocated += allocated
 
 
 def _other_volume(folder: Node, child: Node) -> bool:

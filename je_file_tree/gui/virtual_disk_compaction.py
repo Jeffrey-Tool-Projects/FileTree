@@ -17,6 +17,7 @@ from je_file_tree.core.virtual_disks import VirtualDisk
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker
+from je_file_tree.gui.window_fit import fit_window
 
 
 class CompactionPreviewWorker(QThread):
@@ -87,7 +88,7 @@ class VirtualDiskCompactionDialog(WorkerDialog):
         self.operation: DiskCompactionWorker | None = None
         self._closed = self._reported = False
         self.setWindowTitle(tr("vc_title"))
-        self.resize(820, 590)
+        fit_window(self, 820, 590)
         self._build(disk)
         self.worker = CompactionPreviewWorker(disk, self)
         self.worker.ready.connect(self._show)

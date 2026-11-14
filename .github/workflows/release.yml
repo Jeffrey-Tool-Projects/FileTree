@@ -13,6 +13,7 @@
 # Jobs:
 #   release          Installs locked build tools, raises both version files, builds/checks Python
 #                    distributions, then commits/tags main and retains those files.
+#   build-windows-wheel  Builds and checks the Windows wheel that carries the native folder reader.
 #   publish-pypi     Uploads those exact distributions independently; its failure never blocks EXE release.
 #   build-exe        Compiles one complete standalone folder for its ZIP and MSI on Windows.
 #   publish-release  Requires successful builds, uploads all required assets to a draft, checks
@@ -106,8 +107,46 @@ jobs:
           path: dist/
           if-no-files-found: error
 
-  publish-pypi:
+  # The producer's wheel is pure Python and serves every system. This one adds the optional native folder
+  # reader for Windows (stable ABI: Python 3.11 and later); pip on Windows prefers it. It never sees the
+  # PyPI token: publish-pypi uploads the files it leaves behind.
+  build-windows-wheel:
     needs: release
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the new tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: v${{ needs.release.outputs.new }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Install the build backend at locked wheel hashes
+        run: 'python -m pip install --require-hashes --only-binary :all: -r .github/requirements/native.txt'
+
+      - name: Build the Windows wheel with the locked backend
+        run: python -m pip wheel . --no-deps --no-build-isolation --wheel-dir dist
+
+      # The module is optional in setup.py, so a failed compile would still produce a wheel.
+      - name: Require the native folder reader inside the wheel, installed in a fresh environment
+        env:
+          NEW: ${{ needs.release.outputs.new }}
+        run: python tools/check_native_wheel.py dist --version "$env:NEW"
+
+      - name: Keep the Windows wheel for PyPI
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: pypi-dist-windows
+          path: dist/*.whl
+          if-no-files-found: error
+
+  publish-pypi:
+    needs: [release, build-windows-wheel]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -139,6 +178,12 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: pypi-dist
+          path: ./dist
+
+      - name: Fetch the checked Windows wheel
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: pypi-dist-windows
           path: ./dist
 
       - name: Upload the exact distributions to PyPI
@@ -187,8 +232,22 @@ jobs:
       - name: Install PySide6 and Nuitka
         run: python tools/install_compiler.py
 
+      # The native folder reader is optional: without these steps the program would compile and scan
+      # in Python. Nuitka copies the built module; the check after compiling makes sure it did.
+      - name: Install the build backend of the native folder reader at locked wheel hashes
+        run: 'python -m pip install --require-hashes --only-binary :all: -r .github/requirements/native.txt'
+
+      - name: Build the native folder reader
+        run: python setup.py build_ext --inplace
+
+      - name: Require the native folder reader to agree with this Python
+        run: python -m tools.require_native_reader
+
       - name: Compile the standalone folder
         run: python tools/build_nuitka.py
+
+      - name: Require the native folder reader inside the standalone folder
+        run: python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist
 
       - name: Sign and verify the standalone executable before packaging
         if: steps.signing.outputs.enabled == 'true'

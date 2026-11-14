@@ -27,6 +27,7 @@ from je_file_tree.gui.optional_date import OptionalDateEdit
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, retire_worker
 from je_file_tree.gui.tables import Column, _TableModel
+from je_file_tree.gui.window_fit import fit_window
 
 _MIB = 1024 * 1024
 _DEFAULT_MIB = 1024
@@ -273,7 +274,7 @@ class HistoryDialog(WorkerDialog):
         self.folder_dialog: LoadedFolderDialog | None = None
         self.trend: HistoryTrend | None = None
         self.setWindowTitle(tr("action_history"))
-        self.resize(900, 760)
+        fit_window(self, 900, 760)
         self.model = HistoryModel(self)
         self.model.unit = unit
         self.chart = HistoryChart(self)

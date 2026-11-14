@@ -20,6 +20,7 @@ from je_file_tree.gui.cleanup_text import explanation
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
+from je_file_tree.gui.window_fit import fit_window
 
 _IMPORT_LIMIT = 256_000
 
@@ -58,7 +59,7 @@ class CleanupPolicyDialog(WorkerDialog):
     def __init__(self, policy: CleanupPolicy, root: Node | None, unit: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(tr("action_cleanup_policy"))
-        self.resize(780, 650)
+        fit_window(self, 780, 650)
         self._before, self._root, self._unit = policy, root, unit
         self._current: PolicyPreviewWorker | None = None
         self._running: set[PolicyPreviewWorker] = set()

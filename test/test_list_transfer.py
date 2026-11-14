@@ -224,11 +224,13 @@ def test_current_list_exports_filtered_display_order_and_all_tabs(window, qapp, 
     window.results._largest_filter.setText('big.bin')
     target = tmp_path / 'list.csv'
     monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *_args: (str(target), ''))
-    window.export_list()
-    _wait(qapp, lambda: not window._exports and not window._captures)
+    window.export_list()  # right after the scan: waits for the removal advice instead of failing
+    _wait(qapp, lambda: target.exists() and not window._exports and not window._captures)
     with target.open(encoding='utf-8-sig', newline='') as source:
         rows = list(csv.reader(source))
     assert len(rows) == 2 and rows[1][0] == 'big.bin' and rows[1][1] == '500 B'
+    assert window.results.cleanup.proposal_summary is not None and rows[1][2] == window.results.largest_model.index(
+        0, 2).data()
 
 
 def test_close_cancels_producer_before_joining_stream_writer(window, qapp, monkeypatch, tmp_path) -> None:

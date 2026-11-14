@@ -253,6 +253,10 @@ class _Matcher:
             if rule.files:
                 names = "|".join(f"(?:{fnmatch.translate(name)})" for name in rule.files)
                 self._files.append((re.compile(names, re.IGNORECASE), rule))
+        # Nearly no file matches any rule: one test of every pattern together instead of one per rule
+        # (3,000,000 matches took 1.5 s on 1,000,000 files, 2026-11-14).
+        every = "|".join(f"(?:{names.pattern})" for names, _ in self._files)
+        self._any_file = re.compile(every, re.IGNORECASE) if every else None
 
     def folder_key(self, parts: tuple[str, ...], siblings: set[str], node: Node, *,
                    ignore_age: bool = False) -> str | None:
@@ -267,6 +271,8 @@ class _Matcher:
 
     def file_key(self, node: Node, folder_name: str) -> str | None:
         """The group of the file ``node`` (in a folder of the casefolded name ``folder_name``), or None."""
+        if self._any_file is None or not self._any_file.match(node.name):
+            return None
         for names, rule in self._files:
             if not names.match(node.name):
                 continue

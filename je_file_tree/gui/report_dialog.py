@@ -16,6 +16,7 @@ from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.report_export import capture_report_charts, encode_charts, write_xlsx
 from je_file_tree.gui.scan_worker import ScanOutcome, wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
+from je_file_tree.gui.window_fit import fit_window
 
 
 def _labels() -> dict[str, str]:
@@ -85,7 +86,7 @@ class ReportDialog(WorkerDialog):
         if kind not in ("html", "xlsx"):
             raise ValueError("Unsupported report kind")
         self.setWindowTitle(tr("report_title"))
-        self.resize(600, 200)
+        fit_window(self, 600, 200)
         self._closed = False
         self.saved = False
         self.status = QLabel(tr("export_running", path=target))

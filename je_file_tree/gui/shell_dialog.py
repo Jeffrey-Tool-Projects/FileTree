@@ -9,6 +9,7 @@ from je_file_tree.gui import shell_integration
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads
+from je_file_tree.gui.window_fit import fit_window
 
 
 class ShellSettingsWorker(QThread):
@@ -55,7 +56,7 @@ class ShellIntegrationDialog(WorkerDialog):
         layout.addWidget(hint)
         layout.addWidget(self.status)
         layout.addWidget(self.buttons)
-        self.resize(560, 230)
+        fit_window(self, 560, 230)
         self._start(None)
 
     def _start(self, enabled: bool | None) -> None:
