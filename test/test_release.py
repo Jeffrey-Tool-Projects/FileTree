@@ -70,7 +70,7 @@ def test_the_workflow_releases_on_merge_and_builds_only_the_program_folder() -> 
     assert "github.event.pull_request.merged == true" in text
     assert "python tools/bump_version.py" in text, "the tested script, not an inline copy"
     assert "git add pyproject.toml je_file_tree/__init__.py" in text
-    version = text.split("  release:\n", 1)[1].split("  publish-pypi:\n", 1)[0]
+    version = text.split("  release:\n", 1)[1].split("  build-windows-wheel:\n", 1)[0]
     assert "secrets.PYPI_API_TOKEN" not in version
     assert version.index("python -m build --no-isolation") < version.index("git push")
     assert version.index("python -m twine check dist/*") < version.index("git push")
@@ -113,7 +113,7 @@ def test_windows_release_does_not_depend_on_the_pypi_upload() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     publisher = text.split("  publish-pypi:\n", 1)[1].split("  build-exe:\n", 1)[0]
     windows = text.split("  build-exe:\n", 1)[1].split("  build-posix:\n", 1)[0]
-    assert 'needs: release' in publisher
+    assert 'needs: [release, build-windows-wheel]' in publisher  # it uploads that job's wheel too
     assert 'needs: release' in windows
     assert "publish-pypi" not in windows
     assert "name: pypi-dist" in publisher

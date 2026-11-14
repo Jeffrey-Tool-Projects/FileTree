@@ -59,7 +59,7 @@ python setup.py build_ext --inplace
 python -m tools.require_native_reader
 ```
 
-모듈이 없거나 이 Python과 결과가 일치하지 않으면 마지막 명령이 오류로 끝납니다. 이 단계를 생략해도 빌드는 그대로 되지만 검사는 Python 읽기로 수행되며 결과는 같습니다. 이 모듈은 사용자의 컴퓨터에 Visual C++ 재배포 가능 패키지가 필요하지 않습니다. C++ 런타임을 포함하고 `python3.dll`과 `KERNEL32.dll`만 불러옵니다. 릴리스 워크플로는 아직 이 단계를 실행하지 않으므로 게시된 프로그램은 계속 Python 읽기로 검사합니다.
+모듈이 없거나 이 Python과 결과가 일치하지 않으면 마지막 명령이 오류로 끝납니다. 이 단계를 생략해도 빌드는 그대로 되지만 검사는 Python 읽기로 수행되며 결과는 같습니다. 이 모듈은 사용자의 컴퓨터에 Visual C++ 재배포 가능 패키지가 필요하지 않습니다. C++ 런타임을 포함하고 `python3.dll`과 `KERNEL32.dll`만 불러옵니다. 릴리스 워크플로는 이 단계를 실행한 다음 `python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist`를 실행합니다. 빌드 폴더에 모듈이 없으면 릴리스가 중단됩니다.
 
 ## 2. 빌드
 

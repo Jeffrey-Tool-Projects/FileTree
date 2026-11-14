@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib
 import re
+import zipfile
 from pathlib import Path
 
 from packaging.requirements import Requirement  # pytest depends on packaging
@@ -72,5 +73,74 @@ def test_the_source_distribution_carries_the_native_source() -> None:
 def test_the_requirement_tool_fails_when_the_scanner_would_read_in_python(capsys) -> None:
     # conftest keeps every other test module on the Python reader, which is exactly this case.
     tool = importlib.import_module("tools.require_native_reader")
-    assert tool.main() == 1
+    assert tool.main([]) == 1
     assert capsys.readouterr().err
+
+
+def _job(workflow: str, name: str) -> str:
+    text = (_ROOT / ".github" / "workflows" / workflow).read_text(encoding="utf-8")
+    job = re.search(rf"^  {re.escape(name)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:\s*$|\Z)", text, re.MULTILINE | re.DOTALL)
+    assert job is not None, name
+    return job.group(1)
+
+
+def _in_order(body: str, *parts: str) -> None:
+    places = [body.index(part) for part in parts]
+    assert places == sorted(places), parts
+
+
+def test_compiled_programs_build_require_and_then_carry_the_reader() -> None:
+    # Nuitka copies a built module and says nothing when there is none.
+    for workflow, job in (("release.yml", "build-exe"), ("build.yml", "windows")):
+        body = _job(workflow, job)
+        _in_order(body, "tools/install_compiler.py", _INSTALL, "python setup.py build_ext --inplace",
+                  "python -m tools.require_native_reader\n", "python tools/build_nuitka.py",
+                  "python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist",
+                  "tools/package_standalone.py")
+        assert "continue-on-error" not in body
+
+
+def test_the_release_builds_checks_and_uploads_the_windows_wheel_without_the_token() -> None:
+    body = _job("release.yml", "build-windows-wheel")
+    assert "needs: release" in body and "runs-on: windows-latest" in body
+    assert "ref: v${{ needs.release.outputs.new }}" in body and "persist-credentials: false" in body
+    _in_order(body, _INSTALL, "python -m pip wheel . --no-deps --no-build-isolation --wheel-dir dist",
+              'python tools/check_native_wheel.py dist --version "$env:NEW"', "name: pypi-dist-windows")
+    assert "secrets." not in body and "id-token" not in body and "contents: write" not in body
+    assert "continue-on-error" not in body and "if-no-files-found: error" in body
+    publisher = _job("release.yml", "publish-pypi")
+    _in_order(publisher, "name: pypi-dist\n", "name: pypi-dist-windows\n", "python -m twine upload dist/*")
+    # The GitHub release keeps listing the producer's two files (tools/publish_release.py).
+    assert "pypi-dist-windows" not in _job("release.yml", "publish-release")
+
+
+def test_the_wheel_check_names_a_wrong_tag_a_missing_module_and_shipped_source(tmp_path) -> None:
+    tool = importlib.import_module("tools.check_native_wheel")
+    assert tool.wheel_problems(tmp_path, "1.2.3")  # no wheel at all
+    pure = tmp_path / "je_file_tree-1.2.3-py3-none-any.whl"
+    zipfile.ZipFile(pure, "w").close()
+    assert "expected exactly" in tool.wheel_problems(tmp_path, "1.2.3")[0]
+    pure.unlink()
+    wheel = tmp_path / f"je_file_tree-1.2.3-{tool.TAG}.whl"
+    with zipfile.ZipFile(wheel, "w") as archive:
+        archive.writestr("je_file_tree/__init__.py", "")
+        archive.writestr("je_file_tree/_native.cpp", "// source")
+    problems = tool.wheel_problems(tmp_path, "1.2.3")
+    assert len(problems) == 2 and "missing" in problems[0] and "source" in problems[1]
+    with zipfile.ZipFile(wheel, "w") as archive:
+        archive.writestr(tool.MODULE, b"built")
+    assert tool.wheel_problems(tmp_path, "1.2.3") == []
+    assert tool.wheel_problems(tmp_path, "1.2.4") != []
+    assert tool.main([str(tmp_path / "empty"), "--version", "1.2.3"]) == 1
+
+
+def test_the_compiled_folder_check_names_what_is_missing(tmp_path, capsys) -> None:
+    tool = importlib.import_module("tools.require_native_reader")
+    assert tool.main(["--compiled", str(tmp_path)]) == 1
+    assert "_native.pyd" in capsys.readouterr().err
+    (tmp_path / "je_file_tree").mkdir()
+    (tmp_path / "je_file_tree" / "_native.pyd").write_bytes(b"module")
+    (tmp_path / "python3.dll").write_bytes(b"")
+    assert tool.missing_from(tmp_path) == ["python3.dll"]  # an empty file is not the library
+    (tmp_path / "python3.dll").write_bytes(b"library")
+    assert tool.main(["--compiled", str(tmp_path)]) == 0

@@ -274,7 +274,7 @@ python start_file_tree.py
 
 `python -m je_file_tree` 的效果相同。
 
-在 Windows 上，原始碼副本還可以建置選用的原生資料夾讀取模組，掃描大約快三倍：安裝 C++ 編譯器後，執行 `pip install setuptools` 與 `python setup.py build_ext --inplace`。`python -m tools.require_native_reader` 會告訴您它是否已在使用。沒有它時，FileTree 以 Python 掃描，結果相同；PyPI 上的套件與已發布的程式目前還不包含它。設定環境變數 `FILE_TREE_NATIVE_SCAN=0` 可以把它關閉。
+在 Windows 上，原始碼副本還可以建置選用的原生資料夾讀取模組，掃描大約快三倍：安裝 C++ 編譯器後，執行 `pip install setuptools` 與 `python setup.py build_ext --inplace`。`python -m tools.require_native_reader` 會告訴您它是否已在使用。沒有它時，FileTree 以 Python 掃描，結果相同。2026-11-14 之後的發行版本已經內含它：PyPI 上的 Windows 套件（Python 3.11 以上、64 位元）與已發布的 Windows 程式都不需要編譯器。設定環境變數 `FILE_TREE_NATIVE_SCAN=0` 可以把它關閉。
 
 ### 編譯成獨立程式
 

@@ -59,7 +59,7 @@ python setup.py build_ext --inplace
 python -m tools.require_native_reader
 ```
 
-模块不存在或与这个 Python 不一致时，最后一条命令会以错误结束。不做这些步骤也能照常编译，只是改用 Python 读取，扫描结果相同。模块不需要用户的电脑安装 Visual C++ 可再发行组件包：它自带 C++ 运行时，只加载 `python3.dll` 与 `KERNEL32.dll`。发布工作流尚未执行这些步骤，所以目前发布的程序仍以 Python 读取扫描。
+模块不存在或与这个 Python 不一致时，最后一条命令会以错误结束。不做这些步骤也能照常编译，只是改用 Python 读取，扫描结果相同。模块不需要用户的电脑安装 Visual C++ 可再发行组件包：它自带 C++ 运行时，只加载 `python3.dll` 与 `KERNEL32.dll`。发布工作流会执行这些步骤，接着运行 `python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist`；编译文件夹里没有模块时，发布会停止。
 
 ## 2. 编译
 

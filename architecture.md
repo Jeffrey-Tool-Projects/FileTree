@@ -584,7 +584,12 @@ on the Python reader (their seams are `os.scandir` and `MountSurvey.listing`);
 test jobs install the hash-locked backend (`.github/requirements/native.txt`), build the module and
 run `tools/require_native_reader.py`, which fails when the scanner would still read in Python, so the
 parity tests cannot be skipped unnoticed (`test/test_native_build.py`). `MANIFEST.in` puts the source
-into the sdist, which is built on Linux where `setup.py` declares no extension.
+into the sdist, which is built on Linux where `setup.py` declares no extension. A release builds a
+second wheel on Windows (`build-windows-wheel` in `release.yml`, tag `cp311-abi3-win_amd64`) that
+`tools/check_native_wheel.py` installs into a fresh environment before `publish-pypi` uploads it beside
+the pure wheel and the sdist; the job that builds it never holds the PyPI token. The Nuitka jobs
+(`release.yml` and `build.yml`) build and require the module before compiling and require it again
+inside the stand-alone folder (`require_native_reader --compiled`).
 
 `core.report` prepares immutable translated scalar tables from the recorded whole scan, with bounded
 largest-folder/file and type lists, complete counts, overlap/coverage notes and cancellable traversal.

@@ -59,7 +59,7 @@ python setup.py build_ext --inplace
 python -m tools.require_native_reader
 ```
 
-モジュールがない場合や、この Python と結果が一致しない場合、最後のコマンドはエラーで終了します。これらの手順を省いてもビルドはできますが、スキャンは Python の読み取りで行われ、結果は同じです。このモジュールは利用者のコンピューターに Visual C++ 再頒布可能パッケージを必要としません。C++ ランタイムを内蔵し、`python3.dll` と `KERNEL32.dll` だけを読み込みます。リリース ワークフローはまだこれらの手順を実行しないため、公開されているプログラムは引き続き Python の読み取りでスキャンします。
+モジュールがない場合や、この Python と結果が一致しない場合、最後のコマンドはエラーで終了します。これらの手順を省いてもビルドはできますが、スキャンは Python の読み取りで行われ、結果は同じです。このモジュールは利用者のコンピューターに Visual C++ 再頒布可能パッケージを必要としません。C++ ランタイムを内蔵し、`python3.dll` と `KERNEL32.dll` だけを読み込みます。リリース ワークフローはこれらの手順を実行し、続けて `python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist` を実行します。ビルド フォルダーにモジュールがない場合、リリースは停止します。
 
 ## 2.ビルドする
 

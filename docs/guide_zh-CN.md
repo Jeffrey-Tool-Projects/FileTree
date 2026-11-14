@@ -274,7 +274,7 @@ python start_file_tree.py
 
 `python -m je_file_tree` 的效果相同。
 
-在 Windows 上，源代码副本还可以构建可选的原生文件夹读取模块，扫描大约快三倍：安装 C++ 编译器后，运行 `pip install setuptools` 与 `python setup.py build_ext --inplace`。`python -m tools.require_native_reader` 会告诉您它是否已在使用。没有它时，FileTree 以 Python 扫描，结果相同；PyPI 上的包与已发布的程序目前还不包含它。设置环境变量 `FILE_TREE_NATIVE_SCAN=0` 可以将它关闭。
+在 Windows 上，源代码副本还可以构建可选的原生文件夹读取模块，扫描大约快三倍：安装 C++ 编译器后，运行 `pip install setuptools` 与 `python setup.py build_ext --inplace`。`python -m tools.require_native_reader` 会告诉您它是否已在使用。没有它时，FileTree 以 Python 扫描，结果相同。2026-11-14 之后的发布版本已经内含它：PyPI 上的 Windows 包（Python 3.11 及以上、64 位）与已发布的 Windows 程序都不需要编译器。设置环境变量 `FILE_TREE_NATIVE_SCAN=0` 可以将它关闭。
 
 ### 编译成独立程序
 

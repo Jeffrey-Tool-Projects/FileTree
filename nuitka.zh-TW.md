@@ -59,7 +59,7 @@ python setup.py build_ext --inplace
 python -m tools.require_native_reader
 ```
 
-模組不存在或與這個 Python 不一致時，最後一個指令會以錯誤結束。不做這些步驟也能照常編譯，只是改用 Python 讀取，掃描結果相同。模組不需要使用者的電腦安裝 Visual C++ 可轉散發套件：它內含 C++ 執行階段，只載入 `python3.dll` 與 `KERNEL32.dll`。發行工作流程尚未執行這些步驟，所以目前發布的程式仍以 Python 讀取掃描。
+模組不存在或與這個 Python 不一致時，最後一個指令會以錯誤結束。不做這些步驟也能照常編譯，只是改用 Python 讀取，掃描結果相同。模組不需要使用者的電腦安裝 Visual C++ 可轉散發套件：它內含 C++ 執行階段，只載入 `python3.dll` 與 `KERNEL32.dll`。發行工作流程會執行這些步驟，接著執行 `python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist`；編譯資料夾裡沒有模組時，發行會停止。
 
 ## 2. 編譯
 

@@ -62,7 +62,7 @@ python setup.py build_ext --inplace
 python -m tools.require_native_reader
 ```
 
-The last command stops with an error when the module is missing or does not agree with this Python. Without these steps the build works all the same and scans with the Python reader, with the same results. The module needs no Visual C++ redistributable on the user's machine: it carries its C++ runtime and loads only `python3.dll` and `KERNEL32.dll`. The release workflow does not run these steps yet, so the published program still scans with the Python reader.
+The last command stops with an error when the module is missing or does not agree with this Python. Without these steps the build works all the same and scans with the Python reader, with the same results. The module needs no Visual C++ redistributable on the user's machine: it carries its C++ runtime and loads only `python3.dll` and `KERNEL32.dll`. The release workflow runs these steps and then `python -m tools.require_native_reader --compiled build/standalone/start_file_tree.dist`, which stops the release when the build folder lacks the module.
 
 ## 2. Build
 
