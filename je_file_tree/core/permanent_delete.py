@@ -37,7 +37,7 @@ from je_file_tree.core.node import Node, outermost
 from je_file_tree.core.operations import check_place
 from je_file_tree.core.pacing import give_way
 from je_file_tree.core.protected import Protection, protection_of
-from je_file_tree.core.snapshot import Snapshot, pack_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import Snapshot, stat_snapshot, unpack_snapshot
 from je_file_tree.core.system_files import system_file
 
 if os.name == "nt":
@@ -289,7 +289,7 @@ def _check(node: Node, scope: _Scope, *, folder: bool) -> str | None:
 
 def _observe(path: str) -> Snapshot | str:
     try:
-        return unpack_snapshot(pack_snapshot(os.lstat(path)))
+        return unpack_snapshot(stat_snapshot(path))
     except FileNotFoundError:
         return "missing"
     except OSError:

@@ -9,7 +9,7 @@ import stat
 import sys
 from typing import Any
 
-from je_file_tree.core.snapshot import pack_snapshot
+from je_file_tree.core.snapshot import pack_snapshot, path_metadata
 
 OwnerID = int | bytes
 _ELSEWHERE = 0x1000 | 0x40000 | 0x400000
@@ -41,7 +41,8 @@ def file_owner(path: str, info: os.stat_result, *, windows: bool = False) -> Own
         return None
     try:
         owner = _named_owner(path)
-        if owner is not None and pack_snapshot(os.lstat(path)) == pack_snapshot(info):
+        current = path_metadata(os.lstat(path), getattr(info, "st_file_attributes", 0))
+        if owner is not None and pack_snapshot(current) == pack_snapshot(info):
             return _shared(owner)
     except OSError:
         return None  # Recorded files remain readable; the Users view counts their owner as unknown.

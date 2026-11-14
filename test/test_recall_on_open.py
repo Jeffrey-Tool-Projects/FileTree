@@ -89,3 +89,27 @@ def test_the_native_rows_keep_only_the_bit_of_the_listing(tmp_path, monkeypatch)
     assert unpack_snapshot(nodes["listed.bin"].snapshot).attributes & RECALL_ON_OPEN
     assert nodes["plain.bin"].allocated >= 5000
     assert not unpack_snapshot(nodes["plain.bin"].snapshot).attributes & RECALL_ON_OPEN
+
+
+@_windows
+def test_the_check_before_a_permanent_delete_does_not_call_such_a_file_changed(tmp_path, monkeypatch) -> None:
+    from je_file_tree.core import permanent_delete
+
+    target = tmp_path / "file.bin"
+    target.write_bytes(b"data")
+    recorded = unpack_snapshot(stat_snapshot(str(target)))
+    _claiming_recall(monkeypatch, "file.bin")
+    assert permanent_delete._observe(str(target)) == recorded  # observed only; nothing is deleted here
+
+
+def test_no_core_module_records_the_attributes_of_a_bare_path_query() -> None:
+    # ``path_metadata`` / ``stat_snapshot`` are the places that know which attribute not to believe.
+    import re
+    from pathlib import Path
+
+    core = Path(__file__).resolve().parents[1] / "je_file_tree" / "core"
+    direct = re.compile(r"pack_snapshot\((os\.lstat|[a-z_.]+\.lstat)\(")
+    found = [f"{path.name}:{number}" for path in sorted(core.glob("*.py"))
+             for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
+             if direct.search(line) and "``" not in line and path.name not in ("finder_bin.py", "bin_empty.py")]
+    assert found == []  # the two exempt modules read macOS and freedesktop bins, which have no such attribute

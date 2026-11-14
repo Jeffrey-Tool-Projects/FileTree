@@ -23,7 +23,6 @@
 ### 掃描
 
 - **#138**（第三優先）[待驗證] 選用的原生掃描模組 `je_file_tree._native` 已隨 0.2.9 發行（PyPI 的 Windows wheel 與 Windows 獨立版），發行本身已驗證。尚未驗證的環境：真正的 Windows 10；未安裝 Visual C++ 可轉散發套件的乾淨機器（模組須可載入並被採用）；非 NTFS 磁碟區中的 exFAT 與 ReFS（FAT32 已驗證），須確認掃描起點比對會正確決定是否使用原生讀取；ARM64 的 Windows（目前只發行 x64 wheel）。目前沒有這些環境。任何一項失敗時，程式仍以 Python 讀取掃描，結果相同。
-- **#139**（第二優先）掃描以外仍直接以 `os.lstat` 的屬性判斷「資料在別處」的模組（`compression_ops`、`copy_io`、`duplicate_links`、`no_replace`、`verified_copy`、`virtual_disks`、`virtual_disk_compaction`、`windows_allocation`、`windows_restore`、`owner_id`、`savings` 等）在 Python 3.12 以上可能因路徑查詢多出的 0x40000 位元，把尚未被開啟過的一般檔案誤判為雲端檔案而拒絕操作或略過（偏安全的一側，但會造成不必要的拒絕）。須逐一確認各模組的屬性來源，改用 `core.snapshot.path_metadata`，並各自補測試。掃描、快照與 MFT 稽核已於 U-20261114-14 修正。
 - **#35**（第二優先）[受阻] 須在實際緩慢的遠端 SMB 連線上，量測 UNC 路徑與對應磁碟機在不同背景工作數量下的處理量，再建議該環境的並行程度。使用者目前未提供遠端共用資料夾或慢速連線驗證環境，本機回送連線的原生量測無法證明遠端效能。
 - **#75**（第一優先）[受阻] 須透過原生目錄走訪防護，驗證 macOS 與其他 POSIX 系統上同一裝置內的掛載邊界。使用者目前未提供可拋棄的對應驗證環境。FreeBSD 的 nullfs 具有不同的 `st_dev`，無法證明此情境。未掛載的 APFS 同容器磁碟區容量仍未知。圖形介面與命令列的容量帳目仍為估計值；無法獨立量測的共用空間、保留空間、檔案系統中繼資料、遺漏位元組及其他磁碟區總量，均須維持未知。直接顯示垃圾桶標籤與 Finder 清空功能仍由 #21 追蹤。
 

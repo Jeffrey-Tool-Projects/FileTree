@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from je_file_tree.core.compression import file_system
 from je_file_tree.core.node import Node
 from je_file_tree.core.protected import protected_places, protection_of
-from je_file_tree.core.snapshot import pack_snapshot, stable_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import pack_snapshot, path_metadata, stable_snapshot, unpack_snapshot
 from je_file_tree.core.system_files import system_file
 from je_file_tree.core.windows_allocation import file_allocation
 
@@ -88,7 +88,7 @@ def _operate(root: Node, node: Node, mode: str, program: str,
         raise ValueError("Not an approved recorded file")
     with _pinned_path(node.path):
         _validate_root(root)
-        info = os.lstat(node.path)
+        info = path_metadata(os.lstat(node.path))
         _validate(node, info)
         if file_system(root.path) != "NTFS" or file_system(node.path) != "NTFS":
             raise ValueError("Current NTFS scope could not be confirmed")
@@ -105,7 +105,7 @@ def _operate(root: Node, node: Node, mode: str, program: str,
             success &= code == 0
             if code != 0:
                 messages.append(output or f"compact exit {code}")
-        current = os.lstat(node.path)
+        current = path_metadata(os.lstat(node.path))
         # Compression can change metadata; retain identity, size and modification-time checks.
         if ((current.st_dev, current.st_ino, current.st_size, current.st_mtime_ns)
                 != (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)):
@@ -128,7 +128,7 @@ def _validate_root(root: Node) -> None:
     if root.snapshot is None:
         raise ValueError("Recorded folder identity unavailable")
     recorded = unpack_snapshot(root.snapshot)
-    current = os.lstat(root.path)
+    current = path_metadata(os.lstat(root.path))
     if (not stat.S_ISDIR(current.st_mode) or not current.st_ino
             or (current.st_dev, current.st_ino) != recorded.identity
             or getattr(current, "st_file_attributes", 0) & (0x400 | 0x1000 | 0x40000 | 0x400000)):
@@ -166,14 +166,14 @@ def _pinned_path(path: str) -> Iterator[None]:
 
 @contextlib.contextmanager
 def _pin(kernel, path: str) -> Iterator[None]:
-    prior = os.lstat(path)
+    prior = path_metadata(os.lstat(path))
     if getattr(prior, "st_file_attributes", 0) & (0x400 | 0x1000 | 0x40000 | 0x400000):
         raise ValueError("Linked or cloud ancestor/file")
     handle = kernel.CreateFileW(path, 0x80000000, 3, None, 3, 0x02200000, None)
     if handle == ctypes.c_void_p(-1).value:
         raise ctypes.WinError(ctypes.get_last_error())
     try:
-        current = os.lstat(path)
+        current = path_metadata(os.lstat(path))
         if stable_snapshot(pack_snapshot(prior)) != stable_snapshot(pack_snapshot(current)):
             raise ValueError("Path changed while pinning")
         yield
