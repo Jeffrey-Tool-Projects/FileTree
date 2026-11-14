@@ -77,6 +77,7 @@ from je_file_tree.gui.duplicates_panel import DuplicatesPanel
 from je_file_tree.gui.details_panel import DetailsPanel
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.i18n import format_duration, tr
+from je_file_tree.gui.refresh_notice import RefreshNotice
 from je_file_tree.gui.scan_bar import ScanBar
 from je_file_tree.gui.result_navigation import AnalysisTabs, ResultNavigation
 from je_file_tree.gui.result_overview import ResultOverview
@@ -554,6 +555,7 @@ class ResultsView(QWidget):
         self.types_table.setToolTip(tr("list_files_tip"))
         self.age_table.setToolTip(tr("list_files_tip"))
         self.scan_bar.retranslate()
+        self.refresh_notice.retranslate()
         self._treemap_up.setText(tr("treemap_up"))
         self.details.retranslate()
         self._treemap_up.setToolTip(tr("treemap_up_tip"))
@@ -592,6 +594,7 @@ class ResultsView(QWidget):
 
     def _build_cleanup_panels(self) -> None:
         self.completion = CleanupCompletion()
+        self.refresh_notice = RefreshNotice()
         self.highlights = ResultHighlights()
         self.duplicates = DuplicatesPanel()
         self.cleanup = CleanupPanel()
@@ -796,6 +799,7 @@ class ResultsView(QWidget):
         layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(8)
         layout.addWidget(self.scan_bar)
+        layout.addWidget(self.refresh_notice)
         layout.addWidget(self.overview)
         layout.addWidget(self.highlights)
         layout.addWidget(self.completion)

@@ -510,7 +510,7 @@ def test_failed_trash_reports_holders_from_worker(window, qapp, sample_tree, mon
     assert node in root.children and Path(node.path).is_file()
 
 
-def test_file_replaced_during_confirmation_is_skipped_and_parent_rescanned(
+def test_file_replaced_during_confirmation_is_skipped_and_parent_offered_for_rescan(
         window: MainWindow, qapp: QApplication, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     file = tmp_path / "chosen"
     file.write_bytes(b"old")
@@ -529,14 +529,18 @@ def test_file_replaced_during_confirmation_is_skipped_and_parent_rescanned(
     monkeypatch.setattr(file_actions, "trash_receipt", lambda path: moved.append(path) or True)
     monkeypatch.setattr(window, "rescan_folder", rescanned.append)
     window.move_to_trash([node])
-    _wait(qapp, lambda: window._trash_worker is None and bool(rescanned))
+    notice = window.results.refresh_notice
+    _wait(qapp, lambda: window._trash_worker is None and notice.pending == 1)
     assert moved == [] and file.read_bytes() == b"new"
     assert warnings and "entry was replaced" in warnings[0]
-    assert rescanned == [root]
     assert "skipped 1" in window.statusBar().currentMessage()
+    qapp.processEvents()
+    assert rescanned == [] and not notice.isHidden()  # nothing is scanned until the user asks
+    notice.button.click()
+    assert rescanned == [root] and notice.pending == 0 and notice.isHidden()
 
 
-def test_move_batch_rescans_the_actual_affected_parent(
+def test_move_batch_updates_the_results_without_scanning_again(
         window: MainWindow, qapp: QApplication, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     folder = tmp_path / "scan"
     folder.mkdir()
@@ -551,14 +555,20 @@ def test_move_batch_rescans_the_actual_affected_parent(
         return True
 
     monkeypatch.setattr(file_actions, "trash_receipt", moved)
-    # This fake move has no OS-bin receipt; do not enumerate the host bins while testing parent refresh.
+    # This fake move has no OS-bin receipt; do not enumerate the host bins while testing the results.
     def unavailable_undo(*_args):
         raise ValueError("Mocked Trash move has no native Undo destination")
     monkeypatch.setattr("je_file_tree.gui.trash_worker.prepare_undo", unavailable_undo)
+    scans = []
+    monkeypatch.setattr(window, "_begin_scan", lambda *args, **kwargs: scans.append(args))
+    monkeypatch.setattr(window, "rescan_folder", lambda *args, **kwargs: scans.append(args))
     window.move_to_trash([node])
-    _wait(qapp, lambda: window._trash_worker is None and window._worker is None
-          and window.results.tree_model.root is not old_root)
-    assert window.results.tree_model.root.file_count == 0
+    _wait(qapp, lambda: window._trash_worker is None and old_root.file_count == 0)
+    for _ in range(5):
+        qapp.processEvents()
+    # The moved entry left the scanned tree in place: no scan the user did not ask for, nothing on offer.
+    assert window.results.tree_model.root is old_root and scans == []
+    assert window.results.refresh_notice.isHidden() and not window._trash_rescans
     assert (tmp_path / "moved").read_bytes() == b"data"
 
 

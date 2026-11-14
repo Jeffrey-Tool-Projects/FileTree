@@ -119,6 +119,10 @@ def test_move_completion_rebuilds_root_and_transfers_counted_name(window, qapp, 
     parent = counted.parent
     os.unlink(counted.path)  # Only this newly created disposable pytest fixture; no user entry/bin.
     window._trash_finished(MoveResult(moved=[counted], parents=[parent]))
+    notice = window.results.refresh_notice
+    qapp.processEvents()
+    assert notice.pending == 1 and window._worker is None  # counted totals need a scan: offered, not started
+    notice.button.click()
     _wait(qapp, lambda: window._worker is None and window.results.outcome is not None
           and window.results.outcome.result.root is not root)
     result = window.results.outcome.result

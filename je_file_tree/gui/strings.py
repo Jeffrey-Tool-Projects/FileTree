@@ -1730,6 +1730,10 @@ EN: dict[str, str] = {
     "menu_scan_here": "Scan this folder",
     "menu_rescan_here": "Rescan this folder",
     "rescan_done": "Rescanned {name}: {before} → {after}",
+    "refresh_notice": "Files changed in {count} scanned folder(s) after this scan, so the sizes shown there "
+                      "may be out of date. FileTree does not scan again unless you ask.",
+    "refresh_now": "Rescan changed folders",
+    "refresh_now_tip": "Read only the folders that changed and update the results",
     "trash_confirm_title": "Move to Recycle Bin",
     "protected_title": "System or program folder",
     "protected_question": ("{count} of the entries are system or program folders. Moving them can make the "
@@ -3436,6 +3440,10 @@ ZH_TW: dict[str, str] = {
     "menu_scan_here": "只掃描這個資料夾",
     "menu_rescan_here": "重新掃描這個資料夾",
     "rescan_done": "已重新掃描 {name}：{before} → {after}",
+    "refresh_notice": "這次掃描之後，有 {count} 個已掃描的資料夾內容變動過，那裡顯示的大小可能已經過時。"
+                      "除非您要求，FileTree 不會自行重新掃描。",
+    "refresh_now": "重新掃描變動的資料夾",
+    "refresh_now_tip": "只讀取有變動的資料夾並更新結果",
     "trash_confirm_title": "移到資源回收筒",
     "protected_title": "系統或程式資料夾",
     "protected_question": ("其中 {count} 個是系統或程式的資料夾，移走可能讓系統或程式無法正常運作："
@@ -5123,6 +5131,10 @@ ZH_CN: dict[str, str] = {
     "menu_scan_here": "只扫描这个文件夹",
     "menu_rescan_here": "重新扫描这个文件夹",
     "rescan_done": "已重新扫描 {name}：{before} → {after}",
+    "refresh_notice": "这次扫描之后，有 {count} 个已扫描的文件夹内容发生了变化，那里显示的大小可能已经过时。"
+                      "除非您要求，FileTree 不会自行重新扫描。",
+    "refresh_now": "重新扫描有变化的文件夹",
+    "refresh_now_tip": "只读取有变化的文件夹并更新结果",
     "trash_confirm_title": "移到回收站",
     "protected_title": "系统或程序文件夹",
     "protected_question": ("其中 {count} 个是系统或程序的文件夹，移走可能让系统或程序无法正常运行："
@@ -7206,6 +7218,11 @@ JA: dict[str, str] = {
     'menu_scan_here': 'このフォルダーをスキャンします',
     'menu_rescan_here': 'このフォルダーを再スキャンします',
     'rescan_done': '再スキャン {name}: {before} → {after}',
+    'refresh_notice': 'このスキャンの後、スキャン済みのフォルダー {count} 個の内容が変更されたため、'
+                      'そこに表示されているサイズは古い可能性があります。'
+                      'FileTree は指示がない限り再スキャンしません。',
+    'refresh_now': '変更されたフォルダーを再スキャン',
+    'refresh_now_tip': '変更されたフォルダーだけを読み直して結果を更新します',
     'trash_confirm_title': 'ごみ箱に移動',
     'protected_title': 'システムまたはプログラムフォルダー',
     'protected_question': (
@@ -9166,6 +9183,10 @@ KO: dict[str, str] = {
     'menu_scan_here': '이 폴더를 스캔하세요',
     'menu_rescan_here': '이 폴더를 다시 검사하세요.',
     'rescan_done': '다시 스캔됨 {name}: {before} → {after}',
+    'refresh_notice': '이 스캔 이후 스캔한 폴더 {count}개의 내용이 변경되어 그곳에 표시된 크기가 '
+                      '최신이 아닐 수 있습니다. FileTree는 요청하지 않는 한 다시 스캔하지 않습니다.',
+    'refresh_now': '변경된 폴더 다시 스캔',
+    'refresh_now_tip': '변경된 폴더만 다시 읽어 결과를 업데이트합니다',
     'trash_confirm_title': '휴지통으로 이동',
     'protected_title': '시스템 또는 프로그램 폴더',
     'protected_question': (

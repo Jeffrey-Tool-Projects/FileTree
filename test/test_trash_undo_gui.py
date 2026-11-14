@@ -86,8 +86,15 @@ def test_capture_precedes_trash_offer_never_restores_automatically_and_path_surv
     assert worker.result.results[0].restored and calls == ["trash", "restore"]
     assert (source / "file").read_bytes() == b"owned original payload" and (source / "empty").is_dir()
     assert not payload.exists() and not receipt.exists() and not window._undo.available
-    _wait(qapp, lambda: window._worker is None)
-    assert window.results.tree_model.root.children[0].path == str(source), "source parent is rescanned"
+    notice = window.results.refresh_notice
+    _wait(qapp, lambda: notice.pending == 1)
+    qapp.processEvents()
+    assert window._worker is None and not window.results.tree_model.root.children, "no scan without a request"
+    notice.button.click()
+    _wait(qapp, lambda: window._worker is None and window.results.outcome is not None
+          and bool(window.results.tree_model.root.children))
+    assert window.results.tree_model.root.children[0].path == str(source), "source parent is rescanned on request"
+    assert notice.isHidden() and not window._trash_rescans
     records = window._journal.recent().records
     assert {record.outcome.status for record in records} == {"moved", "restored"}
     assert {record.reason for record in records} == {"manual", "undo"}

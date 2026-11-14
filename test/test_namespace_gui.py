@@ -229,7 +229,10 @@ def test_shared_context_menu_routes_exact_selection_and_rescans_after_join(
 
     monkeypatch.setattr(main_window, "QMenu", ChoosingMenu)
     window.show_menu_for(node, [node], QPoint())
-    assert events == [(root, (node,), True), "joined", "deleted", ("rescan", root)]
+    notice = window.results.refresh_notice
+    assert events == [(root, (node,), True), "joined", "deleted"] and notice.pending == 1  # offered, not scanned
+    notice.button.click()
+    assert events[3:] == [("rescan", root)] and notice.isHidden()
     detached = next(scan(sample_tree).root.iter_files())
     window.show_namespace([detached])
     window.show_namespace([root])

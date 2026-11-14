@@ -318,6 +318,18 @@ rearming preserves the periodic deadline and unrelated pending paths; new roots 
 Shared OperationGroup exclusion quiesces peer monitors before source mutation/tree changes. Native
 failures remain visible without retry loops; opt-out/tab close cancel/join through wait_for.
 
+Scans start only on a user request (U-20261114-18): opening/dropping a folder, Rescan, a branch
+rescan, or the FollowChanges opt-in above. Source operations never start one. Approved Trash and
+permanent-delete batches update the tree in place (`ResultsView.forget`); every other change (path
+moves, verified copies, duplicate links, compression, virtual-disk compaction, Undo restores, batches
+with skipped/failed/refused entries, counted hard-link totals) goes through `MainWindow._mark_changed`,
+which merges the outermost changed folders into `_trash_rescans` and shows `gui.refresh_notice`
+above the results. `MainWindow.refresh_changed` (the notice button) is the only caller that sets
+`_refreshing`; `_rescan_after_trash` reads the queued folders through `rescan_folder` only while that
+flag or FollowChanges is on, so later dialog closes, Undo expiry and scan endings no longer trigger
+scans. Compression scopes keep their per-file allocation request in `_exact_rescans`. A whole scan
+or shutdown clears the queue; Stop during a requested refresh leaves the remaining folders on offer.
+
 `core.background` separates strict default-off monitor configuration, selected-root schedule claims
 and bounded capacity warning transitions from GUI services. Versioned configuration stores no
 commands or action permissions. Claim receipts bind root, timestamp and schedule fingerprint;
@@ -559,8 +571,8 @@ itself, compares the open object identity and marks that object for deletion; PO
 parent by descriptor and uses `unlinkat`/`rmdir` (a swap between check and unlink cannot be excluded
 there). Links go as links; mount points, other volumes, read-only entries and incompletely scanned
 folders are refused; later arrivals stay and keep their folder. The batch is journaled first
-(`deleted`/`partial` statuses), offers no Undo, reports every refusal and failure, and rescans the
-parents. `test/conftest.py` wraps `remove_entry` and refuses any path outside pytest's temporary
+(`deleted`/`partial` statuses), offers no Undo, reports every refusal and failure, and offers the
+parents of refused/failed entries for a requested rescan. `test/conftest.py` wraps `remove_entry` and refuses any path outside pytest's temporary
 directory; AST tests pin the single entry point.
 
 `je_file_tree/_native.cpp` (built by `setup.py` as the optional `je_file_tree._native`, Windows only,
@@ -883,8 +895,8 @@ regular state, protection/system-managed exclusions and allocation. Per-file com
 OS system directory without a shell, recursion, wildcards or directory defaults; restoration invokes
 both /u and /u /exe. Owned `CompactWorker` retains failures/partial results. Stop/close terminates,
 waits and joins the current subprocess; the dialog cannot start another operation or select files.
-On attempted operations MainWindow rescans the exact branch/root with a transient per-file allocation
-override, preserving the user's default scan option. Matched before/after known allocation remains
+On attempted operations MainWindow offers the exact branch/root for a requested rescan with a transient
+per-file allocation override, preserving the user's default scan option. Matched before/after known allocation remains
 separate from unknown measurements and is not guaranteed freed capacity.
 `tools/validate_windows_compression.py` creates only fresh owned NTFS fixtures, checks SHA-256 and
 restoration, an owned junction's untouched peer and hard-link refusal, and atomically writes evidence.
@@ -970,7 +982,7 @@ Per-item outcomes remain visible, including errors received while closing/joinin
 also rejects changed cloud attributes/link counts even if content dates and lengths stay the same.
 The operation worker rescans affected parents outside the current root
 and reports counts/errors; after joining, MainWindow invalidates capacity/old analyser replies and
-rebuilds the current root, refreshing both affected parents within it. Native macOS remains unverified.
+offers the current root for a requested rescan, which refreshes both affected parents within it. Native macOS remains unverified.
 
 `core.verified_copy` prepares exclusive ordinary-folder copy plans, including cross-volume targets,
 and returns CopyProof observations after complete name/count/length comparison and SHA-256 comparison
@@ -999,8 +1011,8 @@ Trash, stops remaining moves on failure, and optionally invokes core.copy_approv
 only after success. Native exclusive junction/symlink creation refuses occupied original paths;
 redirect errors retain the copy/Trash receipt and report paths separately from verification errors.
 Windows may retain an empty source directory on native junction failure. Destination parents
-rescan on the copy worker; source parents rescan after Trash. Declining Trash rescans the current
-root. MainWindow tracks path dialogs and joins them on parent close before destroying scan trees.
+rescan on the copy worker; trashed sources leave the tree in place and the current root is offered
+for a requested rescan. MainWindow tracks path dialogs and joins them on parent close before destroying scan trees.
 TrashWorker retains MoveResult before queued delivery; parent close joins it and reports late copy
 verification/redirect failures before dismissing the window.
 
@@ -1027,7 +1039,7 @@ successful receipts. `gui.trash_undo` owns the 8s status-bar offer, frozen root/
 remain intact; new undo records have distinct ids/batches and additive restored outcomes. Captured
 parent references avoid GUI tree traversal and detached-path reuse. Offer expiry, new scans/actions,
 path dialogs and close discard authority. MainWindow serializes inverse work with scanning/Trash,
-postpones automatic source-parent rescans while Undo is offered and joins native work before close.
+offers source parents for a requested rescan after a restore and joins native work before close.
 Late partial/receipt/audit results remain visible in plain text; a replaced tree receives no rescan.
 An occupied copy redirect is refused without removing it. Native Windows owned-fixture GUI proof
 confirmed button/action/hash/empty-folder/audit/rescan behavior; Native Linux CI verified normal GUI capture, exact private-bin restoration, receipt cleanup/container preservation
