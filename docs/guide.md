@@ -337,7 +337,7 @@ python start_file_tree.py
 
 `python -m je_file_tree` does the same.
 
-On Windows, a copy of the source can also build the optional native folder reader, which makes scans about three times faster: with a C++ compiler installed, run `pip install setuptools` and `python setup.py build_ext --inplace`. `python -m tools.require_native_reader` tells whether it is in use. Without it FileTree scans in Python, with the same results. Releases made after 2026-11-14 include it already: the Windows package on PyPI (Python 3.11 or newer, 64-bit) and the released Windows program need no compiler. Setting the environment variable `FILE_TREE_NATIVE_SCAN=0` switches it off.
+On Windows, a copy of the source can also build the optional native folder reader, which makes scans about three times faster: with a C++ compiler installed, run `pip install setuptools` and `python setup.py build_ext --inplace`. `python -m tools.require_native_reader` tells whether it is in use. Without it FileTree scans in Python, with the same results. Version 0.2.9 and later include it already: the Windows package on PyPI (Python 3.11 or newer, 64-bit) and the released Windows program need no compiler. Setting the environment variable `FILE_TREE_NATIVE_SCAN=0` switches it off.
 
 ### Build a stand-alone program
 

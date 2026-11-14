@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261114-10 | 2026-11-14 | 0.2.9 發行驗證：Windows wheel 與獨立版內含原生讀取模組 | #done #release #verification #windows | [2026-11](2026-11.md) |
 | U-20261114-09 | 2026-11-14 | 發行工作流程建置含原生讀取模組的 Windows wheel 與獨立版 | #done #release #ci #build #windows | [2026-11](2026-11.md) |
 | U-20261114-08 | 2026-11-14 | Windows 測試工作建置並要求原生讀取模組；修正 Python 3.11 與編譯版無法採用的問題 | #done #ci #build #core #windows | [2026-11](2026-11.md) |
 | U-20261114-07 | 2026-11-14 | Windows 掃描新增選用的 C++ 資料夾讀取模組 | #done #perf #core #windows | [2026-11](2026-11.md) |
