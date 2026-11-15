@@ -285,7 +285,7 @@ class ScanHistory:
                 size = len(encoded.encode("utf-8"))
                 for chunk in _folder_json(root, None):
                     _check(cancel)
-                    size += len(chunk.encode("utf-8")) + 1
+                    size += (len(chunk) if chunk.isascii() else len(chunk.encode("utf-8"))) + 1
                     if size + 2 > self.max_bytes:
                         raise ValueError("Scan metadata exceeds the configured history byte limit")
                     stream.write(chunk + "\n")
