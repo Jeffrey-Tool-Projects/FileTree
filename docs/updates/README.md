@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261115-06 | 2026-11-15 | CI 發現檔案表的索引旗標與 Linux 專屬測試未更新 | #incident #ci #scanner #native | [2026-11](2026-11.md) |
 | U-20261115-05 | 2026-11-15 | 整個 NTFS 磁碟的掃描改由主檔案表讀取 | #done #perf #scanner #native #windows #gui #i18n | [2026-11](2026-11.md) |
 | U-20261115-04 | 2026-11-15 | 原生模組直接建立節點：量測無效益，不採用；保留資料夾檢查的修正 | #done #perf #scanner #native | [2026-11](2026-11.md) |
 | U-20261115-03 | 2026-11-15 | 縮短讀完資料夾之後的容量帳本與歷史儲存 | #snapshot #perf #core | [2026-11](2026-11.md) |

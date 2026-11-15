@@ -419,6 +419,7 @@ constexpr std::uint32_t ATTRIBUTE_DATA = 0x80;
 constexpr std::uint32_t ATTRIBUTE_INDEX_ALLOCATION = 0xA0;
 constexpr std::uint32_t ATTRIBUTE_REPARSE = 0xC0;
 constexpr std::uint32_t ATTRIBUTE_END = 0xFFFFFFFF;
+constexpr ULONG TABLE_ONLY_FLAGS = 0x40000 | 0x10000000 | 0x20000000;  // never reported by a query
 constexpr std::uint8_t NAMESPACE_DOS = 2;         // the 8.3 alias of a name that is recorded separately
 constexpr std::uint64_t FIRST_USER_RECORD = 16;   // the records below are the file system's own files
 constexpr std::uint64_t ROOT_RECORD = 5;
@@ -874,7 +875,9 @@ void table_entry(const MftIndex& index, std::uint64_t ordinal, bool file_times, 
     // The table keeps a flag of its own in the bit Windows documents as "recall on open" for directory
     // listings (found 2026-11-15: 104,161 ordinary files of a system volume carry it, and were counted
     // as taking no space). A file that really is recalled on open is a reparse point, handled above.
-    info.FileAttributes = (record.attributes & ~RECALL_ON_OPEN) | (record.folder ? FILE_ATTRIBUTE_DIRECTORY : 0);
+    // So does it with the two high bits that mark a record as holding an index: a hosted Windows
+    // runner had 0x10000000 on an empty folder where os.lstat reports 0x10 (found 2026-11-15 by CI).
+    info.FileAttributes = (record.attributes & ~TABLE_ONLY_FLAGS) | (record.folder ? FILE_ATTRIBUTE_DIRECTORY : 0);
     if (info.FileAttributes == 0) {
         info.FileAttributes = FILE_ATTRIBUTE_NORMAL;
     }
