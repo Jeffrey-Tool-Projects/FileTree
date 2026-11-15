@@ -29,7 +29,7 @@ from je_file_tree.core.analysis import (
     summarise,
 )
 from je_file_tree.core.formatting import format_count, format_share, format_size, format_time
-from je_file_tree.core.node import Node, outermost
+from je_file_tree.core.node import Node, folder_holding, outermost
 from je_file_tree.core.scanner import scan
 
 
@@ -304,3 +304,23 @@ def test_replace_with_swaps_a_rescanned_folder_in_and_corrects_the_totals(sample
     assert root.size == sum(child.size for child in root.children)
     root.replace_with(fresh)  # the root has no parent: nothing happens
     assert root.size == 1250
+
+
+def test_folder_holding_finds_the_deepest_scanned_folder_of_a_path() -> None:
+    base = os.path.abspath("made-up-scan")
+    root = Node(base, True)
+    photos = Node("Photos", True, parent=root)
+    trip = Node("trip", True, parent=photos)
+    file = Node("trip", False, parent=root)  # a file of the same name is never a folder to rescan
+    root.children, photos.children = [file, photos], [trip]
+    assert folder_holding(root, os.path.join(base, "Photos", "trip")) is trip
+    assert folder_holding(root, os.path.join(base, "Photos", "trip", "not scanned", "deeper")) is trip
+    assert folder_holding(root, os.path.join(base, "trip")) is root
+    assert folder_holding(root, base) is root
+    assert folder_holding(root, os.path.dirname(base)) is root  # the change is above the scan
+    assert folder_holding(root, base + "-other") is None  # a sibling sharing the prefix
+    assert folder_holding(root, os.path.abspath("elsewhere")) is None
+    if os.path.normcase("A") == "a":
+        assert folder_holding(root, os.path.join(base.upper(), "PHOTOS")) is photos
+    combined = Node("", True, children=[root])
+    assert folder_holding(combined, os.path.join(base, "Photos")) is photos

@@ -10,7 +10,7 @@ import pytest
 from test_gui import _wait
 from test_worker_lifecycle import _held_follow
 from je_file_tree.core.operations import MoveReceipt
-from je_file_tree.gui import file_actions, i18n, scan_worker
+from je_file_tree.gui import change_watch, file_actions, i18n, main_window, scan_worker
 from je_file_tree.gui.app import create_workspace
 from je_file_tree.gui.qt_translation import apply_qt_translation
 from je_file_tree.core.scanner import scan
@@ -203,3 +203,40 @@ def test_quit_action_closes_all_tabs_and_tab_limit_is_enforced(workspace, monkey
 def test_factory_never_starts_network_or_services(workspace):
     assert not workspace._services and not workspace.current._updates._active
     assert not workspace.current._updates.timer.isActive()
+
+
+@pytest.mark.parametrize("following", [False, True])
+def test_a_delete_in_one_tab_offers_only_its_folder_in_another(workspace, qapp, tmp_path, monkeypatch, following):
+    source = tmp_path / "來源"
+    (source / "資料").mkdir(parents=True)
+    (source / "其他").mkdir()
+    (source / "資料" / "removed.bin").write_bytes(b"gone" * 10)
+    (source / "其他" / "kept.bin").write_bytes(b"kept")
+    first, second = workspace.current, workspace.add_tab()
+    first.results.show_outcome(scan_worker.analyse(scan(source / "資料")))
+    second.results.show_outcome(scan_worker.analyse(scan(source)))
+    peer_root = second.results.outcome.result.root
+    if following:
+        monkeypatch.setattr(change_watch, "watch", lambda _root, _changed, cancel, *, ready: (
+            ready("directory_changes"), cancel.wait()))
+        monkeypatch.setattr(change_watch, "supported", lambda: True)
+        second._actions["follow_changes"].setChecked(True)
+        _wait(qapp, lambda: second._follow.worker is not None and bool(second._follow.worker.backend))
+    scans, rescans = [], []
+    monkeypatch.setattr(second, "start_scan", lambda path, **_kwargs: scans.append(path))
+    monkeypatch.setattr(second, "rescan_folder", lambda node, **_kwargs: rescans.append(node))
+    monkeypatch.setattr(main_window, "confirm_permanent_delete", lambda *_args: QMessageBox.StandardButton.Yes)
+
+    first.delete_permanently(first.results.tree_model.root.children)  # this test's own made-up file
+    _wait(qapp, lambda: first._delete_worker is None)
+    assert not (source / "資料" / "removed.bin").exists() and (source / "其他" / "kept.bin").exists()
+    folder = next(child for child in peer_root.children if child.name == "資料")
+    assert second._trash_rescans == ([] if following else [folder])
+    assert not second._follow._operation_gap
+    if following:  # refreshed by itself, one folder only
+        _wait(qapp, lambda: rescans == [folder])
+        second._follow._since = 0.0
+        second._follow.tick()
+    else:  # offered, nothing read until asked
+        assert second.results.refresh_notice.pending == 1 and rescans == []
+    assert scans == [] and rescans == ([folder] if following else [])

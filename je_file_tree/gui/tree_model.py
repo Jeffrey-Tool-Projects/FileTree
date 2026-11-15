@@ -30,6 +30,7 @@ from PySide6.QtWidgets import QApplication, QStyle
 
 from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, format_size, format_time
 from je_file_tree.core.archives import VirtualEntry
+from je_file_tree.core.hard_links import HardLinkPlan
 from je_file_tree.core.node import Node, detach_many
 from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.scanner import EXCLUDED, NOT_SCANNED
@@ -352,6 +353,14 @@ class FolderTreeModel(QAbstractItemModel):
         entries = list(nodes)
         self._prime_rows([(node, 0) for node in entries])
         return [self.index_for(node) for node in entries]
+
+    def apply_counted(self, plan: HardLinkPlan) -> None:
+        """Set worker-planned counted totals in one layout, so rows sorted by them move with their nodes."""
+        def change() -> None:
+            plan.apply()
+            for node, _value in plan.changes:
+                self._invalidate_size_order(node.parent)
+        self._relayout(change)
 
     def remove(self, node: Node) -> None:
         """Take ``node`` out of the tree after it was deleted from disk, updating every total above it."""

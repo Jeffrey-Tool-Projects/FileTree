@@ -26,6 +26,7 @@ from je_file_tree.core.folder_budgets import BudgetBatch, BudgetTicket, observe_
 from je_file_tree.core.compare import SavedScan, SavedScanError, compare, load_saved
 from je_file_tree.core.duplicates import DuplicateProgress, DuplicateSearchCancelledError, find_duplicates
 from je_file_tree.core.similar_photos import PhotoSearchCancelledError
+from je_file_tree.core.hard_links import plan_hard_links
 from je_file_tree.core.node import Node
 from je_file_tree.core.mounts import MountChangedError
 from je_file_tree.core.multi_scan import scan_roots
@@ -120,6 +121,32 @@ class AnalyseWorker(QThread):
                 self.capacity_ready.emit(capacity)
         if not self._cancel.is_set():
             self.done.emit(summary)
+
+
+class CountWorker(QThread):
+    """Plan counted hard-link totals for a whole tree after a branch rescan; emit ``ready(HardLinkPlan)``.
+
+    Reads the tree only; the window applies the plan (``ResultsView.apply_counted``) if the tree is
+    still the one planned, then summarises it. A folder rescan of a counted scan used to read the whole
+    root again because a name inside the folder can share its data with one outside it.
+    """
+
+    ready = Signal(object)
+
+    def __init__(self, root: Node, parent: QObject | None = None) -> None:
+        super().__init__(parent)
+        self._root = root
+        self._cancel = threading.Event()
+
+    def stop(self) -> None:
+        """Give up the plan; ``ready`` is then not emitted."""
+        self._cancel.set()
+
+    def run(self) -> None:
+        """Thread body."""
+        plan = plan_hard_links(self._root, cancel=self._cancel)
+        if plan is not None and not self._cancel.is_set():
+            self.ready.emit(plan)
 
 
 class SearchWorker(QThread):

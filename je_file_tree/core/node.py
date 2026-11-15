@@ -177,6 +177,36 @@ def outermost(nodes: Iterable[Node]) -> list[Node]:
     return kept
 
 
+def folder_holding(root: Node, path: str) -> Node | None:
+    """The deepest scanned folder of ``root`` that is or holds ``path``; ``root`` itself when ``path`` holds it.
+
+    None when ``path`` and the scan do not overlap. A combined scan (a virtual root) is searched per
+    source. Compares names only (case-insensitively where the system is); nothing on disk is read.
+    """
+    wanted = os.path.normcase(os.path.normpath(path))
+
+    def inside(folder: str, entry: str) -> bool:
+        return entry == folder or entry.startswith(folder.rstrip("\\/") + os.sep)
+
+    for start in root.children if root.path is None else (root,):
+        if start.path is None:
+            continue
+        base = os.path.normcase(os.path.normpath(start.path))
+        if inside(wanted, base):  # the change is above this scan: all of it may have changed
+            return start
+        if not inside(base, wanted):
+            continue
+        folder = start
+        for name in wanted[len(base):].strip("\\/").split(os.sep) if wanted != base else ():
+            below = next((child for child in folder.children if child.is_dir and not child.is_link
+                          and os.path.normcase(child.name) == name), None)
+            if below is None:
+                break
+            folder = below
+        return folder
+    return None
+
+
 def detach_many(nodes: Iterable[Node]) -> None:
     """Detach captured outermost entries, filtering each affected sibling list once.
 
