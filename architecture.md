@@ -1225,8 +1225,9 @@ a reader in the native folder reader's row format, served from memory by file re
 then runs one thread and no governor. Rows carry snapshots built like those of a query, reparse points
 and records without complete metadata are "ask Python" rows, and everything downstream (exclusions,
 hidden entries, allocation rules, cancel, pause, analysis) is the ordinary path. `table_reader` answers
-None, and folders are listed, unless the path is on a lettered drive, the volume is NTFS and readable
-(administrator), no record failed its update-sequence check and the table's snapshot of the starting
+None, and folders are listed, unless the path is on a lettered drive, the folder is a drive root or not
+small (`is_small`: a listing probe bounded by 20,000 entries and half a second), the volume is NTFS and
+readable (administrator), no record failed its update-sequence check and the table's snapshot of the starting
 folder equals `os.lstat` (which also refuses a folder reached through a link or mounted volume). Operation checks are unchanged: they compare a fresh `os.lstat` with the recorded snapshot.
 The table can describe folders the account may not list. Measurements: `core/mft_scan.py` and
 docs/updates U-20261115-05.

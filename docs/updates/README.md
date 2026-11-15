@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261115-08 | 2026-11-15 | 小資料夾不由檔案表讀取 | #decision #perf #scanner | [2026-11](2026-11.md) |
 | U-20261115-07 | 2026-11-15 | 只要能用就由檔案表讀取，不再限於磁碟根目錄 | #decision #perf #scanner #gui #i18n | [2026-11](2026-11.md) |
 | U-20261115-06 | 2026-11-15 | CI 發現檔案表的索引旗標與 Linux 專屬測試未更新 | #incident #ci #scanner #native | [2026-11](2026-11.md) |
 | U-20261115-05 | 2026-11-15 | 整個 NTFS 磁碟的掃描改由主檔案表讀取 | #done #perf #scanner #native #windows #gui #i18n | [2026-11](2026-11.md) |

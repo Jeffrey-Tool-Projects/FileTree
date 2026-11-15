@@ -62,6 +62,8 @@ def made_up_drive(monkeypatch):
     monkeypatch.setattr(mft_scan.os, "lstat", lambda _path: SimpleNamespace(st_ino=ROOT_REFERENCE | (9 << 64)))
     monkeypatch.setattr(mft_scan, "path_metadata", lambda info: info)
     monkeypatch.setattr(mft_scan, "pack_snapshot", lambda _info, *, file_times=False: b"root")
+    monkeypatch.setattr(mft_scan, "_administrator", lambda: True)
+    monkeypatch.setattr(mft_scan, "is_small", lambda _path: False)
     monkeypatch.delenv(mft_scan.DISABLE_VARIABLE, raising=False)
     return table
 
@@ -96,7 +98,7 @@ def test_rows_are_served_by_reference_and_each_folder_once(made_up_drive):
 
 
 @pytest.mark.parametrize("change", ["network", "switched off", "not calibrated", "old module", "refused", "damaged",
-                                    "root differs", "other system"])
+                                    "root differs", "other system", "not administrator", "small folder"])
 def test_the_table_is_not_used_unless_everything_holds(made_up_drive, monkeypatch, change):
     path = ROOT
     if change == "network":
@@ -113,11 +115,57 @@ def test_the_table_is_not_used_unless_everything_holds(made_up_drive, monkeypatc
         made_up_drive.damaged = 1
     elif change == "root differs":
         made_up_drive.root = b"another folder"
+    elif change == "not administrator":
+        monkeypatch.setattr(mft_scan, "_administrator", lambda: False)
+    elif change == "small folder":
+        path = "Q:\\small"
+        monkeypatch.setattr(mft_scan, "is_small", lambda asked: asked == path)
     else:
         monkeypatch.setattr(mft_scan, "sys", SimpleNamespace(platform="linux"))
     assert mft_scan.table_reader(path) is None
     assert not made_up_drive.asked
     assert not made_up_drive.opened or change in ("refused", "damaged", "root differs")
+
+
+def test_a_drive_root_is_never_probed_and_a_large_folder_is_read_from_the_table(made_up_drive, monkeypatch):
+    probed = []
+    monkeypatch.setattr(mft_scan, "is_small", lambda path: probed.append(path) or False)
+    assert mft_scan.table_reader(ROOT) is not None and not probed
+    assert mft_scan.table_reader("Q:\\large") is not None and probed == ["Q:\\large"]
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="the probe reads Windows file attributes")
+def test_a_folder_is_small_only_when_all_of_it_is_listed_within_the_limits(tmp_path, monkeypatch):
+    for number in range(6):
+        (tmp_path / f"folder{number}").mkdir()
+        (tmp_path / f"folder{number}" / "file").write_bytes(b"1")
+    assert mft_scan.is_small(str(tmp_path))  # 12 entries
+    monkeypatch.setattr(mft_scan, "SMALL_ENTRIES", 12)
+    assert not mft_scan.is_small(str(tmp_path))
+    monkeypatch.setattr(mft_scan, "SMALL_ENTRIES", 13)
+    assert mft_scan.is_small(str(tmp_path))
+    monkeypatch.setattr(mft_scan, "PROBE_SECONDS", -1.0)
+    assert not mft_scan.is_small(str(tmp_path))  # out of time after the first folder
+    assert not mft_scan.is_small(str(tmp_path / "missing"))  # the table decides about a root that cannot be listed
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="junctions are a Windows link")
+def test_the_probe_does_not_enter_a_junction(tmp_path, monkeypatch):
+    outside, scanned = tmp_path / "outside", tmp_path / "scanned"
+    (outside / "many").mkdir(parents=True)
+    for number in range(5):
+        (outside / "many" / f"file{number}").write_bytes(b"1")
+    scanned.mkdir()
+    made = subprocess.run(["cmd", "/c", "mklink", "/J", str(scanned / "link"), str(outside)],  # noqa: S603, S607
+                          capture_output=True, check=False)
+    if made.returncode != 0:
+        pytest.skip("cannot create a junction here")
+    try:
+        monkeypatch.setattr(mft_scan, "SMALL_ENTRIES", 3)
+        assert mft_scan.is_small(str(scanned)) and not mft_scan.is_small(str(outside))
+    finally:
+        os.rmdir(scanned / "link")  # removes the junction itself, never its target
+    assert (outside / "many" / "file0").exists()
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="the scanner takes native rows on Windows only")
