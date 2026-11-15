@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261115-04 | 2026-11-15 | 原生模組直接建立節點：量測無效益，不採用；保留資料夾檢查的修正 | #done #perf #scanner #native | [2026-11](2026-11.md) |
 | U-20261115-03 | 2026-11-15 | 縮短讀完資料夾之後的容量帳本與歷史儲存 | #snapshot #perf #core | [2026-11](2026-11.md) |
 | U-20261115-02 | 2026-11-15 | 量測「掃描時不逐檔查詢」的原型，決定不採用 | #snapshot #perf #scanner #native #windows | [2026-11](2026-11.md) |
 | U-20261115-01 | 2026-11-15 | 掃描依 CPU 使用量自動調整讀取執行緒數 | #decision #perf #scanner #gui #i18n | [2026-11](2026-11.md) |
