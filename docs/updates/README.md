@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261115-02 | 2026-11-15 | 量測「掃描時不逐檔查詢」的原型，決定不採用 | #snapshot #perf #scanner #native #windows | [2026-11](2026-11.md) |
 | U-20261115-01 | 2026-11-15 | 掃描依 CPU 使用量自動調整讀取執行緒數 | #decision #perf #scanner #gui #i18n | [2026-11](2026-11.md) |
 | U-20261114-18 | 2026-11-14 | 檔案操作後不再自動重新掃描，改為提示後由使用者要求 | #decision #gui #scan #i18n | [2026-11](2026-11.md) |
 | U-20261114-17 | 2026-11-14 | 0.2.10 發行驗證：佔用空間少算的修正已在正式套件中生效 | #verification #release #windows | [2026-11](2026-11.md) |
