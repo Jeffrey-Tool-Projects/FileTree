@@ -155,10 +155,15 @@ bool query(const wchar_t* path, int how, StatBasic& out) {
 }
 
 const ULONG RECALL_ON_OPEN = 0x40000;
+// The file table's own index flags. A query by name reports 0x10000000 on a new empty folder until
+// something lists it (Windows 11, 2026-11-15), so a record taken by the scan would not match one taken
+// just before an operation (core/snapshot.py INDEX_FLAGS).
+const ULONG INDEX_FLAGS = 0x10000000 | 0x20000000;
 
-// ``attributes`` of a path with the recall-on-open bit replaced by the listing's (core/snapshot.py).
+// ``attributes`` of a path with the recall-on-open bit replaced by the listing's and the index flags
+// cleared (core/snapshot.py).
 ULONG listed_recall(ULONG attributes, ULONG listed) {
-    ULONG wanted = (attributes & ~RECALL_ON_OPEN) | (listed & RECALL_ON_OPEN);
+    ULONG wanted = (attributes & ~(RECALL_ON_OPEN | INDEX_FLAGS)) | (listed & RECALL_ON_OPEN);
     return wanted == 0 && attributes != 0 ? FILE_ATTRIBUTE_NORMAL : wanted;  // nothing left is "normal"
 }
 
@@ -425,7 +430,7 @@ constexpr std::uint32_t ATTRIBUTE_DATA = 0x80;
 constexpr std::uint32_t ATTRIBUTE_INDEX_ALLOCATION = 0xA0;
 constexpr std::uint32_t ATTRIBUTE_REPARSE = 0xC0;
 constexpr std::uint32_t ATTRIBUTE_END = 0xFFFFFFFF;
-constexpr ULONG TABLE_ONLY_FLAGS = 0x40000 | 0x10000000 | 0x20000000;  // never reported by a query
+constexpr ULONG TABLE_ONLY_FLAGS = RECALL_ON_OPEN | INDEX_FLAGS;  // cleared from every recorded query too
 constexpr std::uint8_t NAMESPACE_DOS = 2;         // the 8.3 alias of a name that is recorded separately
 constexpr std::uint64_t FIRST_USER_RECORD = 16;   // the records below are the file system's own files
 constexpr std::uint64_t ROOT_RECORD = 5;

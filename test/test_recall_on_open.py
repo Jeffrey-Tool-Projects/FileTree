@@ -53,6 +53,37 @@ def test_a_path_query_alone_cannot_set_the_bit_and_a_listing_can(tmp_path) -> No
     assert path_metadata(_with_attributes(info, RECALL_ON_OPEN)).st_file_attributes == 0x80
 
 
+def test_the_file_tables_index_flags_are_never_recorded(tmp_path) -> None:
+    info = os.lstat(tmp_path)
+    folder = 0x10  # what a listing and a later query report for a new empty folder
+    for flags in (0x10000000, 0x20000000, 0x30000000):
+        reported = _with_attributes(info, folder | flags)
+        assert path_metadata(reported).st_file_attributes == folder
+        assert pack_snapshot(path_metadata(reported)) == pack_snapshot(_with_attributes(info, folder))
+
+
+@_windows
+def test_an_empty_folder_scanned_just_after_it_was_made_is_not_changed(tmp_path, monkeypatch) -> None:
+    from je_file_tree.core import operations
+
+    (tmp_path / "empty").mkdir()
+    real = os.lstat
+
+    def lstat(path, *args, **kwargs):  # what a query by name reports until something lists the folder
+        info = real(path, *args, **kwargs)
+        if os.fspath(path).endswith("empty") and scanning:
+            return _with_attributes(info, info.st_file_attributes | 0x10000000)
+        return info
+
+    scanning = True
+    monkeypatch.setattr(os, "lstat", lstat)
+    monkeypatch.setenv(native_scan.DISABLE_VARIABLE, "0")  # the Python reader, which asks os.lstat
+    root = scanner.scan(tmp_path).root
+    scanning = False
+    assert not unpack_snapshot(root.children[0].snapshot).attributes & 0x10000000
+    assert operations.validate_tree(root) is None  # observed only; nothing is moved here
+
+
 @_windows  # elsewhere a file has no attributes for the bit to join
 def test_a_snapshot_of_one_path_never_carries_the_bit(tmp_path, monkeypatch) -> None:
     target = tmp_path / "file.bin"

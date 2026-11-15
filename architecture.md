@@ -312,17 +312,23 @@ and outside-alias events on both Windows USN and Linux inotify, with source pres
 and coalesces native events under a lock to avoid unbounded Qt signal queues. The one-second GUI
 timer defers dirty folders during scans/analysis, source reviews, modal questions and Undo offers;
 bounded ancestor selection reuses rescan_folder and branch replacement. Events continue during
-branch scanning, then monitoring joins before tree replacement. Lost scopes/overflow, counted
-hard-link totals, operation gaps and five-minute periodic reconciliation force full roots. Branch
+branch scanning, then monitoring joins before tree replacement. Lost scopes/overflow, operation gaps
+and five-minute periodic reconciliation force full roots. `rescan_folder` stops the reader as a plain
+re-arm (`FollowChanges.stop`), never as an operation gap: that made every followed folder refresh end
+in a full-root scan. A finished Trash move, permanent delete or Undo withdraws its own gap request
+(`FollowChanges.resume`), in its tab and, through `MainWindow._tell_peers`, in every other tab of the
+OperationGroup, which offers only its own folders holding the changed paths (`core.node.folder_holding`). Branch
 rearming preserves the periodic deadline and unrelated pending paths; new roots discard old data.
 Shared OperationGroup exclusion quiesces peer monitors before source mutation/tree changes. Native
 failures remain visible without retry loops; opt-out/tab close cancel/join through wait_for.
 
 Scans start only on a user request (U-20261114-18): opening/dropping a folder, Rescan, a branch
 rescan, or the FollowChanges opt-in above. Source operations never start one. Approved Trash and
-permanent-delete batches update the tree in place (`ResultsView.forget`); every other change (path
+permanent-delete batches update the tree in place (`ResultsView.forget`), with counted hard-link totals
+planned by the operation worker (`core.hard_links.plan_hard_links`, `without=` the removed entries) and
+applied with them; a branch rescan of a counted scan recounts the whole tree on a `CountWorker`. Every other change (path
 moves, verified copies, duplicate links, compression, virtual-disk compaction, Undo restores, batches
-with skipped/failed/refused entries, counted hard-link totals) goes through `MainWindow._mark_changed`,
+with skipped/failed/refused entries) goes through `MainWindow._mark_changed`,
 which merges the outermost changed folders into `_trash_rescans` and shows `gui.refresh_notice`
 above the results. `MainWindow.refresh_changed` (the notice button) is the only caller that sets
 `_refreshing`; `_rescan_after_trash` reads the queued folders through `rescan_folder` only while that

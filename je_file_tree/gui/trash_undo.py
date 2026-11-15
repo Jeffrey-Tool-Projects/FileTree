@@ -124,10 +124,13 @@ class TrashUndo(QObject):
         root = window.results.tree_model.root
         current = root is self._operation_root
         self._operation_root = None
+        folders = [entry.parent for entry in worker.entries if entry.parent is not None]
+        window._tell_peers(folders)  # other tabs offer these folders whatever this tab shows now
         if not current:
             return
         # Restored entries are back on disk but not in the tree: their folders are offered for a rescan.
-        window._mark_changed([entry.parent for entry in worker.entries if entry.parent is not None])
+        window._follow.resume()  # those folders, not the whole root, while Follow changes is on
+        window._mark_changed(folders)
 
     def report(self, result: UndoBatch | None) -> None:
         """Keep native/partial/receipt/audit failures visible with exact actual paths, including on close."""

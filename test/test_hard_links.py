@@ -3,7 +3,10 @@
 import os
 import threading
 
-from je_file_tree.core.hard_links import account_hard_links
+import pytest
+
+from je_file_tree.core.hard_links import account_hard_links, plan_hard_links
+from je_file_tree.core.node import detach_many
 from je_file_tree.core.scanner import ScanOptions, scan
 from je_file_tree.core.snapshot import pack_snapshot
 
@@ -85,3 +88,49 @@ def test_identity_in_another_device_is_never_merged(tmp_path):
     fake.st_file_attributes = getattr(info, "st_file_attributes", 0)
     node.snapshot = pack_snapshot(fake)
     assert account_hard_links(root).aliases == 0
+
+
+def _counted(tmp_path):
+    (tmp_path / "z" / "deep").mkdir(parents=True)
+    (tmp_path / "a").mkdir()
+    (tmp_path / "solo.bin").write_bytes(b"s" * 300)
+    first = tmp_path / "z" / "deep" / "first.log"
+    first.write_bytes(b"owned" * 1024)
+    os.link(first, tmp_path / "a" / "second.log")
+    os.link(first, tmp_path / "a" / "third.log")
+    return scan(tmp_path, options=ScanOptions(count_hard_links=True)).root
+
+
+def _values(root):
+    return {node.path: (node.size, node.allocated, node.accounting) for node in root.iter_nodes()}
+
+
+@pytest.mark.parametrize("removed", [["a/second.log"], ["z"], ["a/second.log", "a/third.log"], ["a", "solo.bin"]])
+def test_a_plan_without_entries_matches_counting_again_after_detaching_them(tmp_path, removed):
+    planned_root, counted_root = _counted(tmp_path / "planned"), _counted(tmp_path / "counted")
+
+    def pick(root):
+        return [next(node for node in root.iter_nodes() if node.path == os.path.join(root.path, *name.split("/")))
+                for name in removed]
+
+    before = _values(planned_root)
+    plan = plan_hard_links(planned_root, without=pick(planned_root))
+    assert _values(planned_root) == before  # planning reads the tree only
+    plan.apply()
+    detach_many(pick(planned_root))
+    detach_many(pick(counted_root))
+    expected = account_hard_links(counted_root)
+
+    def relative(root):
+        return {os.path.relpath(path, root.path): value for path, value in _values(root).items()}
+
+    assert plan.accounting == expected and relative(planned_root) == relative(counted_root)
+    assert planned_root.accounted_size == counted_root.accounted_size
+
+
+def test_a_canceled_plan_changes_nothing(tmp_path):
+    root = _counted(tmp_path)
+    event = threading.Event()
+    event.set()
+    assert plan_hard_links(root, cancel=event) is None
+    assert plan_hard_links(root).changes == ()  # counted already: nothing to change

@@ -10,6 +10,7 @@ import uuid
 from PySide6.QtCore import QObject, QThread, Signal
 
 from je_file_tree.core.analysis import AnalysisCancelledError, Summary, summarise
+from je_file_tree.core.hard_links import HardLinkPlan, plan_hard_links
 from je_file_tree.core.node import Node
 from je_file_tree.core.copy_approval import CopyApproval, redirect_copy
 from je_file_tree.core.no_replace import anchored_directory
@@ -45,6 +46,7 @@ class TrashWorker(QThread):
         self._summary_cancel = threading.Event()
         self.summary_now = time.time()
         self.removed_summary: Summary | None = None
+        self.counted_plan: HardLinkPlan | None = None
         self._decisions = decisions or []
         self._audit = _AuditBatch(audit, self._cancel)
         self.copy_approval: CopyApproval | None = None
@@ -91,7 +93,7 @@ class TrashWorker(QThread):
         The old two GUI traversals took 245–248 ms for 200,000 recorded files (2026-10-16).
         This preparation stays on the owned operation thread and reads no source paths.
         """
-        if not result.moved or self._root.accounting is not None:
+        if not result.moved:
             return
         removed = Node("", True, children=result.moved)
         try:
@@ -99,6 +101,8 @@ class TrashWorker(QThread):
         except AnalysisCancelledError:
             # Closing needs actual operation outcomes/errors, but no further list statistics.
             return
+        if self._root.accounting is not None:  # counting hard links: a remaining name may count again
+            self.counted_plan = plan_hard_links(self._root, cancel=self._summary_cancel, without=result.moved)
 
     def _move_checked(self) -> MoveResult:
         if self.proposal_context is not None and validate_tree(self._root, cancel=self._cancel) is not None:

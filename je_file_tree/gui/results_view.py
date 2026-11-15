@@ -56,6 +56,7 @@ from je_file_tree.core.analysis import (
 )
 from je_file_tree.core.formatting import format_count, format_size
 from je_file_tree.core.capacity import CapacityLedger
+from je_file_tree.core.hard_links import HardLinkPlan
 from je_file_tree.core.node import Node
 from je_file_tree.core.protected import protected_places
 from je_file_tree.gui.node_text import node_path
@@ -360,6 +361,16 @@ class ResultsView(QWidget):
         self.selection_changed.emit(self.selected_node())
         return new
 
+    def apply_counted(self, plan: HardLinkPlan) -> None:
+        """Show counted totals planned for the whole tree after a branch rescan (``plan_hard_links``)."""
+        outcome = self._outcome
+        if outcome is None or outcome.result.hard_links is None:
+            return
+        self.tree_model.apply_counted(plan)
+        outcome.result.hard_links = plan.accounting
+        self.charts.invalidate()
+        self._update_texts()
+
     def set_capacity(self, capacity: CapacityLedger) -> None:
         """Show a refreshed whole-tree ledger computed after a branch rescan."""
         if self._outcome is not None:
@@ -501,22 +512,29 @@ class ResultsView(QWidget):
             index, QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows)
         self.tree.scrollTo(index)
 
-    def forget(self, nodes: Sequence[Node], *, removed: Summary) -> None:
+    def forget(self, nodes: Sequence[Node], *, removed: Summary, counted: HardLinkPlan | None = None) -> None:
         """Apply worker-prepared named totals instead of recomputing removed-subtree statistics.
 
         Nodes must be disjoint; ``removed`` must use this outcome's frozen age reference. A mismatched
         reference is refused before any view changes; the operation owner must refresh from a rescan.
+        A scan counting hard links needs ``counted``, planned without ``nodes`` (``plan_hard_links``);
+        its counted chart categories follow with ``apply_summary``.
         """
         outcome = self._outcome
         if outcome is None:
             return
         if removed.now != outcome.now:
             raise ValueError("Removed statistics use a different scan age reference")
+        if (outcome.result.hard_links is None) != (counted is None):
+            raise ValueError("Counted totals must be planned exactly when the scan counts hard links")
         self._stop_focused()
         self.capacity.set_ledger(None)
         view_root = self.charts.view_root
         extensions = subtract_stats(outcome.extensions, removed.extensions)
         ages = subtract_ages(outcome.ages, removed.ages)
+        if counted is not None:
+            self.tree_model.apply_counted(counted)  # planned for the tree without ``nodes``
+            outcome.result.hard_links = counted.accounting
         self.tree_model.remove_many(nodes)
         root = outcome.result.root
         self._outcome = dataclasses.replace(outcome, extensions=extensions, ages=ages,

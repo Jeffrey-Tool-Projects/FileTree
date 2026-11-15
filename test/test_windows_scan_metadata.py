@@ -35,7 +35,8 @@ def _node(entry, read):
 
 
 def test_cached_windows_identity_does_not_hide_full_path_attributes(monkeypatch):
-    cached, authoritative = _info(0x10), _info(0x10000010)
+    # The listing's cached copy can miss an attribute the full path query reports (here: hidden).
+    cached, authoritative = _info(0x10), _info(0x10 | 0x2)
     calls = []
     def lstat(path):
         calls.append(path)
@@ -44,7 +45,7 @@ def test_cached_windows_identity_does_not_hide_full_path_attributes(monkeypatch)
     read = scanner._FolderRead()
     node = _node(_CachedEntry(cached), read)
     assert calls == [_CachedEntry.path]
-    assert unpack_snapshot(node.snapshot).attributes == 0x10000010
+    assert unpack_snapshot(node.snapshot).attributes == 0x10 | 0x2
     assert node.snapshot == pack_snapshot(authoritative) and not read.errors
 
 

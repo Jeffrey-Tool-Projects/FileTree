@@ -16,6 +16,7 @@ from PySide6.QtCore import QObject, Qt, QThread, Signal
 from PySide6.QtWidgets import QMessageBox, QWidget
 
 from je_file_tree.core.analysis import AnalysisCancelledError, Summary, summarise
+from je_file_tree.core.hard_links import HardLinkPlan, plan_hard_links
 from je_file_tree.core.formatting import format_count, format_size
 from je_file_tree.core.node import Node
 from je_file_tree.core.operation_journal import OperationJournal, OperationOutcome, OperationRecord
@@ -131,6 +132,7 @@ class PermanentDeleteWorker(QThread):
         self._events: dict[Node, OperationRecord] = {}
         self.summary_now = time.time()
         self.removed_summary: Summary | None = None
+        self.counted_plan: HardLinkPlan | None = None
         self.journal_errors: list[str] = []
         self.result: DeleteResult | None = None
 
@@ -180,10 +182,12 @@ class PermanentDeleteWorker(QThread):
 
     def _prepare_statistics(self, result: DeleteResult) -> None:
         """Totals of the removed subtrees for the view, read here so the GUI thread need not walk them."""
-        if not result.removed or self.root.accounting is not None:
+        if not result.removed:
             return
         try:
             self.removed_summary = summarise(Node("", True, children=result.removed), limit=0,
                                              now=self.summary_now, cancel=self._summary_cancel)
         except AnalysisCancelledError:
             return  # closing: the outcome is kept, the view statistics are not needed
+        if self.root.accounting is not None:  # counting hard links: a remaining name may count again
+            self.counted_plan = plan_hard_links(self.root, cancel=self._summary_cancel, without=result.removed)

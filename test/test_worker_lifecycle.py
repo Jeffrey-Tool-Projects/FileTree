@@ -265,7 +265,7 @@ def test_trash_queues_behind_native_reader_without_gui_wait(
         window.move_to_trash(root.children)
         assert reader.cancel.is_set() and reader.isRunning()
         assert window.operation_busy and not calls
-        assert window._follow._pending.full
+        assert window._follow._operation_gap
         if cancel:
             window.stop_scan()
         QTimer.singleShot(20, release.set)

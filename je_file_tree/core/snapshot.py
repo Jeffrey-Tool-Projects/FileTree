@@ -18,6 +18,10 @@ NO_FILE_NUMBER = bytes(16)
 _LINK_TAGS = frozenset({0xA0000003, 0xA000000C})
 _LINK_FLAG = 0x10000
 RECALL_ON_OPEN = 0x40000
+# The file table's own index flags. Measured 2026-11-15 on Windows 11 (Python 3.14): ``os.lstat`` reports
+# 0x10000010 on a new empty folder until something lists it, then 0x10, so an operation refused a folder
+# scanned just before as changed. They never describe the entry and are cleared from every record.
+INDEX_FLAGS = 0x10000000 | 0x20000000
 _NORMAL = 0x80
 
 
@@ -118,10 +122,10 @@ def path_metadata(info: os.stat_result, listed_attributes: int = 0) -> os.stat_r
     of 6,265 files of the SysWOW64 system folder had it, their listing and a query by handle did not, and
     the scan counted them as taking no space. Without a listing (the default) the bit is cleared.
     A file with no other attribute then reads as ``FILE_ATTRIBUTE_NORMAL``, which is what its listing
-    and a query by handle report for it.
+    and a query by handle report for it. The file table's ``INDEX_FLAGS`` are always cleared.
     """
     attributes = getattr(info, "st_file_attributes", 0)
-    wanted = attributes & ~RECALL_ON_OPEN | listed_attributes & RECALL_ON_OPEN
+    wanted = attributes & ~(RECALL_ON_OPEN | INDEX_FLAGS) | listed_attributes & RECALL_ON_OPEN
     if wanted == attributes:
         return info
     wanted = wanted or _NORMAL

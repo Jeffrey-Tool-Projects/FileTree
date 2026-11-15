@@ -8,7 +8,7 @@ from je_file_tree.core.operations import MoveSummary
 
 import json
 import os
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, replace
 
 from PySide6.QtCore import QByteArray, QEvent, QPoint, QSettings, QSignalBlocker, QSize, QThread, Qt, QTimer, Signal
@@ -35,7 +35,8 @@ from je_file_tree.core.duplicates import DuplicateGroup
 from je_file_tree.core.cleanup import DETAILS, CleanupGroup
 from je_file_tree.core.cleanup_policy import CleanupPolicy, RuleSetting, load_policy
 from je_file_tree.core.formatting import AUTO_UNIT, SIZE_UNITS, format_count, format_share, format_size
-from je_file_tree.core.node import Node, outermost
+from je_file_tree.core.hard_links import HardLinkPlan
+from je_file_tree.core.node import Node, folder_holding, outermost
 from je_file_tree.core.operations import MoveResult
 from je_file_tree.core.operation_journal import JournalApproval, OperationJournal
 from je_file_tree.core.protected import protected_places, protection_of
@@ -85,7 +86,7 @@ from je_file_tree.gui.results_view import CHART_TAB, ResultsView
 from je_file_tree.gui.graphics_export import SVG_MODES, capture_svg, save_graphic
 from je_file_tree.gui.printing import print_view, save_view_pdf, view_printer
 from je_file_tree.gui.list_transfer import ListCapture, ListStream
-from je_file_tree.gui.scan_worker import AnalyseWorker, ExportWorker, ScanOutcome, ScanWorker, wait_for
+from je_file_tree.gui.scan_worker import AnalyseWorker, CountWorker, ExportWorker, ScanOutcome, ScanWorker, wait_for
 from je_file_tree.gui.trash_worker import TrashWorker
 from je_file_tree.core.permanent_delete import DeleteResult
 from je_file_tree.gui.permanent_delete import (
@@ -177,8 +178,8 @@ class MainWindow(QMainWindow):
         self._init_operation_workers()
         self._path_dialogs, self._settings_dialogs = set[QDialog](), set[WorkerDialog]()
         self._closing, self._close_waiting, self._close_ready = False, False, False
-        self._analyser: AnalyseWorker | None = None
-        self._analysers: set[AnalyseWorker] = set()
+        self._analyser: AnalyseWorker | CountWorker | None = None
+        self._analysers: set[AnalyseWorker | CountWorker] = set()
         self._exports: set[ExportWorker] = set()
         self._protected = protected_places()  # system and program folders: ask twice before moving them
         self._last_path, self._last_roots = "", ()
@@ -703,13 +704,19 @@ class MainWindow(QMainWindow):
         """Scan one folder again and swap it into the results (the whole scan when it is the root)."""
         if self._worker is not None or self.operation_busy or self.results.outcome is None:
             return
-        self.pending_source_workers()
+        # The scan waits for the window's readers. Follow changes is stopped as a re-arm, keeping what it
+        # reported: stopped as for a source operation it read the whole root again after every folder it
+        # refreshed. Its short gap is covered by the periodic reconciliation, like any re-arm.
+        if self._background_pause is not None:
+            self._background_pause(wait=False)
+        self._follow.stop()
         self._undo.expire()
         if self.results.outcome.result.root.path is None:
             roots = tuple(child.path for child in self.results.outcome.result.root.children)
             self.start_scan_roots(roots, exact_allocation=exact_allocation)
             return
-        if self.results.outcome.result.hard_links is not None or self._actions["count_hard_links"].isChecked():
+        if (self.results.outcome.result.hard_links is not None) != self._actions["count_hard_links"].isChecked():
+            # Counting hard links was turned on or off since this scan: only a whole scan counts every name.
             root = self.results.outcome.result.root
             self._forget_changed()
             self.start_scan(root.path, exact_allocation=exact_allocation)
@@ -719,15 +726,16 @@ class MainWindow(QMainWindow):
             return
         self._analyser = None
         # One folder of a finished scan is listed, never taken from the file table on disk, which can be
-        # a few seconds behind what an operation has just changed.
-        worker = ScanWorker(node.path, replace(self._scan_options(exact_allocation=exact_allocation), mft=False),
-                            self)
+        # a few seconds behind what an operation has just changed. Hard links are counted afterwards over
+        # the whole tree (_branch_rescanned), since a name inside the folder can share data with one outside.
+        options = replace(self._scan_options(exact_allocation=exact_allocation), mft=False, count_hard_links=False)
+        worker = ScanWorker(node.path, options, self)
         before = node.size
         worker.progressed.connect(
             lambda progress: self._is_current(worker) and self.results.scan_bar.show_progress(progress))
         worker.succeeded.connect(
             lambda outcome: self._is_current(worker) and self._branch_rescanned(node, outcome, before))
-        worker.failed.connect(lambda reason: self._is_current(worker) and self._scan_failed(reason))
+        worker.failed.connect(lambda reason: self._is_current(worker) and self._branch_failed(reason))
         worker.cancelled.connect(lambda _outcome: self._is_current(worker) and self._branch_cancelled())
         worker.analysing.connect(lambda: self._is_current(worker) and self.results.scan_bar.analysing())
         worker.finished.connect(lambda: after_threads((worker,), lambda: self._release_scan(worker), self))
@@ -757,20 +765,37 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(tr("rescan_done", name=new.name, before=format_size(before, self._unit),
                                         after=format_size(new.size, self._unit)), _STATUS_TIMEOUT_MS)
         root = self.results.tree_model.root
-        analyser = AnalyseWorker(root, self, partial=self.results.outcome.partial, with_capacity=True)
-        analyser.capacity_ready.connect(lambda ledger: not self._closing and self.results.tree_model.root is root
-                                         and self._analyser is analyser and self.results.set_capacity(ledger))
-        analyser.done.connect(lambda summary: not self._closing and self._analyser is analyser
-                              and self._summary_ready(summary))
-        analyser.finished.connect(lambda: self._analysers.discard(analyser))
-        analyser.finished.connect(analyser.deleteLater)
-        self._analyser = analyser
-        self._analysers.add(analyser)
-        analyser.start()
+        self._start_analysis(root, with_capacity=True, count=self.results.outcome.result.hard_links is not None)
         self._follow.adopt(root)
         if outcome.result.warnings:
             self.statusBar().showMessage(tr("scan_priority_warning", reason="; ".join(
                 problem_text(reason) for reason in outcome.result.warnings)))
+
+    def _start_analysis(self, root: Node, *, with_capacity: bool, count: bool = False) -> None:
+        """Summarise the changed tree on a worker; with ``count``, plan its counted hard-link totals first.
+
+        A later tree change drops ``_analyser``, so an answer for an older tree is ignored.
+        """
+        worker: AnalyseWorker | CountWorker
+        if count:
+            worker = CountWorker(root, self)
+            worker.ready.connect(lambda plan: not self._closing and self._analyser is worker
+                                 and self.results.tree_model.root is root and self._counted(root, plan, with_capacity))
+        else:
+            worker = AnalyseWorker(root, self, partial=self.results.outcome.partial, with_capacity=with_capacity)
+            worker.capacity_ready.connect(lambda ledger: not self._closing and self.results.tree_model.root is root
+                                          and self._analyser is worker and self.results.set_capacity(ledger))
+            worker.done.connect(lambda summary: not self._closing and self._analyser is worker
+                                and self._summary_ready(summary))
+        worker.finished.connect(lambda: self._analysers.discard(worker))
+        worker.finished.connect(worker.deleteLater)
+        self._analyser = worker
+        self._analysers.add(worker)
+        worker.start()
+
+    def _counted(self, root: Node, plan: HardLinkPlan, with_capacity: bool) -> None:
+        self.results.apply_counted(plan)
+        self._start_analysis(root, with_capacity=with_capacity)  # the counted chart categories follow
 
     def _without_managed(self, nodes: list[Node]) -> list[Node]:
         # 10k managed refusals: the old full warning label took 5.14 s to display.
@@ -811,6 +836,11 @@ class MainWindow(QMainWindow):
         self.results.scan_bar.hide()
         self._update_actions()
         self.statusBar().showMessage(tr("scan_cancelled"), _STATUS_TIMEOUT_MS)
+        self._follow.resume()  # the results did not change: follow them on
+
+    def _branch_failed(self, reason: str) -> None:
+        self._scan_failed(reason)
+        self._follow.resume()
 
     def move_to_trash(self, nodes: Sequence[Node], *, copies: CopyApproval | None = None,
                       proposal: RecurringReview | None = None) -> None:
@@ -938,7 +968,7 @@ class MainWindow(QMainWindow):
             self._delete_finished(worker, DeleteResult(refused=[(node.path, "cancelled") for node in worker.nodes]))
 
     def _delete_finished(self, worker: PermanentDeleteWorker, result: DeleteResult) -> None:
-        """Show what happened (every refusal and failure stays visible), then refresh totals by rescanning."""
+        """Show what happened (every refusal and failure stays visible) and take the removals out of the results."""
         if worker is not self._delete_worker:
             return
         worker.deleteLater()
@@ -948,12 +978,9 @@ class MainWindow(QMainWindow):
             return
         self.results.setEnabled(True)
         self._update_actions()
-        outcome, removed = self.results.outcome, worker.removed_summary
+        changed = [*result.parents, *result.kept]  # captured before the removals leave the tree
         shown = False  # whether the results already show everything this batch did
-        if (result.removed and outcome is not None and outcome.result.hard_links is None and removed is not None
-                and removed.now == outcome.now):
-            self._analyser = None
-            self.results.forget(result.removed, removed=removed)
+        if result.removed and self._drop_removed(result.removed, worker.removed_summary, worker.counted_plan):
             shown = not (result.failed or result.refused or result.kept)
         summary = report_summary(result, self._unit)
         rows = report_rows(result)
@@ -964,8 +991,49 @@ class MainWindow(QMainWindow):
                                 tr("journal_write_failed", reason="\n".join(worker.journal_errors)))
         self.statusBar().showMessage(summary, _STATUS_TIMEOUT_MS)
         self._update_actions()
+        self._follow.resume()  # the results show the removals; anything else is offered just below
+        self._tell_peers(changed)
         if not shown:
             self._mark_changed(result.parents)
+
+    def _drop_removed(self, nodes: Sequence[Node], removed: Summary | None, counted: HardLinkPlan | None) -> bool:
+        """Take moved or deleted entries out of the results in place; False when only a rescan can show it.
+
+        A scan counting hard links needs the worker's plan too: a name left alone of its group counts in
+        full again. Its counted chart categories then follow from a summary on a worker.
+        """
+        self._analyser = None
+        outcome = self.results.outcome
+        counting = outcome is not None and outcome.result.hard_links is not None
+        if outcome is None or removed is None or removed.now != outcome.now or (counting and counted is None):
+            return False
+        self.results.forget(nodes, removed=removed, counted=counted if counting else None)
+        if counting:
+            self._start_analysis(outcome.result.root, with_capacity=False)
+        return True
+
+    def _tell_peers(self, folders: Iterable[Node]) -> None:
+        """After a Trash move, permanent delete or Undo here, other tabs offer only the folders it changed.
+
+        Their readers were stopped for the operation like this tab's; without this each tab following
+        changes read its whole root again afterwards, and a tab not following showed old sizes silently.
+        """
+        if self._operations is None:
+            return
+        paths = {path for folder in folders if (path := folder.path) is not None}
+        for window in self._operations.windows:
+            if window is not self and not window._closing:
+                window._changed_elsewhere(paths)
+
+    def _changed_elsewhere(self, paths: Iterable[str]) -> None:
+        """Another tab changed entries in the folders ``paths``: follow on, and offer the folders here."""
+        self._follow.resume()
+        outcome = self.results.outcome
+        if outcome is None:
+            return
+        found = [folder for path in paths if (folder := folder_holding(outcome.result.root, path)) is not None]
+        if found:
+            self._mark_changed(found)
 
     def _proposal_current(self, proposal: RecurringReview) -> bool:
         status = proposal.check()
@@ -1020,15 +1088,11 @@ class MainWindow(QMainWindow):
         outcome = self.results.outcome
         self.results.completion.show_summary(summary, outcome.result.root if outcome is not None else None,
                                              outcome.capacity if outcome is not None else None)
+        changed = [*(node.parent for node in moved if node.parent is not None), *result.parents]
         shown = False  # whether the results already show everything this batch did
-        if moved:
-            self._analyser = None
-            outcome = self.results.outcome
-            removed = worker.removed_summary if worker is not None else None
-            if (outcome is not None and outcome.result.hard_links is None and removed is not None
-                    and removed.now == outcome.now):
-                self.results.forget(moved, removed=removed)
-                shown = not (failed or result.skipped or result.copy_errors)
+        if moved and self._drop_removed(moved, worker.removed_summary if worker is not None else None,
+                                        worker.counted_plan if worker is not None else None):
+            shown = not (failed or result.skipped or result.copy_errors)
         if failed:
             self._show_failed(result)
         if result.skipped:
@@ -1042,6 +1106,8 @@ class MainWindow(QMainWindow):
         unavailable = self._undo.offer(worker)
         self.statusBar().showMessage(done + ("\n" + unavailable if unavailable else ""), _STATUS_TIMEOUT_MS)
         self._update_actions()
+        self._follow.resume()  # the results show the moves; anything else is offered just below
+        self._tell_peers(changed)
         if not shown:
             self._mark_changed(result.parents)
 

@@ -6,16 +6,17 @@ import sys
 import time
 
 import pytest
-from PySide6.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog, QMessageBox
 from PySide6.QtTest import QSignalSpy
 from PySide6.QtCore import QSettings
 
 from test_gui import _wait
 from test_gui import window as window  # noqa: PLC0414
 from je_file_tree.core.change_watch import MAX_CHANGED, ChangeBatch
-from je_file_tree.core.scanner import scan
+from je_file_tree.core.scanner import ScanOptions, scan
 from je_file_tree.core.multi_scan import scan_roots
 from je_file_tree.gui import change_watch as following
+from je_file_tree.gui import main_window
 from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui.app import create_workspace
 
@@ -118,11 +119,52 @@ def test_busy_review_retains_events_and_joins_before_tree_mutation(window, qapp,
     assert not calls and controller.worker is None and old.cancel.is_set()
     _wait(qapp, lambda: not controller._retiring)
     assert not calls
-    assert controller._pending.full
+    assert controller._operation_gap
     window._path_dialogs.remove(dialog)
     controller.tick()
     assert calls == [root]
     dialog.deleteLater()
+
+
+@pytest.mark.parametrize("other_reason", [False, True])
+def test_a_delete_shown_in_place_does_not_request_the_whole_root(window, qapp, tmp_path, monkeypatch, other_reason):
+    source, root = _source(window, tmp_path)
+    controller = _enable(window, qapp, monkeypatch)
+    calls = []
+    monkeypatch.setattr(window, "rescan_folder", calls.append)
+    monkeypatch.setattr(main_window, "confirm_permanent_delete", lambda *_args: QMessageBox.StandardButton.Yes)
+    if other_reason:  # a whole-root request the operation did not cause is kept
+        _dirty(controller, full=True)
+    before = controller.worker
+    victim = next(child for child in root.children if child.name == "另一個")
+
+    window.delete_permanently([victim])
+    assert before.cancel.is_set() and controller._operation_gap
+    _wait(qapp, lambda: window._delete_worker is None)
+
+    assert not (source / "另一個").exists() and victim not in root.children and (source / "資料" / "file").exists()
+    assert not controller._operation_gap
+    _wait(qapp, lambda: controller.worker is not None and bool(controller.worker.backend))
+    assert controller.worker is not before
+    controller._since = time.monotonic() - 2
+    controller.tick()
+    assert calls == ([root] if other_reason else []) and window.results.refresh_notice.isHidden()
+
+
+def test_a_followed_folder_refresh_is_not_followed_by_a_whole_root_scan(window, qapp, tmp_path, monkeypatch):
+    source, root = _source(window, tmp_path)
+    controller = _enable(window, qapp, monkeypatch)
+    scans = []
+    monkeypatch.setattr(window, "start_scan", lambda path, **_kwargs: scans.append(path))
+    _dirty(controller, source / "資料")
+    (source / "資料" / "新增.bin").write_bytes(b"owned" * 10)
+    controller.tick()
+    _wait(qapp, lambda: window._worker is None and not window._analysers and root.size == 4 + 9 + 50)
+    assert window.results.outcome.result.root is root and not controller._operation_gap
+    _wait(qapp, lambda: controller.worker is not None and bool(controller.worker.backend))
+    controller._since = time.monotonic() - 2
+    controller.tick()
+    assert scans == [] and window._worker is None  # nothing else changed: nothing more is read
 
 
 def test_scope_loss_accounting_and_periodic_reconciliation_request_full_root(window, qapp, tmp_path, monkeypatch):
@@ -205,17 +247,23 @@ def test_partial_or_combined_scan_refuses_following_without_native_setup(window,
     dialog.deleteLater()
 
 
-def test_counted_hard_links_require_full_root_reconciliation(window, qapp, tmp_path, monkeypatch):
-    source, root = _source(window, tmp_path)
-    os.link(source / "資料" / "file", source / "另一個" / "alias")
+def test_counted_hard_links_refresh_the_folder_and_recount_the_whole_tree(window, qapp, tmp_path, monkeypatch):
+    source, _root = _source(window, tmp_path)
     window._actions["count_hard_links"].setChecked(True)
+    os.link(source / "資料" / "file", source / "另一個" / "alias")
+    window.results.show_outcome(analyse(scan(source, options=ScanOptions(count_hard_links=True))))
+    root = window.results.outcome.result.root
+    assert root.size == 17 and root.accounted_size == 13
     controller = _enable(window, qapp, monkeypatch)
+    scans = []
+    monkeypatch.setattr(window, "start_scan", lambda path, **_kwargs: scans.append(path))
+    (source / "資料" / "more").write_bytes(b"x" * 6)
     _dirty(controller, source / "資料")
     controller.tick()
-    _wait(qapp, lambda: window._worker is None and window.results.outcome.result.root is not root)
+    _wait(qapp, lambda: window._worker is None and not window._analysers and root.size == 23)
     result = window.results.outcome.result
-    assert result.root.path == str(source) and result.hard_links is not None
-    assert result.root.size == 17 and result.root.accounted_size == 13
+    assert scans == [] and result.root is root and result.hard_links is not None
+    assert root.accounted_size == 19 and result.hard_links.aliases == 1  # the alias outside still counts once
     assert (source / "資料" / "file").read_bytes() == b"kept"
 
 
