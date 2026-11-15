@@ -863,6 +863,9 @@ EN: dict[str, str] = {
     "action_auto_cpu": "Adjust scan threads to processor use",
     "action_auto_cpu_tip": "New scans read with fewer threads while other programs are using the processors, "
                            "and return to the chosen number when they are free",
+    "action_mft_scan": "Read whole NTFS drives from the file table",
+    "action_mft_scan_tip": "When FileTree runs as administrator and scans a whole NTFS drive, read the drive's master "
+                           "file table instead of listing every folder; other scans list folders as before",
     "action_bins": "Recycle Bins…",
     "action_bins_tip": "Review bin totals and explicit scoped OS emptying",
     "bin_finder_empty": "Empty Finder Trash on all mounted volumes…",
@@ -2650,6 +2653,9 @@ ZH_TW: dict[str, str] = {
                       "UNC 效能取決於實際共用環境。",
     "action_auto_cpu": "依 CPU 使用量調整掃描執行緒",
     "action_auto_cpu_tip": "其他程式正在使用 CPU 時，新掃描會減少讀取執行緒；CPU 空閒時恢復到設定的執行緒數",
+    "action_mft_scan": "從檔案表讀取整個 NTFS 磁碟",
+    "action_mft_scan_tip": "以系統管理員身分執行並掃描整個 NTFS 磁碟時，直接讀取磁碟的主檔案表，不逐一列出資料夾；"
+                           "其他掃描照舊列出資料夾",
     "action_bins": "資源回收筒…",
     "action_bins_tip": "審查回收筒總量與明確範圍的系統清空動作",
     "bin_finder_empty": "清空所有已掛載磁碟的 Finder 回收筒…",
@@ -4343,6 +4349,9 @@ ZH_CN: dict[str, str] = {
                       "过高并行数可能使磁盘／服务器负荷过重。进行中的扫描保留现有线程数，UNC 性能取决于实际共享环境。",
     "action_auto_cpu": "按 CPU 使用率调整扫描线程",
     "action_auto_cpu_tip": "其他程序正在使用 CPU 时，新扫描会减少读取线程；CPU 空闲时恢复到设置的线程数",
+    "action_mft_scan": "从文件表读取整个 NTFS 磁盘",
+    "action_mft_scan_tip": "以管理员身份运行并扫描整个 NTFS 磁盘时，直接读取磁盘的主文件表，不逐一列出文件夹；"
+                           "其他扫描照旧列出文件夹",
     "action_bins": "回收站…",
     "action_bins_tip": "检查回收站总量与明确范围的系统清空操作",
     "bin_finder_empty": "清空所有已挂载磁盘的 Finder 回收站…",
@@ -6188,6 +6197,11 @@ JA: dict[str, str] = {
     'action_auto_cpu_tip': (
         '他のプログラムが CPU を使用している間は、新しいスキャンの読み取りスレッドを減らし、'
         '空いたら設定したスレッド数に戻します'
+    ),
+    'action_mft_scan': 'NTFS ドライブ全体をファイルテーブルから読み取る',
+    'action_mft_scan_tip': (
+        '管理者として実行し NTFS ドライブ全体をスキャンするとき、フォルダーを一つずつ一覧する代わりに'
+        'ドライブのマスターファイルテーブルを直接読み取ります。その他のスキャンは従来どおりです'
     ),
     'action_bins': 'ごみ箱…',
     'action_bins_tip': 'ビンの合計と明示的なスコープ指定された OS の空の確認',
@@ -8241,6 +8255,11 @@ KO: dict[str, str] = {
     'action_auto_cpu_tip': (
         '다른 프로그램이 CPU를 사용하는 동안에는 새 스캔의 읽기 스레드를 줄이고, '
         'CPU가 한가해지면 설정한 스레드 수로 되돌립니다'
+    ),
+    'action_mft_scan': 'NTFS 드라이브 전체를 파일 테이블에서 읽기',
+    'action_mft_scan_tip': (
+        '관리자 권한으로 실행하여 NTFS 드라이브 전체를 스캔할 때 폴더를 하나씩 나열하는 대신 '
+        '드라이브의 마스터 파일 테이블을 직접 읽습니다. 다른 스캔은 이전과 같습니다'
     ),
     'action_bins': '재활용 쓰레기통…',
     'action_bins_tip': '빈 합계 및 명시적인 범위 OS 비우기 검토',

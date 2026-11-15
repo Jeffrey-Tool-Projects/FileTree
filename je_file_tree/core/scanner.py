@@ -26,7 +26,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import cast
 
-from je_file_tree.core import native_scan
+from je_file_tree.core import mft_scan, native_scan
 from je_file_tree.core.allocation import Allocation, OrdinaryAllocation, allocation_for, ordinary_allocation
 from je_file_tree.core.cpu_load import WorkerGovernor
 from je_file_tree.core.exclusions import Excluded, exclusion_test
@@ -101,6 +101,9 @@ class ScanOptions:
     # How a scan is paced, not what it includes: presets, templates and restart hand-offs do not carry
     # it, so it takes no part in comparing two sets of choices.
     adaptive: bool = field(default=False, compare=False)
+    # Read a whole NTFS drive from its master file table where that is possible (``core/mft_scan.py``);
+    # like ``adaptive`` it is this machine's own choice and takes no part in comparisons.
+    mft: bool = field(default=False, compare=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -207,8 +210,13 @@ class _Crawler:
         self._pause = pause
         self._pending: list[tuple[Node, str]] = [(root, root_path)]
         self._busy = 0
-        self._governor = WorkerGovernor(options.workers) if options.adaptive else None
-        self._limit = max(1, options.workers) if self._governor is None else self._governor.limit
+        # Rows served from memory leave nothing to wait for, so more threads only take turns at the
+        # interpreter lock. Measured 2026-11-15 on 1.42 million entries: 10.8 and 12.0 s with one
+        # thread, 11.6 s with four.
+        in_memory = self._native is not None and self._native.in_memory
+        self._threads = 1 if in_memory else max(1, options.workers)
+        self._governor = WorkerGovernor(options.workers) if options.adaptive and not in_memory else None
+        self._limit = self._threads if self._governor is None else self._governor.limit
         self._stopped = False
         self._failure: BaseException | None = None
         self._condition = threading.Condition()
@@ -245,7 +253,7 @@ class _Crawler:
         if cancel is not None and cancel.is_set():
             raise ScanCancelledError
         threads = [threading.Thread(target=self._work, name=f"file-tree-scan-{number}", daemon=True)
-                   for number in range(max(1, self._options.workers))]
+                   for number in range(self._threads)]
         started: list[threading.Thread] = []
         try:
             for thread in threads:
@@ -425,6 +433,7 @@ class _NativeRead:
 
     read: native_scan.Reader
     ordinary: OrdinaryAllocation
+    in_memory: bool = False  # rows come from a table read beforehand, not from the file system
 
 
 @dataclass(frozen=True, slots=True)
@@ -465,6 +474,9 @@ def _native_reader(options: ScanOptions, allocation: Allocation,
     if options.windows_owners or options.exact_windows_allocation or not boundaries.plain_listing:
         return None  # per-file owner and exact allocation queries need the full Python path
     ordinary = ordinary_allocation(allocation)
+    table = mft_scan.table_reader(root_path) if options.mft and ordinary is not None else None
+    if table is not None and ordinary is not None:
+        return _NativeRead(table, ordinary, in_memory=True)  # the whole volume, in the same rows
     read = native_scan.reader() if ordinary is not None else None
     if read is None or ordinary is None or not native_scan.agrees_on(root_path):
         return None
