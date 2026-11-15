@@ -124,6 +124,7 @@ EXCLUSIONS_KEY = "exclusions"
 SEARCHES_KEY = "saved_searches"
 CLEANUP_POLICY_KEY = "cleanup_policy"
 SCAN_WORKERS_KEY = "scan_workers"
+AUTO_CPU_KEY = "auto_cpu"
 _CHART_SETTINGS = ("chart_mode", "treemap_levels", "treemap_colours", "tree_orientation")
 
 
@@ -1443,6 +1444,7 @@ class MainWindow(QMainWindow):
         self._actions["hidden"].setChecked(read_flag(self.settings, "include_hidden", True))
         self._actions["ask_admin"].setChecked(read_flag(self.settings, ASK_ADMIN_KEY, True))
         self._actions["gentle"].setChecked(read_flag(self.settings, "gentle_scan", False))
+        self._actions["auto_cpu"].setChecked(read_flag(self.settings, AUTO_CPU_KEY, True))
         with QSignalBlocker(self._actions["check_updates"]):
             self._actions["check_updates"].setChecked(self._updates.enabled())
         self._actions["capture_file_times"].setChecked(read_flag(self.settings, "capture_file_times", False))
@@ -1608,6 +1610,7 @@ class MainWindow(QMainWindow):
             ("shell_integration", None, self.edit_shell_integration),
             ("gentle", None, lambda: self.settings.setValue("gentle_scan", self._actions["gentle"].isChecked())),
             ("scan_workers", None, self.configure_workers),
+            ("auto_cpu", None, lambda: self.settings.setValue(AUTO_CPU_KEY, self._actions["auto_cpu"].isChecked())),
             ("ask_admin", None, lambda: self.settings.setValue(ASK_ADMIN_KEY, self._actions["ask_admin"].isChecked())),
             ("help", QKeySequence.StandardKey.HelpContents, self.show_help),
             ("about", None, self.show_about),
@@ -1635,6 +1638,7 @@ class MainWindow(QMainWindow):
         self._actions["hidden"].setCheckable(True)
         self._actions["ask_admin"].setCheckable(True)
         self._actions["gentle"].setCheckable(True)
+        self._actions["auto_cpu"].setCheckable(True)
         self._actions["capture_file_times"].setCheckable(True)
         self._actions["capture_file_times"].toggled.connect(
             lambda checked: self.settings.setValue("capture_file_times", checked))
@@ -1704,7 +1708,7 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self._actions["exclusions"])
         view_menu.addAction(self._actions["ask_admin"])
         options_menu = bar.addMenu("")
-        for key in ("cleanup_policy", "gentle", "scan_workers", "scan_presets", "history_settings"):
+        for key in ("cleanup_policy", "gentle", "scan_workers", "auto_cpu", "scan_presets", "history_settings"):
             options_menu.addAction(self._actions[key])
         for key in ("check_updates", "follow_changes", "background_monitor"):
             options_menu.addAction(self._actions[key])
@@ -2214,7 +2218,8 @@ class MainWindow(QMainWindow):
                            file_times=self._actions["capture_file_times"].isChecked(),
                            windows_owners=self._actions["capture_owners"].isChecked(),
                            exact_windows_allocation=exact_allocation or self._actions["exact_allocation"].isChecked(),
-                           count_hard_links=self._actions["count_hard_links"].isChecked())
+                           count_hard_links=self._actions["count_hard_links"].isChecked(),
+                           adaptive=self._actions["auto_cpu"].isChecked())
 
     def configure_workers(self) -> None:
         """Persist bounded concurrency for new scans and branch rescans, leaving running workers alone."""

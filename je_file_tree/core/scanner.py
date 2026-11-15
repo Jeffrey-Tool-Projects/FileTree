@@ -28,6 +28,7 @@ from typing import cast
 
 from je_file_tree.core import native_scan
 from je_file_tree.core.allocation import Allocation, OrdinaryAllocation, allocation_for, ordinary_allocation
+from je_file_tree.core.cpu_load import WorkerGovernor
 from je_file_tree.core.exclusions import Excluded, exclusion_test
 from je_file_tree.core.node import Node
 from je_file_tree.core.hard_links import HardLinkAccounting, account_hard_links
@@ -85,6 +86,8 @@ class ScanOptions:
     """What a scan includes and how many folders it reads at once.
 
     ``count_hard_links`` adds counted totals from recorded identities without changing named bytes.
+    ``adaptive`` makes ``workers`` an upper limit: fewer folders are read at once while other
+    programs are using the processors (see ``core/cpu_load.py``).
     """
 
     include_hidden: bool = True
@@ -95,6 +98,9 @@ class ScanOptions:
     windows_owners: bool = False
     exact_windows_allocation: bool = False
     count_hard_links: bool = False
+    # How a scan is paced, not what it includes: presets, templates and restart hand-offs do not carry
+    # it, so it takes no part in comparing two sets of choices.
+    adaptive: bool = field(default=False, compare=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -201,6 +207,8 @@ class _Crawler:
         self._pause = pause
         self._pending: list[tuple[Node, str]] = [(root, root_path)]
         self._busy = 0
+        self._governor = WorkerGovernor(options.workers) if options.adaptive else None
+        self._limit = max(1, options.workers) if self._governor is None else self._governor.limit
         self._stopped = False
         self._failure: BaseException | None = None
         self._condition = threading.Condition()
@@ -246,6 +254,8 @@ class _Crawler:
             while not self._done.wait(interval):
                 if cancel is not None and cancel.is_set():
                     break
+                if self._governor is not None:
+                    self._allow(self._governor.update())
                 if progress is not None:
                     progress(self.snapshot())
         except BaseException as error:  # noqa: BLE001 - stop and join owned threads, then re-raise the first failure
@@ -258,6 +268,13 @@ class _Crawler:
             raise self._failure
         if cancel is not None and cancel.is_set():
             raise ScanCancelledError
+
+    def _allow(self, limit: int) -> None:
+        """Let at most ``limit`` threads read folders from now on; reads under way finish."""
+        with self._condition:
+            if limit != self._limit:
+                self._limit = max(1, limit)
+                self._condition.notify_all()
 
     def _stop(self) -> None:
         with self._condition:
@@ -304,7 +321,8 @@ class _Crawler:
             while not self._stopped and not (self._cancel is not None and self._cancel.is_set()):
                 if not self._pending and not self._busy:
                     break
-                if ((self._pause is None or not self._pause.is_set()) and self._pending):
+                if ((self._pause is None or not self._pause.is_set()) and self._pending
+                        and self._busy < self._limit):
                     break
                 self._condition.wait(0.1)
             cancelled = self._cancel is not None and self._cancel.is_set()

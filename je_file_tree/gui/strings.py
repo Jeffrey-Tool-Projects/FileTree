@@ -860,6 +860,9 @@ EN: dict[str, str] = {
     "workers_prompt": "Workers for new scans (1–32). The default is {default}. Slow network shares may benefit "
                       "from more workers; excessive concurrency can overload a disk/server. Running scans retain "
                       "their existing workers. Real UNC performance depends on your share.",
+    "action_auto_cpu": "Adjust scan threads to processor use",
+    "action_auto_cpu_tip": "New scans read with fewer threads while other programs are using the processors, "
+                           "and return to the chosen number when they are free",
     "action_bins": "Recycle Bins…",
     "action_bins_tip": "Review bin totals and explicit scoped OS emptying",
     "bin_finder_empty": "Empty Finder Trash on all mounted volumes…",
@@ -2645,6 +2648,8 @@ ZH_TW: dict[str, str] = {
     "workers_prompt": "新掃描執行緒數（1–32），預設為 {default}。慢速網路共用可能受益於較多執行緒；"
                       "過高並行數可能使磁碟／伺服器負荷過重。進行中的掃描保留既有執行緒數，"
                       "UNC 效能取決於實際共用環境。",
+    "action_auto_cpu": "依 CPU 使用量調整掃描執行緒",
+    "action_auto_cpu_tip": "其他程式正在使用 CPU 時，新掃描會減少讀取執行緒；CPU 空閒時恢復到設定的執行緒數",
     "action_bins": "資源回收筒…",
     "action_bins_tip": "審查回收筒總量與明確範圍的系統清空動作",
     "bin_finder_empty": "清空所有已掛載磁碟的 Finder 回收筒…",
@@ -4336,6 +4341,8 @@ ZH_CN: dict[str, str] = {
     "action_scan_workers_tip": "选择新扫描的并行数，较高不一定较快",
     "workers_prompt": "新扫描线程数（1–32），默认值为 {default}。慢速网络共享可能受益于更多线程；"
                       "过高并行数可能使磁盘／服务器负荷过重。进行中的扫描保留现有线程数，UNC 性能取决于实际共享环境。",
+    "action_auto_cpu": "按 CPU 使用率调整扫描线程",
+    "action_auto_cpu_tip": "其他程序正在使用 CPU 时，新扫描会减少读取线程；CPU 空闲时恢复到设置的线程数",
     "action_bins": "回收站…",
     "action_bins_tip": "检查回收站总量与明确范围的系统清空操作",
     "bin_finder_empty": "清空所有已挂载磁盘的 Finder 回收站…",
@@ -6176,6 +6183,11 @@ JA: dict[str, str] = {
         'カーを増やすことでメリットが得られる可能性があります。過剰な同時実行により、ディスク/サーバーに過負'
         '荷がかかる可能性があります。スキャンを実行すると、既存のワーカーが保持されます。実際の UNC のパフォ'
         'ーマンスはあなたのシェアに依存します。'
+    ),
+    'action_auto_cpu': 'CPU 使用率に合わせてスキャンスレッドを調整',
+    'action_auto_cpu_tip': (
+        '他のプログラムが CPU を使用している間は、新しいスキャンの読み取りスレッドを減らし、'
+        '空いたら設定したスレッド数に戻します'
     ),
     'action_bins': 'ごみ箱…',
     'action_bins_tip': 'ビンの合計と明示的なスコープ指定された OS の空の確認',
@@ -8224,6 +8236,11 @@ KO: dict[str, str] = {
         '새 스캔을 위한 작업자(1–32). 기본값은 {default}입니다. 느린 네트워크 공유는 더 많은 작업자로부터 이'
         '익을 얻을 수 있습니다. 과도한 동시성은 디스크/서버에 과부하를 줄 수 있습니다. 스캔을 실행하면 기존 '
         '작업자가 유지됩니다. 실제 UNC 성능은 귀하의 공유에 따라 달라집니다.'
+    ),
+    'action_auto_cpu': 'CPU 사용량에 맞춰 스캔 스레드 조정',
+    'action_auto_cpu_tip': (
+        '다른 프로그램이 CPU를 사용하는 동안에는 새 스캔의 읽기 스레드를 줄이고, '
+        'CPU가 한가해지면 설정한 스레드 수로 되돌립니다'
     ),
     'action_bins': '재활용 쓰레기통…',
     'action_bins_tip': '빈 합계 및 명시적인 범위 OS 비우기 검토',

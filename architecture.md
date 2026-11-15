@@ -1206,6 +1206,16 @@ files, per-type totals) runs still off the GUI thread and `succeeded(ScanOutcome
 raises `ScanCancelledError` carrying the partial tree (unread folders marked `NOT_SCANNED`), shown as an
 incomplete outcome. Signals of a replaced worker are ignored.
 
+**Scan threads follow processor use.** `ScanOptions.adaptive` (the window's **Adjust scan threads to
+processor use**, on by default, kept in `QSettings` as `auto_cpu`) makes `ScanOptions.workers` an upper
+limit. `core.cpu_load.WorkerGovernor` reads whole-machine processor time (`GetSystemTimes`, `/proc/stat`),
+subtracts this process's own, and allows about as many reading threads as other programs leave processors
+free, from one to `workers`, moving one step per half-second reading. `_Crawler.run` asks it on its
+progress loop and `_take` hands out a folder only while fewer than that many are being read; reads under
+way always finish. Without a reading (macOS, BSD, a refused call) the chosen number is used. The field is
+excluded from comparing `ScanOptions`: presets, workspace templates and restart hand-offs do not carry
+it. Measurements are in `core/cpu_load.py`.
+
 **Background work gives way.** In CPython one thread runs Python at a time, and every call Qt makes into
 Python (each cell the folder tree paints, every event handler) needs that lock, so a worker walking the
 tree used to make the window queue behind it. `core.pacing.WINDOW` is a gate: `scan_worker.pace_workers`
