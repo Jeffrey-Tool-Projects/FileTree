@@ -327,5 +327,9 @@ def test_native_linux_owned_private_bin_uses_normal_gui_capture_undo_and_parent_
     assert worker.result.results[0].restored and not worker.result.results[0].error
     assert (source / "file").read_bytes() == b"fresh native Linux GUI undo payload" and (source / "empty").is_dir()
     assert not payload.exists() and not receipt.exists() and files.is_dir() and info.is_dir()
-    _wait(qapp, lambda: window._worker is None)
+    notice = window.results.refresh_notice
+    _wait(qapp, lambda: notice.pending == 1)
+    assert window._worker is None and not window.results.tree_model.root.children  # offered, not scanned unasked
+    notice.button.click()
+    _wait(qapp, lambda: window._worker is None and bool(window.results.tree_model.root.children))
     assert window.results.tree_model.root.children[0].path == str(source)
