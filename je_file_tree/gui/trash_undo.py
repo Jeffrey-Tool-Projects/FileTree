@@ -127,6 +127,7 @@ class TrashUndo(QObject):
         if not current:
             return
         # Restored entries are back on disk but not in the tree: their folders are offered for a rescan.
+        window._follow.resume()  # those folders, not the whole root, while Follow changes is on
         window._mark_changed([entry.parent for entry in worker.entries if entry.parent is not None])
 
     def report(self, result: UndoBatch | None) -> None:

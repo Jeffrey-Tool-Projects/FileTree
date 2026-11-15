@@ -938,7 +938,7 @@ class MainWindow(QMainWindow):
             self._delete_finished(worker, DeleteResult(refused=[(node.path, "cancelled") for node in worker.nodes]))
 
     def _delete_finished(self, worker: PermanentDeleteWorker, result: DeleteResult) -> None:
-        """Show what happened (every refusal and failure stays visible), then refresh totals by rescanning."""
+        """Show what happened (every refusal and failure stays visible) and take the removals out of the results."""
         if worker is not self._delete_worker:
             return
         worker.deleteLater()
@@ -964,6 +964,7 @@ class MainWindow(QMainWindow):
                                 tr("journal_write_failed", reason="\n".join(worker.journal_errors)))
         self.statusBar().showMessage(summary, _STATUS_TIMEOUT_MS)
         self._update_actions()
+        self._follow.resume()  # the results show the removals; anything else is offered just below
         if not shown:
             self._mark_changed(result.parents)
 
@@ -1042,6 +1043,7 @@ class MainWindow(QMainWindow):
         unavailable = self._undo.offer(worker)
         self.statusBar().showMessage(done + ("\n" + unavailable if unavailable else ""), _STATUS_TIMEOUT_MS)
         self._update_actions()
+        self._follow.resume()  # the results show the moves; anything else is offered just below
         if not shown:
             self._mark_changed(result.parents)
 

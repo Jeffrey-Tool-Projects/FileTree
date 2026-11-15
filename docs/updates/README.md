@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261115-11 | 2026-11-15 | 「跟隨變更」開啟時，刪除後不再重掃整個根目錄 | #decision #gui #scan | [2026-11](2026-11.md) |
 | U-20261115-10 | 2026-11-15 | 掃描完成後的三段整棵樹運算改由原生模組執行 | #snapshot #perf #core #native | [2026-11](2026-11.md) |
 | U-20261115-09 | 2026-11-15 | 檔案表掃描改用專用的建樹路徑 | #snapshot #perf #scanner | [2026-11](2026-11.md) |
 | U-20261115-08 | 2026-11-15 | 小資料夾不由檔案表讀取 | #decision #perf #scanner | [2026-11](2026-11.md) |

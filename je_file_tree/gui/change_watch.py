@@ -91,6 +91,7 @@ class FollowChanges(QObject):
         self.root: Node | None = None
         self.enabled, self._closing = False, False
         self._pending = ChangeBatch()
+        self._operation_gap = False  # the reader was stopped for a source operation: read the whole root again
         self._since, self._reconcile = 0.0, 0.0
         self._status, self._detail = "follow_waiting", ""
         self._retiring: set[ChangeWorker] = set()
@@ -157,6 +158,7 @@ class FollowChanges(QObject):
         if clear:
             self.root = None
             self._pending, self._since = ChangeBatch(), 0.0
+            self._operation_gap = False
             self._reconcile = 0.0
         retiring = tuple(self._retiring)
         if wait:
@@ -177,8 +179,25 @@ class FollowChanges(QObject):
         active = self.worker is not None
         retiring = self.stop(wait=wait)
         if active:
-            self._merge(ChangeBatch(full=True, reason="source_operation"))
+            if not self._operation_gap and not self._pending.full and not self._pending.folders:
+                self._since = time.monotonic()
+            self._operation_gap = True
         return retiring
+
+    def resume(self) -> None:
+        """Follow again after an operation whose changes the results already show or have on offer.
+
+        Stopping the reader for a source operation asks for the whole root to be read again, because
+        nothing was observed meanwhile. A move to the Recycle Bin or a permanent delete takes its
+        entries out of the results itself (and leaves the folders of anything else on offer), so only
+        that request is withdrawn: folders reported before the stop stay pending, and a whole-root
+        request made for any other reason stays. What another program changed while the reader was
+        stopped is found by the periodic reconciliation.
+        """
+        self._operation_gap = False
+        root = self.root
+        if self.enabled and not self._closing and root is not None and self.worker is None:
+            self.adopt(root)
 
     def shutdown(self, *, wait: bool = True) -> None:
         """Prevent late replies and join all native work before the tab is destroyed."""
@@ -225,11 +244,12 @@ class FollowChanges(QObject):
                 or outcome.partial or outcome.result.root is not self.root):
             return
         batch = self._pending
-        if not batch.full and not batch.folders:
+        full = batch.full or self._operation_gap
+        if not full and not batch.folders:
             return
-        if batch.full:
+        if full:
             node = self.root
-            self._pending = ChangeBatch()
+            self._pending, self._operation_gap = ChangeBatch(), False
         else:
             worker = self.worker
             if worker is None or not worker.backend or worker.error:
