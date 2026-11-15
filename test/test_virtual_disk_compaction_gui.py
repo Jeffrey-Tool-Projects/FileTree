@@ -202,4 +202,7 @@ def test_inventory_disables_stale_authority_and_main_window_rescans_complete_roo
         return 0
     monkeypatch.setattr(inventory.VirtualDisksDialog, "exec", inventory_review)
     window.show_virtual_disks()
-    assert rescans == [captured] and not window._path_dialogs
+    notice = window.results.refresh_notice
+    assert rescans == [] and notice.pending == 1 and not window._path_dialogs  # offered, not scanned unasked
+    notice.button.click()
+    assert rescans == [captured] and notice.isHidden()

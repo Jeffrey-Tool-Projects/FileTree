@@ -95,6 +95,18 @@ def _python_scanner(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPa
         monkeypatch.setattr(native_scan, "reader", lambda: None)
 
 
+@pytest.fixture(autouse=True)
+def _python_tree_passes(monkeypatch: pytest.MonkeyPatch):
+    """Take the passes over a finished tree in Python, whose steps (``extension_of``, ``_Counts``) tests replace.
+
+    The native passes are optional; ``test_native_tree.py`` switches them on and proves that each gives
+    exactly what the Python code gives.
+    """
+    from je_file_tree.core import native_tree
+
+    monkeypatch.setenv(native_tree.DISABLE_VARIABLE, "0")
+
+
 def _inside_temporary(path: str, base: str) -> bool:
     """Whether ``path`` itself (its last name not followed) lies strictly inside the folder ``base``."""
     absolute = os.path.abspath(path)

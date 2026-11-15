@@ -860,6 +860,12 @@ EN: dict[str, str] = {
     "workers_prompt": "Workers for new scans (1–32). The default is {default}. Slow network shares may benefit "
                       "from more workers; excessive concurrency can overload a disk/server. Running scans retain "
                       "their existing workers. Real UNC performance depends on your share.",
+    "action_auto_cpu": "Adjust scan threads to processor use",
+    "action_auto_cpu_tip": "New scans read with fewer threads while other programs are using the processors, "
+                           "and return to the chosen number when they are free",
+    "action_mft_scan": "Read NTFS drives from the file table",
+    "action_mft_scan_tip": "When FileTree runs as administrator and scans a folder on an NTFS drive, read the drive's "
+                           "master file table instead of listing every folder; other scans list folders as before",
     "action_bins": "Recycle Bins…",
     "action_bins_tip": "Review bin totals and explicit scoped OS emptying",
     "bin_finder_empty": "Empty Finder Trash on all mounted volumes…",
@@ -1730,6 +1736,10 @@ EN: dict[str, str] = {
     "menu_scan_here": "Scan this folder",
     "menu_rescan_here": "Rescan this folder",
     "rescan_done": "Rescanned {name}: {before} → {after}",
+    "refresh_notice": "Files changed in {count} scanned folder(s) after this scan, so the sizes shown there "
+                      "may be out of date. FileTree does not scan again unless you ask.",
+    "refresh_now": "Rescan changed folders",
+    "refresh_now_tip": "Read only the folders that changed and update the results",
     "trash_confirm_title": "Move to Recycle Bin",
     "protected_title": "System or program folder",
     "protected_question": ("{count} of the entries are system or program folders. Moving them can make the "
@@ -2641,6 +2651,11 @@ ZH_TW: dict[str, str] = {
     "workers_prompt": "新掃描執行緒數（1–32），預設為 {default}。慢速網路共用可能受益於較多執行緒；"
                       "過高並行數可能使磁碟／伺服器負荷過重。進行中的掃描保留既有執行緒數，"
                       "UNC 效能取決於實際共用環境。",
+    "action_auto_cpu": "依 CPU 使用量調整掃描執行緒",
+    "action_auto_cpu_tip": "其他程式正在使用 CPU 時，新掃描會減少讀取執行緒；CPU 空閒時恢復到設定的執行緒數",
+    "action_mft_scan": "從檔案表讀取 NTFS 磁碟",
+    "action_mft_scan_tip": "以系統管理員身分執行並掃描 NTFS 磁碟上的資料夾時，直接讀取磁碟的主檔案表，"
+                           "不逐一列出資料夾；其他掃描照舊列出資料夾",
     "action_bins": "資源回收筒…",
     "action_bins_tip": "審查回收筒總量與明確範圍的系統清空動作",
     "bin_finder_empty": "清空所有已掛載磁碟的 Finder 回收筒…",
@@ -3436,6 +3451,10 @@ ZH_TW: dict[str, str] = {
     "menu_scan_here": "只掃描這個資料夾",
     "menu_rescan_here": "重新掃描這個資料夾",
     "rescan_done": "已重新掃描 {name}：{before} → {after}",
+    "refresh_notice": "這次掃描之後，有 {count} 個已掃描的資料夾內容變動過，那裡顯示的大小可能已經過時。"
+                      "除非您要求，FileTree 不會自行重新掃描。",
+    "refresh_now": "重新掃描變動的資料夾",
+    "refresh_now_tip": "只讀取有變動的資料夾並更新結果",
     "trash_confirm_title": "移到資源回收筒",
     "protected_title": "系統或程式資料夾",
     "protected_question": ("其中 {count} 個是系統或程式的資料夾，移走可能讓系統或程式無法正常運作："
@@ -4328,6 +4347,11 @@ ZH_CN: dict[str, str] = {
     "action_scan_workers_tip": "选择新扫描的并行数，较高不一定较快",
     "workers_prompt": "新扫描线程数（1–32），默认值为 {default}。慢速网络共享可能受益于更多线程；"
                       "过高并行数可能使磁盘／服务器负荷过重。进行中的扫描保留现有线程数，UNC 性能取决于实际共享环境。",
+    "action_auto_cpu": "按 CPU 使用率调整扫描线程",
+    "action_auto_cpu_tip": "其他程序正在使用 CPU 时，新扫描会减少读取线程；CPU 空闲时恢复到设置的线程数",
+    "action_mft_scan": "从文件表读取 NTFS 磁盘",
+    "action_mft_scan_tip": "以管理员身份运行并扫描 NTFS 磁盘上的文件夹时，直接读取磁盘的主文件表，不逐一列出文件夹；"
+                           "其他扫描照旧列出文件夹",
     "action_bins": "回收站…",
     "action_bins_tip": "检查回收站总量与明确范围的系统清空操作",
     "bin_finder_empty": "清空所有已挂载磁盘的 Finder 回收站…",
@@ -5123,6 +5147,10 @@ ZH_CN: dict[str, str] = {
     "menu_scan_here": "只扫描这个文件夹",
     "menu_rescan_here": "重新扫描这个文件夹",
     "rescan_done": "已重新扫描 {name}：{before} → {after}",
+    "refresh_notice": "这次扫描之后，有 {count} 个已扫描的文件夹内容发生了变化，那里显示的大小可能已经过时。"
+                      "除非您要求，FileTree 不会自行重新扫描。",
+    "refresh_now": "重新扫描有变化的文件夹",
+    "refresh_now_tip": "只读取有变化的文件夹并更新结果",
     "trash_confirm_title": "移到回收站",
     "protected_title": "系统或程序文件夹",
     "protected_question": ("其中 {count} 个是系统或程序的文件夹，移走可能让系统或程序无法正常运行："
@@ -6165,6 +6193,16 @@ JA: dict[str, str] = {
         '荷がかかる可能性があります。スキャンを実行すると、既存のワーカーが保持されます。実際の UNC のパフォ'
         'ーマンスはあなたのシェアに依存します。'
     ),
+    'action_auto_cpu': 'CPU 使用率に合わせてスキャンスレッドを調整',
+    'action_auto_cpu_tip': (
+        '他のプログラムが CPU を使用している間は、新しいスキャンの読み取りスレッドを減らし、'
+        '空いたら設定したスレッド数に戻します'
+    ),
+    'action_mft_scan': 'NTFS ドライブをファイルテーブルから読み取る',
+    'action_mft_scan_tip': (
+        '管理者として実行し NTFS ドライブ上のフォルダーをスキャンするとき、フォルダーを一つずつ一覧する代わりに'
+        'ドライブのマスターファイルテーブルを直接読み取ります。その他のスキャンは従来どおりです'
+    ),
     'action_bins': 'ごみ箱…',
     'action_bins_tip': 'ビンの合計と明示的なスコープ指定された OS の空の確認',
     'bin_finder_empty': 'マウントされているすべてのボリュームの Finder ゴミ箱を空にします…',
@@ -7206,6 +7244,11 @@ JA: dict[str, str] = {
     'menu_scan_here': 'このフォルダーをスキャンします',
     'menu_rescan_here': 'このフォルダーを再スキャンします',
     'rescan_done': '再スキャン {name}: {before} → {after}',
+    'refresh_notice': 'このスキャンの後、スキャン済みのフォルダー {count} 個の内容が変更されたため、'
+                      'そこに表示されているサイズは古い可能性があります。'
+                      'FileTree は指示がない限り再スキャンしません。',
+    'refresh_now': '変更されたフォルダーを再スキャン',
+    'refresh_now_tip': '変更されたフォルダーだけを読み直して結果を更新します',
     'trash_confirm_title': 'ごみ箱に移動',
     'protected_title': 'システムまたはプログラムフォルダー',
     'protected_question': (
@@ -8208,6 +8251,16 @@ KO: dict[str, str] = {
         '익을 얻을 수 있습니다. 과도한 동시성은 디스크/서버에 과부하를 줄 수 있습니다. 스캔을 실행하면 기존 '
         '작업자가 유지됩니다. 실제 UNC 성능은 귀하의 공유에 따라 달라집니다.'
     ),
+    'action_auto_cpu': 'CPU 사용량에 맞춰 스캔 스레드 조정',
+    'action_auto_cpu_tip': (
+        '다른 프로그램이 CPU를 사용하는 동안에는 새 스캔의 읽기 스레드를 줄이고, '
+        'CPU가 한가해지면 설정한 스레드 수로 되돌립니다'
+    ),
+    'action_mft_scan': 'NTFS 드라이브를 파일 테이블에서 읽기',
+    'action_mft_scan_tip': (
+        '관리자 권한으로 실행하여 NTFS 드라이브의 폴더를 스캔할 때 폴더를 하나씩 나열하는 대신 '
+        '드라이브의 마스터 파일 테이블을 직접 읽습니다. 다른 스캔은 이전과 같습니다'
+    ),
     'action_bins': '재활용 쓰레기통…',
     'action_bins_tip': '빈 합계 및 명시적인 범위 OS 비우기 검토',
     'bin_finder_empty': '마운트된 모든 볼륨의 Finder 휴지통을 비우세요…',
@@ -9166,6 +9219,10 @@ KO: dict[str, str] = {
     'menu_scan_here': '이 폴더를 스캔하세요',
     'menu_rescan_here': '이 폴더를 다시 검사하세요.',
     'rescan_done': '다시 스캔됨 {name}: {before} → {after}',
+    'refresh_notice': '이 스캔 이후 스캔한 폴더 {count}개의 내용이 변경되어 그곳에 표시된 크기가 '
+                      '최신이 아닐 수 있습니다. FileTree는 요청하지 않는 한 다시 스캔하지 않습니다.',
+    'refresh_now': '변경된 폴더 다시 스캔',
+    'refresh_now_tip': '변경된 폴더만 다시 읽어 결과를 업데이트합니다',
     'trash_confirm_title': '휴지통으로 이동',
     'protected_title': '시스템 또는 프로그램 폴더',
     'protected_question': (

@@ -74,6 +74,36 @@ def test_bounded_coalescing_only_refreshes_outermost_dirty_branch(window, qapp, 
     assert controller.worker.take().full
 
 
+def test_changed_folders_wait_for_a_request_unless_following_is_on(window, qapp, tmp_path, monkeypatch):
+    _source(window, tmp_path)
+    root = window.results.outcome.result.root
+    branch, other = root.children[0], root.children[1]
+    calls = []
+    monkeypatch.setattr(window, "rescan_folder", calls.append)
+    notice = window.results.refresh_notice
+    window._mark_changed([branch])
+    window._mark_changed([branch, other])
+    for _ in range(5):
+        qapp.processEvents()
+    assert calls == [] and notice.pending == 2 and not notice.isHidden()
+    window._rescan_after_trash()  # what closing another dialog or an expired Undo offer used to trigger
+    assert calls == [] and window._trash_rescans == [branch, other]
+    _enable(window, qapp, monkeypatch)  # the explicit opt-in to automatic refreshing takes them over
+    _wait(qapp, lambda: len(calls) == 2)
+    assert calls == [branch, other] and notice.isHidden() and not window._trash_rescans
+
+
+def test_whole_scan_replaces_the_folders_on_offer(window, qapp, tmp_path):
+    source, root = _source(window, tmp_path)
+    notice = window.results.refresh_notice
+    window._mark_changed([root.children[0]])
+    assert notice.pending == 1
+    window.start_scan(str(source))
+    assert notice.isHidden() and not window._trash_rescans
+    _wait(qapp, lambda: window._worker is None and window.results.outcome is not None)
+    assert notice.isHidden()
+
+
 def test_busy_review_retains_events_and_joins_before_tree_mutation(window, qapp, tmp_path, monkeypatch):
     source, root = _source(window, tmp_path)
     controller = _enable(window, qapp, monkeypatch)

@@ -282,6 +282,9 @@ def test_shared_menu_passes_frozen_proofs_before_rescan(window, tmp_path, monkey
     monkeypatch.setattr(window._bin_labels, "refresh", lambda: None)
     window.show_menu_for(root.children[0], root.children, QPoint())
     assert events[1:3] == ["joined", "deleted"] and events[3] == ("trash", [proof.item.node], Dialog.approval)
-    assert events[4] == ("rescan", root)
+    notice = window.results.refresh_notice
+    assert len(events) == 4 and notice.pending == 1  # the changed root is offered, not scanned unasked
+    notice.button.click()
+    assert events[4] == ("rescan", root) and notice.isHidden()
     window.show_copy([root])
     assert len(events) == 5

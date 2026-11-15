@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import QObject, Qt, QTimer
 from PySide6.QtWidgets import QMessageBox, QPushButton
 
-from je_file_tree.core.node import Node, outermost
+from je_file_tree.core.node import Node
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import after_threads, queue_worker
@@ -89,7 +89,6 @@ class TrashUndo(QObject):
         entries, deadline = self.entries, self.deadline
         self._operation_root = self.root
         self.expire()
-        window._trash_rescans.clear()
         window._bin_labels.stop()
         worker = UndoWorker(entries, window._journal, deadline, int(window.winId()), window)
         worker.done.connect(lambda result: after_threads((worker,), lambda: self._finished(worker, result), self))
@@ -127,9 +126,8 @@ class TrashUndo(QObject):
         self._operation_root = None
         if not current:
             return
-        window._trash_rescans = outermost(entry.parent for entry in worker.entries
-                                         if entry.parent is not None and entry.parent.is_in(root))
-        window._rescan_after_trash()
+        # Restored entries are back on disk but not in the tree: their folders are offered for a rescan.
+        window._mark_changed([entry.parent for entry in worker.entries if entry.parent is not None])
 
     def report(self, result: UndoBatch | None) -> None:
         """Keep native/partial/receipt/audit failures visible with exact actual paths, including on close."""

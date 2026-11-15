@@ -210,6 +210,8 @@ class FollowChanges(QObject):
         if (self.root is not None and worker is not None and not worker.error and worker.backend
                 and time.monotonic() >= self._reconcile):
             self._merge(ChangeBatch(full=True, reason="periodic_reconciliation"))
+        if self.window._trash_rescans:
+            self.window._rescan_after_trash()  # folders left on offer before following was turned on
         self._flush()
 
     def _flush(self) -> None:

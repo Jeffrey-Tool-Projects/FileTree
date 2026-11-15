@@ -177,8 +177,10 @@ def test_approved_entries_and_only_they_are_deleted_and_the_results_follow(windo
     assert _contents(sample_tree) == expected
     assert root.size == 250 and [child.name for child in root.children] == ["code", "notes.txt"]
     assert "Permanently deleted 4 entries (750 B)" in window.statusBar().currentMessage()
-    _wait(qapp, lambda: bool(rescanned))
-    assert rescanned == [root]
+    for _ in range(5):
+        qapp.processEvents()
+    # The results were updated in place; nothing is scanned again and nothing is left on offer.
+    assert rescanned == [] and window.results.refresh_notice.isHidden()
     records = window._journal.recent().records
     assert {(Path(record.source).name, record.reason, record.outcome.status) for record in records} == {
         ("big.bin", "permanent_delete", "deleted"), ("photos", "permanent_delete", "deleted")}

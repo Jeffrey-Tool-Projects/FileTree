@@ -10,6 +10,7 @@ import time
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 
+from je_file_tree.core import native_tree
 from je_file_tree.core.node import Node
 from je_file_tree.core.pacing import give_way
 
@@ -139,13 +140,49 @@ def summarise(root: Node, limit: int = 1000, *, now: float | None = None,
     """
     now = time.time() if now is None else now
     accounted: dict[str, int] | None = {} if root.accounting is not None else None
-    files, sizes, counts = _files_and_extensions(root, accounted=accounted, cancel=cancel)
-    largest = heapq.nlargest(limit, _checked_files(files, cancel), key=_file_size) if limit > 0 else []
+    gathered = _native_summary(root, limit, now, accounted, cancel)
+    if gathered is None:
+        files, sizes, counts = _files_and_extensions(root, accounted=accounted, cancel=cancel)
+        largest = heapq.nlargest(limit, _checked_files(files, cancel), key=_file_size) if limit > 0 else []
+        ages = age_stats(_checked_files(files, cancel), now)
+    else:
+        largest, sizes, counts, ages = gathered
     counted = category_stats(_extension_list(accounted, counts)) if accounted is not None else None
     folders = (node for node in _checked_files(root.children, cancel) if node.is_dir and not node.is_link)
     top_folders = tuple(heapq.nlargest(3, folders, key=_file_size))
-    return Summary(largest, _extension_list(sizes, counts), age_stats(_checked_files(files, cancel), now), now,
-                   counted, top_folders)
+    return Summary(largest, _extension_list(sizes, counts), ages, now, counted, top_folders)
+
+
+def _native_summary(root: Node, limit: int, now: float, accounted: dict[str, int] | None,
+                    cancel: threading.Event | None
+                    ) -> tuple[list[Node], dict[str, int], dict[str, int], list[AgeStat]] | None:
+    """The summary's walk taken by the native module, or None to take it in Python.
+
+    The same walk in the same order (so equal sizes keep their order among the largest files); the
+    module totals each extension as written and the lower-case form is applied here, once per distinct
+    spelling. Measured 2026-11-15 on 1.1 million files: 1.6 s in Python, 0.4 s natively
+    (``docs/updates`` U-20261115-10).
+    """
+    started, step, finish = (native_tree.function(name) for name in ("summary_new", "summary_step", "summary_finish"))
+    if started is None or step is None or finish is None:
+        return None
+    state = started(max(limit, 0), now, accounted is not None)
+    stack = [root]
+    while stack:
+        _check_cancel(cancel)
+        give_way()
+        step(state, stack, native_tree.BATCH)
+    _check_cancel(cancel)
+    largest, written, ages = finish(state)
+    sizes: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for spelling, (size, count, counted) in written.items():
+        extension = spelling.lower()
+        sizes[extension] = sizes.get(extension, 0) + size
+        counts[extension] = counts.get(extension, 0) + count
+        if accounted is not None:
+            accounted[extension] = accounted.get(extension, 0) + counted
+    return largest, sizes, counts, [AgeStat(age, *ages[index]) for index, age in enumerate(AGES)]
 
 
 def _check_cancel(cancel: threading.Event | None) -> None:

@@ -205,8 +205,11 @@ def test_main_routes_exact_groups_joins_serializes_and_rescans_current_root(wind
     monkeypatch.setattr(window, "rescan_folder", lambda scope: events.append(("rescan", scope)))
     monkeypatch.setattr(window._bin_labels, "refresh", lambda: None)
     window.show_duplicate_links([group])
-    assert events == [(root, (group,)), "joined", "deleted", ("rescan", root)]
+    notice = window.results.refresh_notice
+    assert events == [(root, (group,)), "joined", "deleted"] and notice.pending == 1  # offered, not scanned
     assert not window.operation_busy
+    notice.button.click()
+    assert events[3:] == [("rescan", root)] and notice.isHidden()
     panel.kind.setCurrentIndex(panel.kind.findData("photos"))
     panel._groups, panel._found = [group], SimpleNamespace()
     assert not panel.link_groups and not panel.link_extra.isEnabled()
@@ -278,7 +281,11 @@ def test_native_main_workflow_refreshes_keeper_and_extra_scan_identities(window,
     monkeypatch.setattr(DuplicateLinksDialog, "exec", review)
     monkeypatch.setattr(QMessageBox, "exec", lambda _question: QMessageBox.StandardButton.Yes)
     window.show_duplicate_links([group])
-    _wait(qapp, lambda: window._worker is None and window.results.outcome.result.root is not old)
+    qapp.processEvents()
+    assert window._worker is None and window.results.outcome.result.root is old  # no scan without a request
+    window.results.refresh_notice.button.click()
+    _wait(qapp, lambda: window._worker is None and window.results.outcome is not None
+          and window.results.outcome.result.root is not old)
     root = window.results.outcome.result.root
     assert root.path == old.path and root.file_count == 3 and root.size == old.size
     assert len({node.snapshot for node in root.iter_files()}) == 1

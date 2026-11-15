@@ -70,6 +70,18 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261115-10 | 2026-11-15 | 掃描完成後的三段整棵樹運算改由原生模組執行 | #snapshot #perf #core #native | [2026-11](2026-11.md) |
+| U-20261115-09 | 2026-11-15 | 檔案表掃描改用專用的建樹路徑 | #snapshot #perf #scanner | [2026-11](2026-11.md) |
+| U-20261115-08 | 2026-11-15 | 小資料夾不由檔案表讀取 | #decision #perf #scanner | [2026-11](2026-11.md) |
+| U-20261115-07 | 2026-11-15 | 只要能用就由檔案表讀取，不再限於磁碟根目錄 | #decision #perf #scanner #gui #i18n | [2026-11](2026-11.md) |
+| U-20261115-06 | 2026-11-15 | CI 發現檔案表的索引旗標與 Linux 專屬測試未更新 | #incident #ci #scanner #native | [2026-11](2026-11.md) |
+| U-20261115-05 | 2026-11-15 | 整個 NTFS 磁碟的掃描改由主檔案表讀取 | #done #perf #scanner #native #windows #gui #i18n | [2026-11](2026-11.md) |
+| U-20261115-04 | 2026-11-15 | 原生模組直接建立節點：量測無效益，不採用；保留資料夾檢查的修正 | #done #perf #scanner #native | [2026-11](2026-11.md) |
+| U-20261115-03 | 2026-11-15 | 縮短讀完資料夾之後的容量帳本與歷史儲存 | #snapshot #perf #core | [2026-11](2026-11.md) |
+| U-20261115-02 | 2026-11-15 | 量測「掃描時不逐檔查詢」的原型，決定不採用 | #snapshot #perf #scanner #native #windows | [2026-11](2026-11.md) |
+| U-20261115-01 | 2026-11-15 | 掃描依 CPU 使用量自動調整讀取執行緒數 | #decision #perf #scanner #gui #i18n | [2026-11](2026-11.md) |
+| U-20261114-18 | 2026-11-14 | 檔案操作後不再自動重新掃描，改為提示後由使用者要求 | #decision #gui #scan #i18n | [2026-11](2026-11.md) |
+| U-20261114-17 | 2026-11-14 | 0.2.10 發行驗證：佔用空間少算的修正已在正式套件中生效 | #verification #release #windows | [2026-11](2026-11.md) |
 | U-20261114-16 | 2026-11-14 | 操作前的檢查不再採信路徑查詢的 recall-on-open 位元 | #done #fix #windows | [2026-11](2026-11.md) |
 | U-20261114-15 | 2026-11-14 | 移除實驗性的 MFT 稽核掃描 | #done #removal #scanner #windows | [2026-11](2026-11.md) |
 | U-20261114-14 | 2026-11-14 | 修正尚未被開啟過的檔案被算成不佔空間，並放寬 MFT 稽核的連結數規則 | #fix #scanner #native #windows | [2026-11](2026-11.md) |

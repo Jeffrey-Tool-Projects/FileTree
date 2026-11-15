@@ -50,6 +50,18 @@ def reader() -> Reader | None:
     return _reader
 
 
+def chosen() -> tuple[object, bool, bool] | None:
+    """The calibrated module, whether this interpreter's ``st_ctime`` is the Windows change time, and
+    whether it reports the short volume and file numbers of Python 3.11.
+
+    None without a calibrated reader. ``core/mft_scan.py`` builds its snapshots with the same choices.
+    """
+    picked = _chosen if reader() is not None else None
+    if picked is None:
+        return None
+    return picked[0], picked[2], picked[1] == picked[0].QUERY_BY_HANDLE_SHORT  # type: ignore[attr-defined]
+
+
 def agrees_on(path: str) -> bool:
     """Whether the calibrated reader also equals ``os.lstat`` for ``path``, the folder a scan starts from.
 

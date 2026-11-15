@@ -138,7 +138,8 @@ def test_declined_operation_and_close_cancel_joins_owned_command(window, qapp, s
     dialog.deleteLater()
 
 
-def test_main_rescans_attempted_scope_with_exact_allocation(window, sample_tree, monkeypatch):
+def test_main_offers_attempted_scope_and_rescans_it_with_exact_allocation_on_request(window, sample_tree,
+                                                                                     monkeypatch):
     window.results.show_outcome(analyse(scan(sample_tree)))
     root = window.results.outcome.result.root
     rescans = []
@@ -158,6 +159,9 @@ def test_main_rescans_attempted_scope_with_exact_allocation(window, sample_tree,
     monkeypatch.setattr(window, "rescan_folder", lambda node, **kwargs: rescans.append((node, kwargs)))
     window._actions["exact_allocation"].setChecked(False)
     window.show_compression(root)
-    assert rescans == [(root, {"exact_allocation": True})]
+    notice = window.results.refresh_notice
+    assert rescans == [] and notice.pending == 1 and not notice.isHidden()  # no scan the user did not ask for
+    notice.button.click()
+    assert rescans == [(root, {"exact_allocation": True})] and notice.isHidden()
     assert window._scan_options(exact_allocation=True).exact_windows_allocation
     assert not window._scan_options().exact_windows_allocation

@@ -318,6 +318,18 @@ rearming preserves the periodic deadline and unrelated pending paths; new roots 
 Shared OperationGroup exclusion quiesces peer monitors before source mutation/tree changes. Native
 failures remain visible without retry loops; opt-out/tab close cancel/join through wait_for.
 
+Scans start only on a user request (U-20261114-18): opening/dropping a folder, Rescan, a branch
+rescan, or the FollowChanges opt-in above. Source operations never start one. Approved Trash and
+permanent-delete batches update the tree in place (`ResultsView.forget`); every other change (path
+moves, verified copies, duplicate links, compression, virtual-disk compaction, Undo restores, batches
+with skipped/failed/refused entries, counted hard-link totals) goes through `MainWindow._mark_changed`,
+which merges the outermost changed folders into `_trash_rescans` and shows `gui.refresh_notice`
+above the results. `MainWindow.refresh_changed` (the notice button) is the only caller that sets
+`_refreshing`; `_rescan_after_trash` reads the queued folders through `rescan_folder` only while that
+flag or FollowChanges is on, so later dialog closes, Undo expiry and scan endings no longer trigger
+scans. Compression scopes keep their per-file allocation request in `_exact_rescans`. A whole scan
+or shutdown clears the queue; Stop during a requested refresh leaves the remaining folders on offer.
+
 `core.background` separates strict default-off monitor configuration, selected-root schedule claims
 and bounded capacity warning transitions from GUI services. Versioned configuration stores no
 commands or action permissions. Claim receipts bind root, timestamp and schedule fingerprint;
@@ -559,8 +571,8 @@ itself, compares the open object identity and marks that object for deletion; PO
 parent by descriptor and uses `unlinkat`/`rmdir` (a swap between check and unlink cannot be excluded
 there). Links go as links; mount points, other volumes, read-only entries and incompletely scanned
 folders are refused; later arrivals stay and keep their folder. The batch is journaled first
-(`deleted`/`partial` statuses), offers no Undo, reports every refusal and failure, and rescans the
-parents. `test/conftest.py` wraps `remove_entry` and refuses any path outside pytest's temporary
+(`deleted`/`partial` statuses), offers no Undo, reports every refusal and failure, and offers the
+parents of refused/failed entries for a requested rescan. `test/conftest.py` wraps `remove_entry` and refuses any path outside pytest's temporary
 directory; AST tests pin the single entry point.
 
 `je_file_tree/_native.cpp` (built by `setup.py` as the optional `je_file_tree._native`, Windows only,
@@ -883,8 +895,8 @@ regular state, protection/system-managed exclusions and allocation. Per-file com
 OS system directory without a shell, recursion, wildcards or directory defaults; restoration invokes
 both /u and /u /exe. Owned `CompactWorker` retains failures/partial results. Stop/close terminates,
 waits and joins the current subprocess; the dialog cannot start another operation or select files.
-On attempted operations MainWindow rescans the exact branch/root with a transient per-file allocation
-override, preserving the user's default scan option. Matched before/after known allocation remains
+On attempted operations MainWindow offers the exact branch/root for a requested rescan with a transient
+per-file allocation override, preserving the user's default scan option. Matched before/after known allocation remains
 separate from unknown measurements and is not guaranteed freed capacity.
 `tools/validate_windows_compression.py` creates only fresh owned NTFS fixtures, checks SHA-256 and
 restoration, an owned junction's untouched peer and hard-link refusal, and atomically writes evidence.
@@ -970,7 +982,7 @@ Per-item outcomes remain visible, including errors received while closing/joinin
 also rejects changed cloud attributes/link counts even if content dates and lengths stay the same.
 The operation worker rescans affected parents outside the current root
 and reports counts/errors; after joining, MainWindow invalidates capacity/old analyser replies and
-rebuilds the current root, refreshing both affected parents within it. Native macOS remains unverified.
+offers the current root for a requested rescan, which refreshes both affected parents within it. Native macOS remains unverified.
 
 `core.verified_copy` prepares exclusive ordinary-folder copy plans, including cross-volume targets,
 and returns CopyProof observations after complete name/count/length comparison and SHA-256 comparison
@@ -999,8 +1011,8 @@ Trash, stops remaining moves on failure, and optionally invokes core.copy_approv
 only after success. Native exclusive junction/symlink creation refuses occupied original paths;
 redirect errors retain the copy/Trash receipt and report paths separately from verification errors.
 Windows may retain an empty source directory on native junction failure. Destination parents
-rescan on the copy worker; source parents rescan after Trash. Declining Trash rescans the current
-root. MainWindow tracks path dialogs and joins them on parent close before destroying scan trees.
+rescan on the copy worker; trashed sources leave the tree in place and the current root is offered
+for a requested rescan. MainWindow tracks path dialogs and joins them on parent close before destroying scan trees.
 TrashWorker retains MoveResult before queued delivery; parent close joins it and reports late copy
 verification/redirect failures before dismissing the window.
 
@@ -1027,7 +1039,7 @@ successful receipts. `gui.trash_undo` owns the 8s status-bar offer, frozen root/
 remain intact; new undo records have distinct ids/batches and additive restored outcomes. Captured
 parent references avoid GUI tree traversal and detached-path reuse. Offer expiry, new scans/actions,
 path dialogs and close discard authority. MainWindow serializes inverse work with scanning/Trash,
-postpones automatic source-parent rescans while Undo is offered and joins native work before close.
+offers source parents for a requested rescan after a restore and joins native work before close.
 Late partial/receipt/audit results remain visible in plain text; a replaced tree receives no rescan.
 An occupied copy redirect is refused without removing it. Native Windows owned-fixture GUI proof
 confirmed button/action/hash/empty-folder/audit/rescan behavior; Native Linux CI verified normal GUI capture, exact private-bin restoration, receipt cleanup/container preservation
@@ -1193,6 +1205,48 @@ is read, totals are added up again bottom-up and children sorted largest first; 
 files, per-type totals) runs still off the GUI thread and `succeeded(ScanOutcome)` ends live mode. Stop
 raises `ScanCancelledError` carrying the partial tree (unread folders marked `NOT_SCANNED`), shown as an
 incomplete outcome. Signals of a replaced worker are ignored.
+
+**Scan threads follow processor use.** `ScanOptions.adaptive` (the window's **Adjust scan threads to
+processor use**, on by default, kept in `QSettings` as `auto_cpu`) makes `ScanOptions.workers` an upper
+limit. `core.cpu_load.WorkerGovernor` reads whole-machine processor time (`GetSystemTimes`, `/proc/stat`),
+subtracts this process's own, and allows about as many reading threads as other programs leave processors
+free, from one to `workers`, moving one step per half-second reading. `_Crawler.run` asks it on its
+progress loop and `_take` hands out a folder only while fewer than that many are being read; reads under
+way always finish. Without a reading (macOS, BSD, a refused call) the chosen number is used. The field is
+excluded from comparing `ScanOptions`: presets, workspace templates and restart hand-offs do not carry
+it. Measurements are in `core/cpu_load.py`.
+
+**NTFS drives are read from their file table.** With `ScanOptions.mft` (the window's **Read NTFS drives
+from the file table**, on by default, `QSettings` key `mft_scan`) and a scan that starts at a folder of a
+lettered drive, `scanner._table_for` asks `core.mft_scan.open_table`. `MainWindow.rescan_folder`
+clears the flag for one folder of a finished scan, which is listed so that it shows what just changed. It has `_native.mft_open` read
+and index the master file table (four reading threads, read-only volume and `$MFT` handles) and returns
+a `Table` whose rows, by file reference, have the native folder reader's format. `scanner._TableWalk`
+builds the tree from them on the calling thread, without the crawler's workers, queue and governor,
+which exist to overlap waits on the file system; it applies the rules of `_read_native` (hidden and
+excluded entries, cluster rounding, running totals for the tree shown meanwhile) and honours cancel,
+pause, progress and gentle priority itself. Rows carry snapshots built like those of a query; reparse
+points and records without complete metadata are "ask Python" rows handled by `_entry_node`, and a
+plain folder among them is read from the table by its current reference. `open_table` answers
+None, and folders are listed, unless the path is on a lettered drive, the folder is a drive root or not
+small (`is_small`: a listing probe bounded by 20,000 entries and half a second), the volume is NTFS and
+readable (administrator), no record failed its update-sequence check and the table's snapshot of the starting
+folder equals `os.lstat` (which also refuses a folder reached through a link or mounted volume). Operation checks are unchanged: they compare a fresh `os.lstat` with the recorded snapshot.
+The table can describe folders the account may not list. Measurements: `core/mft_scan.py` and
+docs/updates U-20261115-05.
+
+**Passes over a finished tree may be native.** After a scan the worker walks the tree for the summary, the
+capacity ledger and the saved history; on a whole drive those loops took as long as the scan.
+`core.native_tree.function(name)` hands out the optional `_native` function for a pass, or None (other
+systems, no module, an older module, `FILE_TREE_NATIVE_TREE=0`), and each caller keeps the Python code it
+stands in for: `analysis._native_summary` beside `_files_and_extensions`, `capacity._survey` beside
+`_Counts.add`, `export.folder_json_pieces` beside `_folder_json`, and `export._iso_time` asking
+`local_time_text` first. Every native pass does a bounded batch per call (`native_tree.BATCH`), so the
+caller still looks at its cancel event and calls `give_way()` in between, and must produce exactly what
+the Python code produces: `test/test_native_tree.py` compares the two, and `test/conftest.py` keeps every
+other test on the Python passes. Local time is formatted with the C runtime functions `time.localtime`
+itself uses, taken from the runtime library loaded in the process. Measurements: docs/updates
+U-20261115-10.
 
 **Background work gives way.** In CPython one thread runs Python at a time, and every call Qt makes into
 Python (each cell the folder tree paints, every event handler) needs that lock, so a worker walking the
@@ -1730,7 +1784,8 @@ The experimental raw NTFS metadata audit (`core/mft.py`, `core/mft_reader.py`, `
 `ScanOptions.experimental_mft`, `ScanResult.backend` and their validation tools) was removed on
 2026-11-14 by owner decision: on a live system volume it fell back to the ordinary scan, it was about
 ten times slower, and a successful audit equalled the ordinary result by design
-(docs/updates U-20261114-13 to -15). The scanner has one backend.
+(docs/updates U-20261114-13 to -15). A different design, without a check per entry, reads whole drives
+from the table since 2026-11-15 (see "NTFS drives are read from their file table").
 
 The GUI entry point accepts `--background` for an explicitly enabled monitor. It skips elevation
 and hides the workspace only when the saved opt-in configuration and native system tray are usable.

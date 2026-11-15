@@ -9,7 +9,7 @@ from je_file_tree.core.operations import MoveSummary
 import json
 import os
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from PySide6.QtCore import QByteArray, QEvent, QPoint, QSettings, QSignalBlocker, QSize, QThread, Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QDragEnterEvent, QDropEvent, QKeySequence
@@ -124,6 +124,8 @@ EXCLUSIONS_KEY = "exclusions"
 SEARCHES_KEY = "saved_searches"
 CLEANUP_POLICY_KEY = "cleanup_policy"
 SCAN_WORKERS_KEY = "scan_workers"
+AUTO_CPU_KEY = "auto_cpu"
+MFT_SCAN_KEY = "mft_scan"
 _CHART_SETTINGS = ("chart_mode", "treemap_levels", "treemap_colours", "tree_orientation")
 
 
@@ -174,7 +176,6 @@ class MainWindow(QMainWindow):
         self._init_scan_state()
         self._init_operation_workers()
         self._path_dialogs, self._settings_dialogs = set[QDialog](), set[WorkerDialog]()
-        self._trash_rescans: list[Node] = []
         self._closing, self._close_waiting, self._close_ready = False, False, False
         self._analyser: AnalyseWorker | None = None
         self._analysers: set[AnalyseWorker] = set()
@@ -230,6 +231,11 @@ class MainWindow(QMainWindow):
         self._scan_workers: set[ScanWorker] = set()
         self._pending_scan: ScanWorker | None = None
         self._folder_drops = FolderDrops(self)
+        # Folders whose files an operation changed after they were scanned. They are read again when the
+        # user asks (the notice above the results), or by themselves only while Follow changes is on.
+        self._trash_rescans: list[Node] = []
+        self._exact_rescans: set[Node] = set()  # of those, the ones to read with per-file allocation
+        self._refreshing = False  # the user asked for the changed folders: go through all of them
 
     def _restore_cleanup_policy(self) -> None:
         self._cleanup_policy = CleanupPolicy()
@@ -290,7 +296,7 @@ class MainWindow(QMainWindow):
         if self.operation_busy or self._path_dialogs or self._closing:
             return
         self._undo.expire()
-        self._trash_rescans.clear()
+        self._forget_changed()
         path = os.path.abspath(os.path.expanduser(path.strip().strip('"')))
         self._begin_scan(path, exact_allocation=exact_allocation)
 
@@ -377,7 +383,7 @@ class MainWindow(QMainWindow):
         background = self._background_pause(wait=False) if self._background_pause is not None else ()
         following = self._follow.stop(clear=True, wait=False)
         self._undo.expire()
-        self._trash_rescans.clear()
+        self._forget_changed()
         previous = self._worker
         if previous is not None:
             previous.cancel()
@@ -521,6 +527,8 @@ class MainWindow(QMainWindow):
         self._live_timer.stop()
         if self._trash_rescans:
             QTimer.singleShot(0, self._rescan_after_trash)
+        else:
+            self._refreshing = False
 
     def _back_from_scan(self) -> None:
         self.results.end_scan()
@@ -606,7 +614,7 @@ class MainWindow(QMainWindow):
             self._analyser = None
             self.results.clear_capacity()
             self._bin_labels.refresh()
-            self.rescan_folder(root)
+            self._mark_changed([root])
 
     def show_copy(self, nodes: Sequence[Node]) -> None:
         """Review copied folders, join the copy worker, then use ordinary protected-folder Trash approval."""
@@ -637,8 +645,7 @@ class MainWindow(QMainWindow):
         self._bin_labels.refresh()
         if dialog.finish_requested and dialog.approval is not None:
             self.move_to_trash([proof.item.node for proof in dialog.approval.proofs], copies=dialog.approval)
-        if not self.operation_busy:
-            self.rescan_folder(root)
+        self._mark_changed([root])
 
     def show_duplicate_links(self, groups: Sequence[DuplicateGroup]) -> None:
         """Serialize reviewed exact-file linking and rebuild the full root after any attempted operation."""
@@ -669,7 +676,7 @@ class MainWindow(QMainWindow):
             self._analyser = None
             self.results.clear_capacity()
             self._bin_labels.refresh()
-            self.rescan_folder(root)
+            self._mark_changed([root])
 
     def show_compression(self, node: Node) -> None:
         """Review/confirm scoped native operations, then rescan with per-file allocation if attempted."""
@@ -690,7 +697,7 @@ class MainWindow(QMainWindow):
             self._update_actions()
             dialog.deleteLater()
         if dialog.changed:
-            self.rescan_folder(node, exact_allocation=True)
+            self._mark_changed([node], exact=True)
 
     def rescan_folder(self, node: Node, *, exact_allocation: bool = False) -> None:
         """Scan one folder again and swap it into the results (the whole scan when it is the root)."""
@@ -704,14 +711,17 @@ class MainWindow(QMainWindow):
             return
         if self.results.outcome.result.hard_links is not None or self._actions["count_hard_links"].isChecked():
             root = self.results.outcome.result.root
-            self._trash_rescans.clear()
+            self._forget_changed()
             self.start_scan(root.path, exact_allocation=exact_allocation)
             return
         if node.parent is None:
             self.start_scan(node.path, exact_allocation=exact_allocation)
             return
         self._analyser = None
-        worker = ScanWorker(node.path, self._scan_options(exact_allocation=exact_allocation), self)
+        # One folder of a finished scan is listed, never taken from the file table on disk, which can be
+        # a few seconds behind what an operation has just changed.
+        worker = ScanWorker(node.path, replace(self._scan_options(exact_allocation=exact_allocation), mft=False),
+                            self)
         before = node.size
         worker.progressed.connect(
             lambda progress: self._is_current(worker) and self.results.scan_bar.show_progress(progress))
@@ -796,6 +806,7 @@ class MainWindow(QMainWindow):
         self.results.apply_summary(summary)
 
     def _branch_cancelled(self) -> None:
+        self._refreshing = False  # stopping one folder stops the rest of a requested refresh: they stay on offer
         self._scan_ended()
         self.results.scan_bar.hide()
         self._update_actions()
@@ -938,10 +949,12 @@ class MainWindow(QMainWindow):
         self.results.setEnabled(True)
         self._update_actions()
         outcome, removed = self.results.outcome, worker.removed_summary
+        shown = False  # whether the results already show everything this batch did
         if (result.removed and outcome is not None and outcome.result.hard_links is None and removed is not None
                 and removed.now == outcome.now):
             self._analyser = None
             self.results.forget(result.removed, removed=removed)
+            shown = not (result.failed or result.refused or result.kept)
         summary = report_summary(result, self._unit)
         rows = report_rows(result)
         if rows:
@@ -950,9 +963,9 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, tr("action_recent_actions"),
                                 tr("journal_write_failed", reason="\n".join(worker.journal_errors)))
         self.statusBar().showMessage(summary, _STATUS_TIMEOUT_MS)
-        self._trash_rescans = outermost(result.parents)
         self._update_actions()
-        QTimer.singleShot(0, self._rescan_after_trash)
+        if not shown:
+            self._mark_changed(result.parents)
 
     def _proposal_current(self, proposal: RecurringReview) -> bool:
         status = proposal.check()
@@ -1007,6 +1020,7 @@ class MainWindow(QMainWindow):
         outcome = self.results.outcome
         self.results.completion.show_summary(summary, outcome.result.root if outcome is not None else None,
                                              outcome.capacity if outcome is not None else None)
+        shown = False  # whether the results already show everything this batch did
         if moved:
             self._analyser = None
             outcome = self.results.outcome
@@ -1014,6 +1028,7 @@ class MainWindow(QMainWindow):
             if (outcome is not None and outcome.result.hard_links is None and removed is not None
                     and removed.now == outcome.now):
                 self.results.forget(moved, removed=removed)
+                shown = not (failed or result.skipped or result.copy_errors)
         if failed:
             self._show_failed(result)
         if result.skipped:
@@ -1026,9 +1041,9 @@ class MainWindow(QMainWindow):
                   failed=format_count(len(failed)), size=moved_size)
         unavailable = self._undo.offer(worker)
         self.statusBar().showMessage(done + ("\n" + unavailable if unavailable else ""), _STATUS_TIMEOUT_MS)
-        self._trash_rescans = outermost(result.parents)
         self._update_actions()
-        QTimer.singleShot(0, self._rescan_after_trash)
+        if not shown:
+            self._mark_changed(result.parents)
 
     def _show_failed(self, result: MoveResult) -> None:
         """Keep brief warnings; retain all large/limited diagnostic details in a lazy report."""
@@ -1071,16 +1086,66 @@ class MainWindow(QMainWindow):
                 lines.append(tr("trash_holders_limited", path=node.path))
         return "\n\n" + "\n".join(lines) if lines else ""
 
+    def _mark_changed(self, nodes: Sequence[Node], *, exact: bool = False) -> None:
+        """Remember that an operation changed files in ``nodes``: offered for a rescan, never scanned unasked."""
+        root = self.results.tree_model.root
+        if root is None or self._closing:
+            return
+        self._trash_rescans = outermost(node for node in (*self._trash_rescans, *nodes) if node.is_in(root))
+        if exact:
+            self._exact_rescans.update(nodes)
+        self._update_refresh_notice()
+        QTimer.singleShot(0, self._rescan_after_trash)
+
+    def _forget_changed(self) -> None:
+        """Drop the changed folders on offer: a whole scan replaces them, or the window is closing."""
+        self._trash_rescans.clear()
+        self._exact_rescans.clear()
+        self._refreshing = False
+        self._update_refresh_notice()
+
+    def _update_refresh_notice(self) -> None:
+        offered = self.results.outcome is not None and not self._follow.enabled and not self._closing
+        ready = self._worker is None and not self.operation_busy
+        self.results.refresh_notice.show_pending(len(self._trash_rescans) if offered else 0, enabled=ready)
+
+    def refresh_changed(self) -> None:
+        """Rescan the folders changed since they were scanned, because the user asked for it."""
+        if self._closing or self.operation_busy or self._worker is not None or not self._trash_rescans:
+            return
+        self._undo.expire()
+        self._refreshing = True
+        self._rescan_after_trash()
+
     def _rescan_after_trash(self) -> None:
+        """Read the next changed folder again, once the user asked (or while Follow changes is on).
+
+        Until then the folders only stay on offer in the notice: a scan the user did not ask for kept
+        the window busy after every operation, and again after the next dialog was closed.
+        """
+        if not self._trash_rescans:
+            self._refreshing = False
+        self._update_refresh_notice()
+        if not self._refreshing and not self._follow.enabled:
+            return
         if (self._closing or self.operation_busy or self._worker is not None
                 or self._undo.available or not self._trash_rescans):
             return
         node = self._trash_rescans.pop(0)
+        exact = node in self._exact_rescans
+        self._exact_rescans.discard(node)
         root = self.results.tree_model.root
         if root is not None and node.is_in(root):
-            self.rescan_folder(node)
-        if self._worker is None and self._trash_rescans:
-            QTimer.singleShot(0, self._rescan_after_trash)
+            if exact:
+                self.rescan_folder(node, exact_allocation=True)
+            else:
+                self.rescan_folder(node)
+        if self._worker is None:
+            if self._trash_rescans:
+                QTimer.singleShot(0, self._rescan_after_trash)
+            else:
+                self._refreshing = False
+                self._update_refresh_notice()
 
     def _confirm_protected(self, nodes: list[Node], question_key: str = "protected_question") -> bool:
         """The first of two questions when system or program folders are among ``nodes``: True to go on."""
@@ -1383,6 +1448,8 @@ class MainWindow(QMainWindow):
         self._actions["hidden"].setChecked(read_flag(self.settings, "include_hidden", True))
         self._actions["ask_admin"].setChecked(read_flag(self.settings, ASK_ADMIN_KEY, True))
         self._actions["gentle"].setChecked(read_flag(self.settings, "gentle_scan", False))
+        self._actions["auto_cpu"].setChecked(read_flag(self.settings, AUTO_CPU_KEY, True))
+        self._actions["mft_scan"].setChecked(read_flag(self.settings, MFT_SCAN_KEY, True))
         with QSignalBlocker(self._actions["check_updates"]):
             self._actions["check_updates"].setChecked(self._updates.enabled())
         self._actions["capture_file_times"].setChecked(read_flag(self.settings, "capture_file_times", False))
@@ -1427,8 +1494,8 @@ class MainWindow(QMainWindow):
 
     def _shutdown(self, *, wait: bool) -> None:
         """Invalidate all replies; optional joins are used only after the closing fence has completed."""
-        self._trash_rescans.clear()
         self._closing = True
+        self._forget_changed()
         self._update_folder_context()
         self._live_timer.stop()
         self._folder_drops.shutdown(wait=wait)
@@ -1548,6 +1615,8 @@ class MainWindow(QMainWindow):
             ("shell_integration", None, self.edit_shell_integration),
             ("gentle", None, lambda: self.settings.setValue("gentle_scan", self._actions["gentle"].isChecked())),
             ("scan_workers", None, self.configure_workers),
+            ("auto_cpu", None, lambda: self.settings.setValue(AUTO_CPU_KEY, self._actions["auto_cpu"].isChecked())),
+            ("mft_scan", None, lambda: self.settings.setValue(MFT_SCAN_KEY, self._actions["mft_scan"].isChecked())),
             ("ask_admin", None, lambda: self.settings.setValue(ASK_ADMIN_KEY, self._actions["ask_admin"].isChecked())),
             ("help", QKeySequence.StandardKey.HelpContents, self.show_help),
             ("about", None, self.show_about),
@@ -1575,6 +1644,9 @@ class MainWindow(QMainWindow):
         self._actions["hidden"].setCheckable(True)
         self._actions["ask_admin"].setCheckable(True)
         self._actions["gentle"].setCheckable(True)
+        self._actions["auto_cpu"].setCheckable(True)
+        self._actions["mft_scan"].setCheckable(True)
+        self._actions["mft_scan"].setVisible(elevation.supported())
         self._actions["capture_file_times"].setCheckable(True)
         self._actions["capture_file_times"].toggled.connect(
             lambda checked: self.settings.setValue("capture_file_times", checked))
@@ -1644,7 +1716,8 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self._actions["exclusions"])
         view_menu.addAction(self._actions["ask_admin"])
         options_menu = bar.addMenu("")
-        for key in ("cleanup_policy", "gentle", "scan_workers", "scan_presets", "history_settings"):
+        for key in ("cleanup_policy", "gentle", "scan_workers", "auto_cpu", "mft_scan", "scan_presets",
+                    "history_settings"):
             options_menu.addAction(self._actions[key])
         for key in ("check_updates", "follow_changes", "background_monitor"):
             options_menu.addAction(self._actions[key])
@@ -1716,6 +1789,7 @@ class MainWindow(QMainWindow):
         self.welcome.bin_refresh_requested.connect(self.refresh_bin_labels)
         self.results.cleanup.bin_refresh_requested.connect(self.refresh_bin_labels)
         self.results.cleanup.bins_requested.connect(self.show_bins)
+        self.results.refresh_notice.requested.connect(self.refresh_changed)
         self.results.scan_bar.stop_requested.connect(self.stop_scan)
         self.results.scan_bar.pause_requested.connect(self.pause_scan)
         self.results.node_menu_requested.connect(self.show_menu_for)
@@ -1776,6 +1850,7 @@ class MainWindow(QMainWindow):
         self._actions["multi_scan"].setEnabled(not self.operation_busy)
         self.welcome.scan_all.setEnabled(not scanning and bool(self.welcome.drive_rows))
         self._update_bin_buttons()
+        self._update_refresh_notice()
 
     def _update_bin_buttons(self) -> None:
         ready = not self._closing and self._worker is None and not self.operation_busy
@@ -1820,9 +1895,9 @@ class MainWindow(QMainWindow):
             self._analyser = None
             self.results.clear_capacity()
             self._bin_labels.refresh()
-            self.rescan_folder(outcome.result.root)
+            self._mark_changed([outcome.result.root])
         elif self._trash_rescans:
-            self._process_trash_rescans()
+            self._rescan_after_trash()
 
     def show_programs(self) -> None:
         """Review Windows registrations/game names against the current recorded tree on an owned worker."""
@@ -2152,7 +2227,9 @@ class MainWindow(QMainWindow):
                            file_times=self._actions["capture_file_times"].isChecked(),
                            windows_owners=self._actions["capture_owners"].isChecked(),
                            exact_windows_allocation=exact_allocation or self._actions["exact_allocation"].isChecked(),
-                           count_hard_links=self._actions["count_hard_links"].isChecked())
+                           count_hard_links=self._actions["count_hard_links"].isChecked(),
+                           adaptive=self._actions["auto_cpu"].isChecked(),
+                           mft=self._actions["mft_scan"].isChecked())
 
     def configure_workers(self) -> None:
         """Persist bounded concurrency for new scans and branch rescans, leaving running workers alone."""

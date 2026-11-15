@@ -18,6 +18,7 @@ from contextlib import contextmanager
 from datetime import datetime, UTC
 from typing import Any, TextIO
 
+from je_file_tree.core import native_tree
 from je_file_tree.core.node import Node
 from je_file_tree.core.pacing import give_way
 
@@ -82,7 +83,7 @@ def export_json(root: Node, target: str | os.PathLike[str], max_depth: int | Non
                          "hard_link_accounting": root.accounting is not None}, ensure_ascii=False)
     with _atomic_file(target, encoding="utf-8") as stream:
         stream.write(header[:-1] + ', "root": ')
-        stream.writelines(_folder_json(root, max_depth))
+        stream.writelines(folder_json_pieces(root, "") if max_depth is None else _folder_json(root, max_depth))
         stream.write("}\n")
 
 
@@ -98,6 +99,23 @@ def _folders(root: Node, max_depth: int | None) -> Iterable[Node]:
                      if child.is_dir and not child.is_link)
 
 
+def folder_json_pieces(root: Node, joiner: str) -> Iterator[str]:
+    """The whole folder tree as JSON text in pieces: the chunks of ``_folder_json``, ``joiner`` between them.
+
+    A piece is one chunk when the walk is taken in Python and up to ``native_tree.BATCH`` of them, joined,
+    when the native module takes it. Measured 2026-11-15 on 325,000 folders: saving the history took
+    5.3 s in Python and 1.6 s natively, with the same text (``docs/updates`` U-20261115-10).
+    """
+    write = native_tree.function("json_folders")
+    if write is None:
+        yield from _folder_json(root, None)
+        return
+    pending: list[object] = [root]
+    while pending:
+        give_way()
+        yield write(pending, native_tree.BATCH, _iso_time, joiner)
+
+
 def _folder_json(root: Node, max_depth: int | None) -> Iterator[str]:
     """Stream nested folders with a depth-sized stack, without a second tree or recursive JSON encoder."""
     stack: list[tuple[Iterator[Node], int]] = []
@@ -110,11 +128,11 @@ def _folder_json(root: Node, max_depth: int | None) -> Iterator[str]:
                                      accounted_size=node.accounted_size, accounted_allocated=node.accounted_allocated)
         if node.error:
             fields["error"] = node.error
-        if node.path is None:
+        if node.parent is None and not node.name:  # ``node.path is None``, without joining a path per folder
             fields["virtual"] = True
         children = iter(child for child in node.children if child.is_dir and not child.is_link)
         first = next(children, None) if max_depth is None or depth < max_depth else None
-        encoded = json.dumps(fields, ensure_ascii=False)
+        encoded = _encode(fields)
         if first is not None:
             yield encoded[:-1] + ', "children": ['
             stack.append((children, depth))
@@ -133,11 +151,31 @@ def _folder_json(root: Node, max_depth: int | None) -> Iterator[str]:
                 yield ", "
 
 
+# One encoder for every folder: ``json.dumps`` with an option builds a new one per call. Measured
+# 2026-11-15 on 125,000 folders, with the two changes around it (no path joined per folder, local time
+# formatted directly): saving a scan to history went from 3.2 s to 1.8 s, with the same text written.
+_encode = json.JSONEncoder(ensure_ascii=False).encode
+_MINUTE = 60
+
+
 def _iso_time(timestamp: float) -> str:
+    """Local time with its UTC offset, to the second ("" for no or an unusable time)."""
     if timestamp <= 0:
         return ""
+    quick = native_tree.function("local_time_text")
+    text = quick(timestamp) if quick is not None else None
+    if text is not None:
+        return text  # the same text from the module: ``time.localtime`` builds the zone's name on every call
     try:
-        return datetime.fromtimestamp(timestamp, tz=UTC).astimezone().isoformat(timespec="seconds")
+        # What ``datetime.fromtimestamp(...).astimezone().isoformat(timespec="seconds")`` gives, which
+        # this used to call once per folder: datetime rounds to microseconds before the seconds are cut.
+        local = time.localtime(round(timestamp, 6))
+        offset = local.tm_gmtoff
+        if offset is None or offset % _MINUTE:
+            return datetime.fromtimestamp(timestamp, tz=UTC).astimezone().isoformat(timespec="seconds")
+        hours, minutes = divmod(abs(offset) // _MINUTE, _MINUTE)
+        return (f"{local.tm_year:04d}-{local.tm_mon:02d}-{local.tm_mday:02d}T{local.tm_hour:02d}:"
+                f"{local.tm_min:02d}:{local.tm_sec:02d}{'-' if offset < 0 else '+'}{hours:02d}:{minutes:02d}")
     except (OverflowError, OSError, ValueError):
         return ""
 
