@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,8 +11,8 @@ from types import SimpleNamespace
 import pytest
 
 from test_gui import window as window  # noqa: PLC0414 - explicit fixture re-export
-from je_file_tree.core import mft_scan, native_scan, scanner
-from je_file_tree.core.scanner import ScanOptions, scan
+from je_file_tree.core import mft_scan, native_scan
+from je_file_tree.core.scanner import NOT_SCANNED, ScanCancelledError, ScanOptions, scan
 from je_file_tree.core.snapshot import pack_snapshot, path_metadata
 from je_file_tree.gui import main_window as main
 
@@ -34,7 +35,7 @@ class _Table:
     def mft_open(self, drive):
         self.opened.append(drive)
         if self.refuse:
-            raise PermissionError(5, "Access is denied")
+            raise PermissionError(13, "Permission denied")
         return "table"
 
     def mft_info(self, table):
@@ -76,25 +77,18 @@ def test_only_a_path_on_a_lettered_drive_names_a_table(path, drive):
 
 
 def test_a_folder_below_the_root_is_served_from_its_own_record(made_up_drive):
-    start = "Q:\\some\\folder"
-    read = mft_scan.table_reader(start)  # the made-up module answers for whatever os.lstat names
-    assert read is not None and made_up_drive.opened == ["Q:"]
-    assert [row[0] for row in read(start, False)] == ["inner", "file.bin"]
-    assert [row[0] for row in read(os.path.join(start, "inner"), False)] == ["deep.txt"]
-    with pytest.raises(FileNotFoundError):
-        read(ROOT, False)
+    table = mft_scan.open_table("Q:\\some\\folder")  # the made-up module answers for whatever os.lstat names
+    assert table is not None and made_up_drive.opened == ["Q:"] and table.root == ROOT_REFERENCE
 
 
-def test_rows_are_served_by_reference_and_each_folder_once(made_up_drive):
-    read = mft_scan.table_reader(ROOT)
-    assert read is not None and made_up_drive.opened == ["Q:"]
-    rows = read(ROOT, True)
+def test_rows_are_served_by_reference(made_up_drive):
+    table = mft_scan.open_table(ROOT)
+    assert table is not None and made_up_drive.opened == ["Q:"] and table.root == ROOT_REFERENCE
+    rows = table.rows(table.root, True)
     assert [row[0] for row in rows] == ["inner", "file.bin"]
-    assert [row[0] for row in read(os.path.join(ROOT, "inner"), False)] == ["deep.txt"]
-    assert made_up_drive.asked == [(ROOT_REFERENCE, True, False, False), (40 | (2 << 48), False, False, False)]
-    for path in (ROOT, os.path.join(ROOT, "inner"), os.path.join(ROOT, "file.bin"), "Q:\\elsewhere"):
-        with pytest.raises(FileNotFoundError):
-            read(path, False)
+    inner = mft_scan.reference_of(rows[0][4])
+    assert inner == 40 | (2 << 48) and [row[0] for row in table.rows(inner, False)] == ["deep.txt"]
+    assert made_up_drive.asked == [(ROOT_REFERENCE, True, False, False), (inner, False, False, False)]
 
 
 @pytest.mark.parametrize("change", ["network", "switched off", "not calibrated", "old module", "refused", "damaged",
@@ -122,7 +116,7 @@ def test_the_table_is_not_used_unless_everything_holds(made_up_drive, monkeypatc
         monkeypatch.setattr(mft_scan, "is_small", lambda asked: asked == path)
     else:
         monkeypatch.setattr(mft_scan, "sys", SimpleNamespace(platform="linux"))
-    assert mft_scan.table_reader(path) is None
+    assert mft_scan.open_table(path) is None
     assert not made_up_drive.asked
     assert not made_up_drive.opened or change in ("refused", "damaged", "root differs")
 
@@ -130,8 +124,8 @@ def test_the_table_is_not_used_unless_everything_holds(made_up_drive, monkeypatc
 def test_a_drive_root_is_never_probed_and_a_large_folder_is_read_from_the_table(made_up_drive, monkeypatch):
     probed = []
     monkeypatch.setattr(mft_scan, "is_small", lambda path: probed.append(path) or False)
-    assert mft_scan.table_reader(ROOT) is not None and not probed
-    assert mft_scan.table_reader("Q:\\large") is not None and probed == ["Q:\\large"]
+    assert mft_scan.open_table(ROOT) is not None and not probed
+    assert mft_scan.open_table("Q:\\large") is not None and probed == ["Q:\\large"]
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="the probe reads Windows file attributes")
@@ -168,52 +162,168 @@ def test_the_probe_does_not_enter_a_junction(tmp_path, monkeypatch):
     assert (outside / "many" / "file0").exists()
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="the scanner takes native rows on Windows only")
-def test_a_scan_asks_for_the_table_only_when_told_and_then_reads_with_one_thread(tmp_path, monkeypatch):
-    (tmp_path / "inner").mkdir()
-    (tmp_path / "inner" / "deep.txt").write_bytes(b"abc")
-    (tmp_path / "file.bin").write_bytes(b"123456789")
-    asked, threads = [], []
+windows_only = pytest.mark.skipif(sys.platform != "win32", reason="the scanner takes table rows on Windows only")
 
-    def rows_of(path, _file_times):  # what a table would answer, taken from the folder itself
+
+class _FolderTable:
+    """What a file table would answer for a made-up folder, taken from the folder itself."""
+
+    def __init__(self, root: Path, *, ask_python: tuple[str, ...] = ()) -> None:
+        self.paths = {mft_scan.folder_reference(str(root)): str(root)}
+        self.root = mft_scan.folder_reference(str(root))
+        self.ask_python, self.asked, self.refused = ask_python, [], set()
+
+    def rows(self, reference: int, file_times: bool):
+        folder = self.paths[reference]
+        self.asked.append(folder)
+        if folder in self.refused:
+            raise PermissionError(13, "Permission denied")
         rows = []
-        with os.scandir(path) as entries:
+        with os.scandir(folder) as entries:
             for entry in entries:
-                info = path_metadata(os.lstat(entry.path), entry.stat(follow_symlinks=False).st_file_attributes)
-                kind = native_scan.KIND_FOLDER if entry.is_dir() else native_scan.KIND_FILE
-                rows.append((entry.name, kind, info.st_size, info.st_mtime, pack_snapshot(info),
+                listed = entry.stat(follow_symlinks=False).st_file_attributes
+                info = path_metadata(os.lstat(entry.path), listed)
+                folder_row = entry.is_dir(follow_symlinks=False) and not listed & 0x400
+                if folder_row:  # a table knows every folder of its volume, whatever it says about the entry
+                    self.paths[info.st_ino & ((1 << 64) - 1)] = entry.path
+                if listed & 0x400 or entry.name in self.ask_python:
+                    rows.append((entry.name, native_scan.KIND_ASK_PYTHON, 0, 0.0, None, 0))
+                    continue
+                rows.append((entry.name, native_scan.KIND_FOLDER if folder_row else native_scan.KIND_FILE,
+                             info.st_size, info.st_mtime, pack_snapshot(info, file_times=file_times),
                              info.st_file_attributes))
         return rows
 
-    def table_reader(root):
-        asked.append(root)
-        return rows_of
 
-    run = scanner._Crawler.run
+@pytest.fixture
+def made_up_tree(tmp_path) -> Path:
+    root = tmp_path / "scan"
+    (root / "plain" / "deep" / "deeper").mkdir(parents=True)
+    (root / "empty").mkdir()
+    (root / "檔案 資料夾").mkdir()
+    (root / ".dotfolder").mkdir()
+    for name, size in {"plain/a.txt": 10, "plain/zero.bin": 0, "plain/deep/big.bin": 70_000,
+                       "plain/deep/deeper/x.log": 4096, "檔案 資料夾/名稱 with space.txt": 33, ".dotfile": 1,
+                       ".dotfolder/inside.txt": 5, "plain/hidden.txt": 7, "top.bin": 123}.items():
+        (root / name).write_bytes(b"x" * size)
+    if sys.platform == "win32":
+        subprocess.run(["attrib", "+h", str(root / "plain" / "hidden.txt")], check=True)  # noqa: S603, S607
+    os.link(root / "plain" / "a.txt", root / "plain" / "a-hard-link.txt")
+    return root
 
-    def watched(self, *arguments):
-        threads.append(self._threads)
-        return run(self, *arguments)
 
-    monkeypatch.setattr(mft_scan, "table_reader", table_reader)
-    monkeypatch.setattr(scanner._Crawler, "run", watched)
-    plain = scan(tmp_path, options=ScanOptions(workers=3))
-    assert not asked and threads == [3]
-    served = scan(tmp_path, options=ScanOptions(workers=3, mft=True, adaptive=True))
-    assert asked == [str(tmp_path)] and threads == [3, 1]
+def _flat(result) -> list[tuple]:
+    return sorted((node.path, node.is_dir, node.is_link, node.size, node.allocated, node.file_count, node.dir_count,
+                   node.modified, node.error, node.snapshot, [child.name for child in node.children])
+                  for node in result.root.iter_nodes())
 
-    def flat(result):
-        return sorted((node.path, node.is_dir, node.size, node.allocated, node.modified, node.snapshot, node.error)
-                      for node in result.root.iter_nodes())
 
-    assert flat(served) == flat(plain) and served.errors == plain.errors
-    monkeypatch.setattr(mft_scan, "table_reader", lambda _root: None)
-    assert flat(scan(tmp_path, options=ScanOptions(mft=True))) == flat(plain)  # no table: folders are listed
+def _use(monkeypatch, table) -> list[str]:
+    opened: list[str] = []
+    monkeypatch.setattr(mft_scan, "open_table", lambda root: opened.append(root) or table)
+    return opened
+
+
+@windows_only
+@pytest.mark.parametrize("choices", [{}, {"file_times": True}, {"include_hidden": False}, {"exclude": ("deep",)},
+                                     {"workers": 3, "adaptive": True}, {"count_hard_links": True}, {"gentle": True}])
+def test_a_tree_built_from_the_table_equals_a_listed_one(made_up_tree, monkeypatch, choices):
+    listed = scan(made_up_tree, options=ScanOptions(**choices))
+    table = _FolderTable(made_up_tree)
+    opened = _use(monkeypatch, table)
+    built = scan(made_up_tree, options=ScanOptions(mft=True, **choices))
+    assert opened == [str(made_up_tree)] and len(table.asked) == len(set(table.asked)) > 1
+    assert _flat(built) == _flat(listed)
+    assert sorted(built.errors) == sorted(listed.errors) and built.warnings == listed.warnings
+    assert (built.root.size, built.root.allocated, built.root.file_count, built.root.dir_count) == (
+        listed.root.size, listed.root.allocated, listed.root.file_count, listed.root.dir_count)
+
+
+@windows_only
+def test_entries_left_to_python_are_asked_and_a_plain_folder_among_them_is_still_read(made_up_tree, monkeypatch):
+    outside = made_up_tree.parent / "outside"
+    outside.mkdir()
+    (outside / "never-counted.bin").write_bytes(b"o" * 50)
+    made = subprocess.run(["cmd", "/c", "mklink", "/J", str(made_up_tree / "junction"), str(outside)],  # noqa: S603, S607
+                          capture_output=True, check=False)
+    try:
+        listed = scan(made_up_tree)
+        table = _FolderTable(made_up_tree, ask_python=("top.bin", "empty", "plain"))
+        _use(monkeypatch, table)
+        built = scan(made_up_tree, options=ScanOptions(mft=True))
+        assert _flat(built) == _flat(listed) and built.errors == listed.errors
+        assert str(made_up_tree / "plain" / "deep") in table.asked and str(outside) not in table.asked
+        if made.returncode == 0:
+            junction = next(node for node in built.root.children if node.name == "junction")
+            assert junction.is_link and junction.is_dir and not junction.children and junction.size == 0
+    finally:
+        if made.returncode == 0:
+            os.rmdir(made_up_tree / "junction")  # removes the junction itself, never its target
+    assert (outside / "never-counted.bin").exists()
+
+
+@windows_only
+def test_a_folder_the_table_cannot_answer_for_is_reported_and_the_rest_is_read(made_up_tree, monkeypatch):
+    table = _FolderTable(made_up_tree)
+    table.refused.add(str(made_up_tree / "plain" / "deep"))
+    _use(monkeypatch, table)
+    built = scan(made_up_tree, options=ScanOptions(mft=True))
+    deep = next(node for node in built.root.iter_nodes() if node.name == "deep")
+    assert deep.error == "access denied" and not deep.children
+    assert built.errors == [(str(made_up_tree / "plain" / "deep"), "access denied")]
+    assert built.root.file_count == 8 and built.root.size == 10 + 10 + 0 + 33 + 1 + 5 + 7 + 123
+
+
+@windows_only
+def test_stopping_a_table_walk_keeps_what_was_read_and_marks_the_rest(made_up_tree, monkeypatch):
+    table, cancel = _FolderTable(made_up_tree), threading.Event()
+    rows = table.rows
+
+    def stop_after_two(reference, file_times):
+        if len(table.asked) == 2:
+            cancel.set()
+        return rows(reference, file_times)
+
+    table.rows = stop_after_two
+    _use(monkeypatch, table)
+    with pytest.raises(ScanCancelledError) as stopped:
+        scan(made_up_tree, options=ScanOptions(mft=True), cancel=cancel)
+    partial = stopped.value.partial
+    assert len(table.asked) == 3 and partial is not None
+    unread = [node for node in partial.root.iter_nodes() if node.error == NOT_SCANNED]
+    assert unread and all(node.is_dir and not node.children for node in unread)
+    assert partial.root.size == sum(node.size for node in partial.root.iter_nodes() if not node.is_dir)
+    already = threading.Event()
+    already.set()
+    with pytest.raises(ScanCancelledError):
+        scan(made_up_tree, options=ScanOptions(mft=True), cancel=already)
+
+
+@windows_only
+def test_a_table_walk_waits_while_paused_and_reports_progress(made_up_tree, monkeypatch):
+    table, pause, seen = _FolderTable(made_up_tree), threading.Event(), []
+    _use(monkeypatch, table)
+    pause.set()
+    threading.Timer(0.3, pause.clear).start()
+    started = time.monotonic()
+    built = scan(made_up_tree, options=ScanOptions(mft=True), pause=pause, progress=seen.append,
+                 progress_interval=0.0)
+    assert time.monotonic() - started >= 0.25
+    assert len(seen) >= len(table.asked) and seen[-1].files == built.root.file_count == 10
+    assert [progress.files for progress in seen] == sorted(progress.files for progress in seen)
+
+
+@windows_only
+def test_a_scan_asks_for_the_table_only_when_told(made_up_tree, monkeypatch):
+    opened = _use(monkeypatch, None)
+    listed = scan(made_up_tree, options=ScanOptions(workers=3))
+    assert not opened
+    assert _flat(scan(made_up_tree, options=ScanOptions(mft=True))) == _flat(listed)  # no table: folders are listed
+    assert opened == [str(made_up_tree)]
     for needs_queries in ({"windows_owners": True}, {"exact_windows_allocation": True}):
-        asked.clear()
-        monkeypatch.setattr(mft_scan, "table_reader", table_reader)
-        scan(tmp_path, options=ScanOptions(mft=True, **needs_queries))
-        assert not asked
+        opened.clear()
+        scan(made_up_tree, options=ScanOptions(mft=True, **needs_queries))
+        assert not opened
 
 
 def test_rescanning_one_folder_of_a_finished_scan_lists_it(window, tmp_path, monkeypatch):

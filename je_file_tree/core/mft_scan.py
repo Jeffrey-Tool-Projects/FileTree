@@ -3,9 +3,9 @@
 Listing costs a call into the file system per folder and a query per entry; most of a scan's time is
 spent there, inside Windows (``docs/updates`` U-20261115-02, -04). The master file table (MFT) holds
 one record per file with the same metadata, and ``je_file_tree._native.mft_open`` reads all of it in
-one pass over the volume. ``table_reader`` then answers the scanner's folder reads from memory, in the
-format of the native folder reader, so exclusions, hidden entries, links, cancelling and everything
-after the scan work as they always do.
+one pass over the volume. ``open_table`` hands that out, and the scanner builds its tree from it folder
+by folder in the rows of the native folder reader (``scanner._TableWalk``), with the same rules for
+exclusions, hidden entries, links and sizes as a scan that lists folders.
 
 Measured 2026-11-15 on a 237 GB system volume (NVMe, 1.56 million records, 1.42 million names): the
 table is read and indexed in 2.0 to 2.4 s. Compared with ``os.lstat`` over 807,657 entries of the
@@ -47,6 +47,8 @@ import ctypes
 import os
 import sys
 import time
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from je_file_tree.core import native_scan
 from je_file_tree.core.snapshot import pack_snapshot, path_metadata
@@ -58,6 +60,31 @@ _REPARSE_POINT = 0x400
 _DRIVE_PREFIX_LENGTH = 3  # "C:\\"
 _REFERENCE_BYTES = slice(8, 16)  # the file reference inside a snapshot: the low half of its file number
 _REFERENCE_MASK = (1 << 64) - 1
+
+
+@dataclass(frozen=True, slots=True)
+class Table:
+    """The indexed file table of one volume: ``rows(reference, file_times)`` of a folder, and ``root``.
+
+    A folder is named by its file reference, which is also inside the snapshot of its own row
+    (``reference_of``). ``rows`` raises ``OSError`` for a reference that is not a folder of the table.
+    """
+
+    rows: Callable[[int, bool], list[native_scan.Row]]
+    root: int
+
+
+def reference_of(snapshot: bytes) -> int:
+    """The file reference of the entry a row's snapshot describes."""
+    return int.from_bytes(snapshot[_REFERENCE_BYTES], "little")
+
+
+def folder_reference(path: str) -> int:
+    """The file reference of the folder at ``path``, from the running system.
+
+    :raises OSError: when it cannot be asked
+    """
+    return os.lstat(path).st_ino & _REFERENCE_MASK
 
 
 def drive_of(root_path: str) -> str | None:
@@ -102,8 +129,8 @@ def _administrator() -> bool:
         return True
 
 
-def table_reader(root_path: str) -> native_scan.Reader | None:
-    """``read(path, file_times)`` over the master file table of the drive holding the folder ``root_path``.
+def open_table(root_path: str) -> Table | None:
+    """The master file table of the drive holding the folder ``root_path``, read and indexed.
 
     None when the table is not to be used (see the module text); the caller then lists folders.
     """
@@ -120,30 +147,16 @@ def table_reader(root_path: str) -> native_scan.Reader | None:
         table = native.mft_open(drive)
         if native.mft_info(table)[3]:
             return None  # a damaged record could hide a whole folder
-        reference = os.lstat(root_path).st_ino & _REFERENCE_MASK
+        reference = folder_reference(root_path)
         for file_times in (False, True):
             expected = pack_snapshot(path_metadata(os.lstat(root_path)), file_times=file_times)
             if native.mft_snapshot(table, reference, file_times, change_time, short) != expected:
                 return None
     except (OSError, ValueError):
         return None  # not NTFS, not allowed to read the volume, or the root is not what the table says
-    return _reader(native, table, (change_time, short), root_path, reference)
+    rows_of = native.mft_rows  # type: ignore[attr-defined]
 
+    def rows(folder: int, file_times: bool) -> list[native_scan.Row]:
+        return rows_of(table, folder, file_times, change_time, short)
 
-def _reader(native: object, table: object, choices: tuple[bool, bool], root_path: str,
-            root: int) -> native_scan.Reader:
-    folders = {root_path: root}  # the reference of each folder found and not read yet, by path
-    change_time, short = choices
-
-    def read(path: str, file_times: bool) -> list[native_scan.Row]:
-        try:
-            reference = folders.pop(path)
-        except KeyError:
-            raise FileNotFoundError(path) from None
-        rows = native.mft_rows(table, reference, file_times, change_time, short)  # type: ignore[attr-defined]
-        for row in rows:
-            if row[1] == native_scan.KIND_FOLDER:
-                folders[os.path.join(path, row[0])] = int.from_bytes(row[4][_REFERENCE_BYTES], "little")
-        return rows
-
-    return read
+    return Table(rows, reference)

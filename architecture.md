@@ -1218,13 +1218,16 @@ it. Measurements are in `core/cpu_load.py`.
 
 **NTFS drives are read from their file table.** With `ScanOptions.mft` (the window's **Read NTFS drives
 from the file table**, on by default, `QSettings` key `mft_scan`) and a scan that starts at a folder of a
-lettered drive, `scanner._native_reader` asks `core.mft_scan.table_reader` first. `MainWindow.rescan_folder`
+lettered drive, `scanner._table_for` asks `core.mft_scan.open_table`. `MainWindow.rescan_folder`
 clears the flag for one folder of a finished scan, which is listed so that it shows what just changed. It has `_native.mft_open` read
 and index the master file table (four reading threads, read-only volume and `$MFT` handles) and returns
-a reader in the native folder reader's row format, served from memory by file reference; the crawler
-then runs one thread and no governor. Rows carry snapshots built like those of a query, reparse points
-and records without complete metadata are "ask Python" rows, and everything downstream (exclusions,
-hidden entries, allocation rules, cancel, pause, analysis) is the ordinary path. `table_reader` answers
+a `Table` whose rows, by file reference, have the native folder reader's format. `scanner._TableWalk`
+builds the tree from them on the calling thread, without the crawler's workers, queue and governor,
+which exist to overlap waits on the file system; it applies the rules of `_read_native` (hidden and
+excluded entries, cluster rounding, running totals for the tree shown meanwhile) and honours cancel,
+pause, progress and gentle priority itself. Rows carry snapshots built like those of a query; reparse
+points and records without complete metadata are "ask Python" rows handled by `_entry_node`, and a
+plain folder among them is read from the table by its current reference. `open_table` answers
 None, and folders are listed, unless the path is on a lettered drive, the folder is a drive root or not
 small (`is_small`: a listing probe bounded by 20,000 entries and half a second), the volume is NTFS and
 readable (administrator), no record failed its update-sequence check and the table's snapshot of the starting

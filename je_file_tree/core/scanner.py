@@ -51,6 +51,8 @@ _FILE_ATTRIBUTE_HIDDEN = 0x2
 DEFAULT_WORKERS = min(4, os.cpu_count() or 1)
 
 
+_PAUSE_STEP = 0.05  # s between two looks at ``pause`` while a table walk is paused
+
 # The common reasons are worded here instead of taken from the OS, whose text
 # is in the system's language (a Chinese Windows answers 存取被拒。 in an
 # English window); the GUI translates these, exports keep them as they are.
@@ -206,16 +208,13 @@ class _Crawler:
                             else allocation_for(root_path))
         self._excluded = exclusion_test(options.exclude)
         self._native = _native_reader(options, self._allocation, self._mounts, root_path)
+        self._table = _table_for(options, self._allocation, self._mounts, root_path)
         self._cancel = cancel
         self._pause = pause
         self._pending: list[tuple[Node, str]] = [(root, root_path)]
         self._busy = 0
-        # Rows served from memory leave nothing to wait for, so more threads only take turns at the
-        # interpreter lock. Measured 2026-11-15 on 1.42 million entries: 10.8 and 12.0 s with one
-        # thread, 11.6 s with four.
-        in_memory = self._native is not None and self._native.in_memory
-        self._threads = 1 if in_memory else max(1, options.workers)
-        self._governor = WorkerGovernor(options.workers) if options.adaptive and not in_memory else None
+        self._threads = max(1, options.workers)
+        self._governor = WorkerGovernor(options.workers) if options.adaptive and self._table is None else None
         self._limit = self._threads if self._governor is None else self._governor.limit
         self._stopped = False
         self._failure: BaseException | None = None
@@ -227,6 +226,31 @@ class _Crawler:
         self.warnings: list[str] = []
         self.files = 0
         self.size = 0
+
+    @property
+    def options(self) -> ScanOptions:
+        """What this scan includes."""
+        return self._options
+
+    @property
+    def allocation(self) -> Allocation:
+        """The rule for the space a file takes."""
+        return self._allocation
+
+    @property
+    def excluded(self) -> Excluded | None:
+        """The exclusion test, or None without exclusions."""
+        return self._excluded
+
+    def took(self, folder: Node, path: str, read: _FolderRead) -> None:
+        """Count what reading ``folder`` found, like ``_finish`` without a queue to feed."""
+        with self._condition:
+            self.folders.extend(node for node, _ in read.subfolders)
+            self.files += read.files
+            self.size += read.size
+            self.errors.extend(read.errors)
+            self._current = path
+            _add_to_ancestors(folder, read)
 
     def verify_mounts(self) -> None:
         """Recheck scope after workers and final aggregation, before publishing a complete scan."""
@@ -252,6 +276,9 @@ class _Crawler:
         """
         if cancel is not None and cancel.is_set():
             raise ScanCancelledError
+        if self._table is not None:
+            self._walk_table(progress, cancel, interval)
+            return
         threads = [threading.Thread(target=self._work, name=f"file-tree-scan-{number}", daemon=True)
                    for number in range(self._threads)]
         started: list[threading.Thread] = []
@@ -274,6 +301,20 @@ class _Crawler:
                 thread.join()
         if self._failure is not None:
             raise self._failure
+        if cancel is not None and cancel.is_set():
+            raise ScanCancelledError
+
+    def _walk_table(self, progress: ProgressCallback | None, cancel: threading.Event | None,
+                    interval: float) -> None:
+        """Build the tree from the file table on this thread: nothing is waited for, so threads would only
+        take turns at the interpreter lock."""
+        walk = _TableWalk(self, self._table)
+        try:
+            with background_priority(self._options.gentle) as warnings:
+                walk.run(progress, cancel, self._pause, interval)
+        finally:
+            self._pending = walk.unread()
+        self.warnings.extend(warnings)
         if cancel is not None and cancel.is_set():
             raise ScanCancelledError
 
@@ -433,7 +474,6 @@ class _NativeRead:
 
     read: native_scan.Reader
     ordinary: OrdinaryAllocation
-    in_memory: bool = False  # rows come from a table read beforehand, not from the file system
 
 
 @dataclass(frozen=True, slots=True)
@@ -474,13 +514,136 @@ def _native_reader(options: ScanOptions, allocation: Allocation,
     if options.windows_owners or options.exact_windows_allocation or not boundaries.plain_listing:
         return None  # per-file owner and exact allocation queries need the full Python path
     ordinary = ordinary_allocation(allocation)
-    table = mft_scan.table_reader(root_path) if options.mft and ordinary is not None else None
-    if table is not None and ordinary is not None:
-        return _NativeRead(table, ordinary, in_memory=True)  # the whole volume, in the same rows
     read = native_scan.reader() if ordinary is not None else None
     if read is None or ordinary is None or not native_scan.agrees_on(root_path):
         return None
     return _NativeRead(read, ordinary)
+
+
+@dataclass(frozen=True, slots=True)
+class _TableRead:
+    """A file table and the allocation rule for files without unusual attributes."""
+
+    table: mft_scan.Table
+    ordinary: OrdinaryAllocation
+
+
+def _table_for(options: ScanOptions, allocation: Allocation, boundaries: MountSurvey,
+               root_path: str) -> _TableRead | None:
+    """The file table to build this scan from, or None to list folders (``core/mft_scan.py``).
+
+    Asked for under the conditions of the native reader, and only without mount points to mark.
+    """
+    ordinary = ordinary_allocation(allocation)
+    if (not options.mft or options.windows_owners or options.exact_windows_allocation or ordinary is None
+            or not boundaries.plain_listing or boundaries.points):
+        return None
+    table = mft_scan.open_table(root_path)
+    return None if table is None else _TableRead(table, ordinary)
+
+
+class _TableWalk:
+    """Build a scan's tree from a file table, on the calling thread.
+
+    The crawler's workers, lock and queue exist to overlap waits on the file system; rows that are
+    already in memory need none of that. What a folder's rows become is what ``_read_native`` makes of
+    them: the same nodes, errors, hidden and excluded entries, and running totals while the tree is
+    shown. Measurements are in ``docs/updates`` U-20261115-09.
+    """
+
+    def __init__(self, crawler: _Crawler, source: _TableRead) -> None:
+        self._crawler, self._table, self._ordinary = crawler, source.table, source.ordinary
+        root, root_path = crawler.unread()[0]
+        self._stack: list[tuple[Node, str, int]] = [(root, root_path, source.table.root)]
+
+    def unread(self) -> list[tuple[Node, str]]:
+        """The folders not read yet."""
+        return [(folder, path) for folder, path, _reference in self._stack]
+
+    def run(self, progress: ProgressCallback | None, cancel: threading.Event | None,
+            pause: threading.Event | None, interval: float) -> None:
+        """Read every folder of the stack; stop at once when ``cancel`` is set, wait while ``pause`` is."""
+        stack, crawler = self._stack, self._crawler
+        report = time.monotonic() + interval
+        while stack and not (cancel is not None and cancel.is_set()):
+            if pause is not None and pause.is_set():
+                time.sleep(_PAUSE_STEP)
+                continue
+            give_way()
+            self._read(*stack.pop())
+            if progress is not None and time.monotonic() >= report:
+                progress(crawler.snapshot())
+                report = time.monotonic() + interval
+
+    def _read(self, folder: Node, path: str, reference: int) -> None:
+        crawler, read = self._crawler, _FolderRead()
+        try:
+            rows = self._table.rows(reference, crawler.options.file_times)
+        except OSError as error:
+            folder.error = _describe(error)
+            crawler.errors.append((path, folder.error))
+            return
+        found = self._rows(folder, path if path.endswith(os.sep) else path + os.sep, rows, read)
+        if read.errors:
+            hidden = all(reason == HIDDEN_OMITTED for _, reason in read.errors)
+            folder.error = HIDDEN_OMITTED if hidden else PARTIAL_FOLDER
+        else:
+            folder.error = None
+        self._stack.extend(found)
+        crawler.took(folder, path, read)
+
+    def _rows(self, folder: Node, prefix: str, rows: list[native_scan.Row],
+              read: _FolderRead) -> list[tuple[Node, str, int]]:
+        """Add the rows of ``folder`` as its children; the folders among them that are to be read."""
+        excluded, skip_hidden = self._crawler.excluded, not self._crawler.options.include_hidden
+        unusual, cluster, shared = self._ordinary.unusual, self._ordinary.cluster, self._ordinary.shared
+        shared_count, a_file, a_folder = len(shared), native_scan.KIND_FILE, native_scan.KIND_FOLDER
+        append = cast(list[Node], folder.children).append
+        found: list[tuple[Node, str, int]] = []
+        files = size = allocated = 0
+        # This loop runs once per entry of the volume; names are bound outside it for that reason.
+        for name, kind, length, modified, snapshot, attributes in rows:
+            plain = (kind == a_file and not attributes & unusual) or kind == a_folder
+            if not plain:
+                self._asked(folder, _NamedEntry(name, prefix + name, attributes), read, found)
+            elif skip_hidden and (attributes & _FILE_ATTRIBUTE_HIDDEN or name.startswith(".")):
+                read.errors.append((prefix + name, HIDDEN_OMITTED))
+            elif kind == a_file:
+                clusters = -(-length // cluster)
+                space = shared[clusters] if clusters < shared_count else clusters * cluster
+                files += 1
+                size += length
+                allocated += space
+                append(Node(name, False, length, 1, 0, modified, False, None, space, (), folder, snapshot))
+            else:
+                skipped = excluded is not None and excluded(name, prefix + name)
+                child = Node(name, True, 0, 0, 0, modified, False, EXCLUDED if skipped else NOT_SCANNED, 0, [],
+                             folder, snapshot)
+                append(child)
+                if not skipped:
+                    found.append((child, prefix + name, int.from_bytes(snapshot[8:16], "little")))
+        read.files += files
+        read.size += size
+        read.allocated += allocated
+        read.subfolders = [(child, child_path) for child, child_path, _reference in found]
+        return found
+
+    def _asked(self, folder: Node, entry: _NamedEntry, read: _FolderRead,
+               found: list[tuple[Node, str, int]]) -> None:
+        """An entry the table leaves to ``os.lstat``: a link, a cloud or packed file, an unusual record."""
+        crawler = self._crawler
+        child = _entry_node(cast("os.DirEntry[str]", entry), crawler.options, read, crawler.allocation,
+                            crawler.excluded)
+        if child is None:
+            return
+        child.parent = folder
+        cast(list[Node], folder.children).append(child)
+        if child.is_dir and not child.is_link and child.error == NOT_SCANNED:
+            try:  # the system now calls it a plain folder: read it from the table by what it is now
+                found.append((child, entry.path, mft_scan.folder_reference(entry.path)))
+            except OSError as error:
+                child.error = _describe(error)
+                read.errors.append((entry.path, child.error))
 
 
 def _read_native(folder: Node, path: str, native: _NativeRead, reading: _Reading) -> None:
@@ -620,5 +783,5 @@ def _add_up(folders: list[Node]) -> None:
         folder.file_count = files
         folder.dir_count = subfolders
         folder.modified = newest
-        if isinstance(children, list):
+        if isinstance(children, list) and len(children) > 1:
             children.sort(key=_size_first)

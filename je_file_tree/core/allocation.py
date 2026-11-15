@@ -95,16 +95,22 @@ def windows_allocation(cluster: int, *, exact: bool = False) -> Allocation:
         return rounded(info.st_size) if measured is None else measured
 
     if not exact:  # the native folder reader applies the ordinary rule itself, without an entry object
-        allocated.ordinary = OrdinaryAllocation(rounded, _UNUSUAL)  # type: ignore[attr-defined]
+        allocated.ordinary = OrdinaryAllocation(rounded, _UNUSUAL, cluster, shared)  # type: ignore[attr-defined]
     return allocated
 
 
 @dataclass(frozen=True, slots=True)
 class OrdinaryAllocation:
-    """The cluster rounding of files with none of the ``unusual`` attributes (no call to the system)."""
+    """The cluster rounding of files with none of the ``unusual`` attributes (no call to the system).
+
+    ``cluster`` and ``shared`` are what ``rounded`` works with (``shared[n]`` is the one int object for
+    ``n`` clusters), for a loop that applies the rule in place instead of calling ``rounded`` per file.
+    """
 
     rounded: Callable[[int], int]
     unusual: int
+    cluster: int
+    shared: tuple[int, ...]
 
 
 def ordinary_allocation(allocation: Allocation) -> OrdinaryAllocation | None:
