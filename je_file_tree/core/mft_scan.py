@@ -1,4 +1,4 @@
-"""Scan a whole NTFS volume from its master file table instead of listing every folder.
+"""Scan folders of an NTFS volume from its master file table instead of listing every folder.
 
 Listing costs a call into the file system per folder and a query per entry; most of a scan's time is
 spent there, inside Windows (``docs/updates`` U-20261115-02, -04). The master file table (MFT) holds
@@ -20,10 +20,16 @@ ordinary way, records it afresh.
 It is used only when all of this holds, and the scan lists folders as before otherwise:
 
 * the scan asked for it (``ScanOptions.mft``) and ``FILE_TREE_MFT_SCAN`` is not ``0``;
-* the scan starts at the root of a drive: reading the whole table for one folder would cost more than
-  listing that folder;
+* the scan starts at a folder of a lettered drive (not a network path);
 * the volume is NTFS and the process may read it (an administrator);
-* no record failed its consistency check, and the table describes the root exactly as ``os.lstat`` does.
+* no record failed its consistency check, and the table describes the folder the scan starts from
+  exactly as ``os.lstat`` does. That also rules out a folder reached through a link or a mounted volume:
+  its volume number is another one.
+
+The whole table is read whatever the folder (owner decision, 2026-11-15: use the table whenever it can
+be used). On the volume measured that is 2.0 to 2.4 s before the first entry appears, which is more than
+listing a small folder takes. The window rescans a single folder of a finished scan by listing it, so
+that what an operation just changed is read from the running system, not from the table on disk.
 
 A table also names what a listing is refused: the contents of folders this account may not open.
 Those entries are shown with their sizes; operations on them are refused like on any unreadable entry.
@@ -38,20 +44,22 @@ from je_file_tree.core import native_scan
 from je_file_tree.core.snapshot import pack_snapshot, path_metadata
 
 DISABLE_VARIABLE = "FILE_TREE_MFT_SCAN"  # set to 0 to always list folders
-_DRIVE_ROOT_LENGTH = 3  # "C:\\"
+_DRIVE_PREFIX_LENGTH = 3  # "C:\\"
 _REFERENCE_BYTES = slice(8, 16)  # the file reference inside a snapshot: the low half of its file number
 _REFERENCE_MASK = (1 << 64) - 1
 
 
 def drive_of(root_path: str) -> str | None:
-    """``"C:"`` when ``root_path`` is the root of a lettered drive, else None."""
-    if len(root_path) != _DRIVE_ROOT_LENGTH or root_path[1:] not in (":\\", ":/") or not root_path[0].isalpha():
+    """``"C:"`` when ``root_path`` is an absolute path on a lettered drive, else None."""
+    prefix = root_path[:_DRIVE_PREFIX_LENGTH]
+    if len(prefix) != _DRIVE_PREFIX_LENGTH or prefix[1:] not in (":\\", ":/") or not prefix[0].isascii() or (
+            not prefix[0].isalpha()):
         return None
-    return root_path[:2]
+    return prefix[:2]
 
 
 def table_reader(root_path: str) -> native_scan.Reader | None:
-    """``read(path, file_times)`` over the master file table of the drive ``root_path`` is the root of.
+    """``read(path, file_times)`` over the master file table of the drive holding the folder ``root_path``.
 
     None when the table is not to be used (see the module text); the caller then lists folders.
     """

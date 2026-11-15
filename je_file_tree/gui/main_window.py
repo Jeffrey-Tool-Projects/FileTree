@@ -9,7 +9,7 @@ from je_file_tree.core.operations import MoveSummary
 import json
 import os
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from PySide6.QtCore import QByteArray, QEvent, QPoint, QSettings, QSignalBlocker, QSize, QThread, Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QDragEnterEvent, QDropEvent, QKeySequence
@@ -718,7 +718,10 @@ class MainWindow(QMainWindow):
             self.start_scan(node.path, exact_allocation=exact_allocation)
             return
         self._analyser = None
-        worker = ScanWorker(node.path, self._scan_options(exact_allocation=exact_allocation), self)
+        # One folder of a finished scan is listed, never taken from the file table on disk, which can be
+        # a few seconds behind what an operation has just changed.
+        worker = ScanWorker(node.path, replace(self._scan_options(exact_allocation=exact_allocation), mft=False),
+                            self)
         before = node.size
         worker.progressed.connect(
             lambda progress: self._is_current(worker) and self.results.scan_bar.show_progress(progress))

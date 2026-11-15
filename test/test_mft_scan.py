@@ -66,10 +66,21 @@ def made_up_drive(monkeypatch):
     return table
 
 
-@pytest.mark.parametrize(("path", "drive"), [("C:\\", "C:"), ("d:/", "d:"), ("C:\\Users", None), ("C:", None),
-                                             ("\\\\server\\share\\", None), ("1:\\", None), ("/", None), ("", None)])
-def test_only_the_root_of_a_lettered_drive_is_a_whole_drive(path, drive):
+@pytest.mark.parametrize(("path", "drive"), [("C:\\", "C:"), ("d:/", "d:"), ("C:\\Users\\someone", "C:"), ("C:", None),
+                                             ("C:relative", None), ("\\\\server\\share\\", None), ("1:\\", None),
+                                             ("/", None), ("/home/someone", None), ("", None), ("資:\\", None)])
+def test_only_a_path_on_a_lettered_drive_names_a_table(path, drive):
     assert mft_scan.drive_of(path) == drive
+
+
+def test_a_folder_below_the_root_is_served_from_its_own_record(made_up_drive):
+    start = "Q:\\some\\folder"
+    read = mft_scan.table_reader(start)  # the made-up module answers for whatever os.lstat names
+    assert read is not None and made_up_drive.opened == ["Q:"]
+    assert [row[0] for row in read(start, False)] == ["inner", "file.bin"]
+    assert [row[0] for row in read(os.path.join(start, "inner"), False)] == ["deep.txt"]
+    with pytest.raises(FileNotFoundError):
+        read(ROOT, False)
 
 
 def test_rows_are_served_by_reference_and_each_folder_once(made_up_drive):
@@ -84,12 +95,12 @@ def test_rows_are_served_by_reference_and_each_folder_once(made_up_drive):
             read(path, False)
 
 
-@pytest.mark.parametrize("change", ["folder", "switched off", "not calibrated", "old module", "refused", "damaged",
+@pytest.mark.parametrize("change", ["network", "switched off", "not calibrated", "old module", "refused", "damaged",
                                     "root differs", "other system"])
 def test_the_table_is_not_used_unless_everything_holds(made_up_drive, monkeypatch, change):
     path = ROOT
-    if change == "folder":
-        path = "Q:\\folder"
+    if change == "network":
+        path = "\\\\server\\share\\folder"
     elif change == "switched off":
         monkeypatch.setenv(mft_scan.DISABLE_VARIABLE, "0")
     elif change == "not calibrated":
@@ -155,6 +166,30 @@ def test_a_scan_asks_for_the_table_only_when_told_and_then_reads_with_one_thread
         monkeypatch.setattr(mft_scan, "table_reader", table_reader)
         scan(tmp_path, options=ScanOptions(mft=True, **needs_queries))
         assert not asked
+
+
+def test_rescanning_one_folder_of_a_finished_scan_lists_it(window, tmp_path, monkeypatch):
+    from je_file_tree.gui.scan_worker import analyse  # noqa: PLC0415
+
+    (tmp_path / "inner").mkdir()
+    (tmp_path / "inner" / "file").write_bytes(b"1")
+    window.results.show_outcome(analyse(scan(tmp_path)))
+    made = []
+
+    class Recording(main.ScanWorker):
+        def __init__(self, path, options, *arguments, **named):
+            made.append((path, options.mft))
+            super().__init__(path, options, *arguments, **named)
+
+    monkeypatch.setattr(main, "ScanWorker", Recording)
+    monkeypatch.setattr(main, "queue_worker", lambda *_arguments: None)  # built and owned, never started
+    inner = window.results.tree_model.root.children[0]
+    assert window._scan_options().mft
+    window.rescan_folder(inner)
+    assert made == [(str(tmp_path / "inner"), False)]
+    worker = window._worker
+    window._discard_branch(worker)
+    worker.deleteLater()
 
 
 def test_window_reads_the_table_by_default_and_remembers_the_choice(window):

@@ -1216,17 +1216,18 @@ way always finish. Without a reading (macOS, BSD, a refused call) the chosen num
 excluded from comparing `ScanOptions`: presets, workspace templates and restart hand-offs do not carry
 it. Measurements are in `core/cpu_load.py`.
 
-**A whole NTFS drive is read from its file table.** With `ScanOptions.mft` (the window's **Read whole NTFS
-drives from the file table**, on by default, `QSettings` key `mft_scan`) and a scan that starts at a drive
-root, `scanner._native_reader` asks `core.mft_scan.table_reader` first. It has `_native.mft_open` read
+**NTFS drives are read from their file table.** With `ScanOptions.mft` (the window's **Read NTFS drives
+from the file table**, on by default, `QSettings` key `mft_scan`) and a scan that starts at a folder of a
+lettered drive, `scanner._native_reader` asks `core.mft_scan.table_reader` first. `MainWindow.rescan_folder`
+clears the flag for one folder of a finished scan, which is listed so that it shows what just changed. It has `_native.mft_open` read
 and index the master file table (four reading threads, read-only volume and `$MFT` handles) and returns
 a reader in the native folder reader's row format, served from memory by file reference; the crawler
 then runs one thread and no governor. Rows carry snapshots built like those of a query, reparse points
 and records without complete metadata are "ask Python" rows, and everything downstream (exclusions,
 hidden entries, allocation rules, cancel, pause, analysis) is the ordinary path. `table_reader` answers
-None, and folders are listed, unless the root is a lettered drive root, the volume is NTFS and readable
-(administrator), no record failed its update-sequence check and the table's snapshot of the root equals
-`os.lstat`. Operation checks are unchanged: they compare a fresh `os.lstat` with the recorded snapshot.
+None, and folders are listed, unless the path is on a lettered drive, the volume is NTFS and readable
+(administrator), no record failed its update-sequence check and the table's snapshot of the starting
+folder equals `os.lstat` (which also refuses a folder reached through a link or mounted volume). Operation checks are unchanged: they compare a fresh `os.lstat` with the recorded snapshot.
 The table can describe folders the account may not list. Measurements: `core/mft_scan.py` and
 docs/updates U-20261115-05.
 
@@ -1767,7 +1768,7 @@ The experimental raw NTFS metadata audit (`core/mft.py`, `core/mft_reader.py`, `
 2026-11-14 by owner decision: on a live system volume it fell back to the ordinary scan, it was about
 ten times slower, and a successful audit equalled the ordinary result by design
 (docs/updates U-20261114-13 to -15). A different design, without a check per entry, reads whole drives
-from the table since 2026-11-15 (see "A whole NTFS drive is read from its file table").
+from the table since 2026-11-15 (see "NTFS drives are read from their file table").
 
 The GUI entry point accepts `--background` for an explicitly enabled monitor. It skips elevation
 and hides the workspace only when the saved opt-in configuration and native system tray are usable.
