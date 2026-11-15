@@ -28,13 +28,19 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cmath>
 #include <cstring>
+#include <ctime>
+#include <cwchar>
 #include <cwctype>
 #include <functional>
+#include <map>
 #include <new>
 #include <string>
 #include <system_error>
 #include <thread>
+#include <tuple>
+#include <unordered_map>
 #include <vector>
 
 namespace {
@@ -962,11 +968,775 @@ PyObject* mft_snapshot(PyObject*, PyObject* arguments) {
                                      static_cast<Py_ssize_t>(entry.snapshot_size));
 }
 
+// ---------------------------------------------------------------------------------------------
+// Passes over a finished tree of nodes.
+//
+// After a scan the same worker walks the tree several times: for the saved history, the capacity
+// ledger and the summary. Those loops run once per folder or per file in Python; here the same steps
+// are taken with the node's attributes read directly. Each function does a bounded amount of work per
+// call, so the caller can look at its cancel event and let the window go first in between, and each
+// produces exactly what the Python code it stands in for produces (the tests compare the two).
+
+struct NodeNames {
+    PyObject* name = nullptr;
+    PyObject* size = nullptr;
+    PyObject* allocated = nullptr;
+    PyObject* file_count = nullptr;
+    PyObject* dir_count = nullptr;
+    PyObject* modified = nullptr;
+    PyObject* accounting = nullptr;
+    PyObject* error = nullptr;
+    PyObject* children = nullptr;
+    PyObject* parent = nullptr;
+    PyObject* is_dir = nullptr;
+    PyObject* is_link = nullptr;
+    PyObject* snapshot = nullptr;
+};
+
+NodeNames node_names;
+
+bool intern_node_names() {
+    struct Wanted { PyObject** slot; const char* text; };
+    const Wanted wanted[] = {
+        {&node_names.name, "name"}, {&node_names.size, "size"}, {&node_names.allocated, "allocated"},
+        {&node_names.file_count, "file_count"}, {&node_names.dir_count, "dir_count"},
+        {&node_names.modified, "modified"}, {&node_names.accounting, "accounting"}, {&node_names.error, "error"},
+        {&node_names.children, "children"}, {&node_names.parent, "parent"}, {&node_names.is_dir, "is_dir"},
+        {&node_names.is_link, "is_link"}, {&node_names.snapshot, "snapshot"},
+    };
+    for (const Wanted& one : wanted) {
+        *one.slot = PyUnicode_InternFromString(one.text);
+        if (*one.slot == nullptr) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Local time as export._iso_time writes it. That function calls time.localtime, which on Windows also
+// builds the zone's name for every call: 6 of the 7 microseconds a folder cost (measured 2026-11-15).
+// The two C runtime functions below are the ones time.localtime itself uses, taken from the runtime
+// library already loaded in this process, so the zone rules and their state are Python's own.
+bool json_string(PyObject* text, std::wstring& out);
+
+typedef int(__cdecl* LocalTime)(struct tm*, const long long*);
+typedef long long(__cdecl* UtcSeconds)(struct tm*);
+
+struct LocalClock {
+    LocalTime local = nullptr;
+    UtcSeconds utc = nullptr;
+};
+
+LocalClock local_clock;
+
+void find_local_clock() {  // called once, at module start
+    HMODULE runtime = GetModuleHandleW(L"ucrtbase.dll");
+    if (runtime != nullptr) {
+        local_clock.local = reinterpret_cast<LocalTime>(GetProcAddress(runtime, "_localtime64_s"));
+        local_clock.utc = reinterpret_cast<UtcSeconds>(GetProcAddress(runtime, "_mkgmtime64"));
+    }
+}
+
+constexpr double LATEST_PLAIN_TIME = 32503680000.0;  // the year 3000: anything later is left to Python
+
+// Append ``"YYYY-MM-DDTHH:MM:SS+HH:MM"`` (quoted) for a positive time; false when Python must format it.
+bool local_time_text(double timestamp, std::wstring& out) {
+    if (local_clock.local == nullptr || local_clock.utc == nullptr || !(timestamp > 0.0)
+        || !(timestamp < LATEST_PLAIN_TIME)) {
+        return false;
+    }
+    double whole = std::floor(timestamp);
+    long long seconds = static_cast<long long>(whole);
+    if (timestamp - whole >= 0.9999995) {
+        ++seconds;  // round(timestamp, 6) reaches the next second
+    }
+    struct tm local = {};
+    if (local_clock.local(&local, &seconds) != 0) {
+        return false;
+    }
+    struct tm copy = local;
+    long long offset = local_clock.utc(&copy) - seconds;
+    if (offset % 60 != 0) {
+        return false;
+    }
+    long long minutes = (offset < 0 ? -offset : offset) / 60;
+    wchar_t buffer[40];
+    swprintf(buffer, 40, L"\"%04d-%02d-%02dT%02d:%02d:%02d%lc%02lld:%02lld\"", local.tm_year + 1900, local.tm_mon + 1,
+             local.tm_mday, local.tm_hour, local.tm_min, local.tm_sec, offset < 0 ? L'-' : L'+', minutes / 60,
+             minutes % 60);
+    out += buffer;
+    return true;
+}
+
+// ``"modified": ...`` text of a node's time: formatted here when plain, by ``iso_time`` otherwise.
+bool json_time(PyObject* modified, PyObject* iso_time, std::wstring& out) {
+    double timestamp = PyFloat_AsDouble(modified);
+    if (timestamp == -1.0 && PyErr_Occurred()) {
+        return false;
+    }
+    if (timestamp <= 0.0) {
+        out += L"\"\"";
+        return true;
+    }
+    if (local_time_text(timestamp, out)) {
+        return true;
+    }
+    PyObject* when = PyObject_CallFunctionObjArgs(iso_time, modified, nullptr);
+    bool whole = when != nullptr && json_string(when, out);
+    Py_XDECREF(when);
+    return whole;
+}
+
+// An integer attribute; false with a Python error set.
+bool integer_of(PyObject* node, PyObject* attribute, long long& value) {
+    PyObject* found = PyObject_GetAttr(node, attribute);
+    if (found == nullptr) {
+        return false;
+    }
+    value = PyLong_AsLongLong(found);
+    Py_DECREF(found);
+    return !(value == -1 && PyErr_Occurred());
+}
+
+// Whether an attribute is true; -1 with a Python error set.
+int truth_of(PyObject* node, PyObject* attribute) {
+    PyObject* found = PyObject_GetAttr(node, attribute);
+    if (found == nullptr) {
+        return -1;
+    }
+    int truth = PyObject_IsTrue(found);
+    Py_DECREF(found);
+    return truth;
+}
+
+// ``text`` as json.dumps(text, ensure_ascii=False) writes it; false with a Python error set.
+bool json_string(PyObject* text, std::wstring& out) {
+    if (!PyUnicode_Check(text)) {
+        PyErr_SetString(PyExc_TypeError, "a string is expected");
+        return false;
+    }
+    Py_ssize_t length = 0;
+    wchar_t* buffer = PyUnicode_AsWideCharString(text, &length);
+    if (buffer == nullptr) {
+        return false;
+    }
+    out.push_back(L'"');
+    for (Py_ssize_t at = 0; at < length; ++at) {
+        wchar_t one = buffer[at];
+        switch (one) {
+            case L'"': out += L"\\\""; break;
+            case L'\\': out += L"\\\\"; break;
+            case L'\n': out += L"\\n"; break;
+            case L'\r': out += L"\\r"; break;
+            case L'\t': out += L"\\t"; break;
+            case L'\b': out += L"\\b"; break;
+            case L'\f': out += L"\\f"; break;
+            default:
+                if (one < 0x20) {
+                    wchar_t escaped[8];
+                    swprintf(escaped, 8, L"\\u%04x", static_cast<unsigned>(one));
+                    out += escaped;
+                } else {
+                    out.push_back(one);
+                }
+        }
+    }
+    out.push_back(L'"');
+    PyMem_Free(buffer);
+    return true;
+}
+
+bool json_integer(PyObject* node, PyObject* attribute, const wchar_t* label, std::wstring& out) {
+    long long value = 0;
+    if (!integer_of(node, attribute, value)) {
+        return false;
+    }
+    out += label;
+    out += std::to_wstring(value);
+    return true;
+}
+
+// The two counted totals: the named ones unless the node carries ``accounting``.
+bool json_accounted(PyObject* node, std::wstring& out) {
+    PyObject* accounting = PyObject_GetAttr(node, node_names.accounting);
+    if (accounting == nullptr) {
+        return false;
+    }
+    bool whole = true;
+    if (accounting == Py_None) {
+        whole = json_integer(node, node_names.size, L", \"accounted_size\": ", out)
+            && json_integer(node, node_names.allocated, L", \"accounted_allocated\": ", out);
+    } else {
+        const wchar_t* labels[] = {L", \"accounted_size\": ", L", \"accounted_allocated\": "};
+        for (Py_ssize_t part = 0; whole && part < 2; ++part) {
+            PyObject* item = PySequence_GetItem(accounting, part);
+            long long value = item != nullptr ? PyLong_AsLongLong(item) : -1;
+            Py_XDECREF(item);
+            whole = item != nullptr && !(value == -1 && PyErr_Occurred());
+            out += labels[part];
+            out += std::to_wstring(value);
+        }
+    }
+    Py_DECREF(accounting);
+    return whole;
+}
+
+// The fields of one folder as export._folder_json writes them, without the closing brace.
+bool json_fields(PyObject* node, PyObject* iso_time, std::wstring& out) {
+    PyObject* name = PyObject_GetAttr(node, node_names.name);
+    PyObject* modified = PyObject_GetAttr(node, node_names.modified);
+    PyObject* error = PyObject_GetAttr(node, node_names.error);
+    PyObject* parent = PyObject_GetAttr(node, node_names.parent);
+    bool whole = name != nullptr && modified != nullptr && error != nullptr && parent != nullptr;
+    if (whole) {
+        out += L"{\"name\": ";
+        whole = json_string(name, out)
+            && json_integer(node, node_names.size, L", \"size\": ", out)
+            && json_integer(node, node_names.allocated, L", \"allocated\": ", out)
+            && json_integer(node, node_names.file_count, L", \"files\": ", out)
+            && json_integer(node, node_names.dir_count, L", \"folders\": ", out);
+    }
+    if (whole) {
+        out += L", \"modified\": ";
+        whole = json_time(modified, iso_time, out) && json_accounted(node, out);
+    }
+    int failed = whole ? PyObject_IsTrue(error) : -1;
+    if (failed > 0) {
+        out += L", \"error\": ";
+        whole = json_string(error, out);
+    }
+    int named = whole ? PyObject_IsTrue(name) : -1;
+    if (whole && parent == Py_None && named == 0) {
+        out += L", \"virtual\": true";  // a root over several scanned folders has no path
+    }
+    whole = whole && failed >= 0 && named >= 0;
+    Py_XDECREF(name);
+    Py_XDECREF(modified);
+    Py_XDECREF(error);
+    Py_XDECREF(parent);
+    return whole;
+}
+
+// The folders among a node's children (links left out), in order; false with a Python error set.
+bool folders_of(PyObject* node, std::vector<PyObject*>& folders) {
+    PyObject* children = PyObject_GetAttr(node, node_names.children);
+    Py_ssize_t count = children != nullptr ? PySequence_Size(children) : -1;
+    bool whole = count >= 0;
+    for (Py_ssize_t at = 0; whole && at < count; ++at) {
+        PyObject* child = PySequence_GetItem(children, at);
+        int folder = child != nullptr ? truth_of(child, node_names.is_dir) : -1;
+        int link = folder > 0 ? truth_of(child, node_names.is_link) : 0;
+        whole = folder >= 0 && link >= 0;
+        if (whole && folder > 0 && link == 0) {
+            folders.push_back(child);  // keeps the reference
+        } else {
+            Py_XDECREF(child);
+        }
+    }
+    Py_XDECREF(children);
+    if (!whole) {
+        for (PyObject* kept : folders) {
+            Py_DECREF(kept);
+        }
+        folders.clear();
+    }
+    return whole;
+}
+
+// local_time_text(timestamp) -> the text export._iso_time gives, or None when Python must format it
+PyObject* local_time(PyObject*, PyObject* arguments) {
+    double timestamp = 0.0;
+    if (!PyArg_ParseTuple(arguments, "d", &timestamp)) {
+        return nullptr;
+    }
+    std::wstring out;
+    if (timestamp <= 0.0) {
+        return PyUnicode_FromString("");
+    }
+    if (!local_time_text(timestamp, out)) {
+        Py_RETURN_NONE;
+    }
+    return PyUnicode_FromWideChar(out.data() + 1, static_cast<Py_ssize_t>(out.size() - 2));  // without the quotes
+}
+
+// Take the last item off a list; a new reference, or nullptr with a Python error set.
+PyObject* pop_last(PyObject* list) {
+    Py_ssize_t count = PyList_Size(list);
+    PyObject* item = count > 0 ? PyList_GetItem(list, count - 1) : nullptr;
+    if (item == nullptr) {
+        return nullptr;
+    }
+    Py_INCREF(item);
+    if (PyList_SetSlice(list, count - 1, count, nullptr) != 0) {
+        Py_DECREF(item);
+        return nullptr;
+    }
+    return item;
+}
+
+// json_folders(pending, budget, iso_time, joiner) -> text
+//   ``pending`` is a stack (a list): a folder still to write, None for "]}" and True for ", ". Up to
+//   ``budget`` items are taken off it and written as export._folder_json would yield them, the pieces
+//   joined by ``joiner``; the folders found inside a folder are put on the stack. Call until it is empty.
+PyObject* json_folders(PyObject*, PyObject* arguments) {
+    PyObject* pending = nullptr;
+    PyObject* iso_time = nullptr;
+    PyObject* joiner = nullptr;
+    Py_ssize_t budget = 0;
+    if (!PyArg_ParseTuple(arguments, "O!nOU", &PyList_Type, &pending, &budget, &iso_time, &joiner)) {
+        return nullptr;
+    }
+    Py_ssize_t joiner_length = 0;
+    wchar_t* joiner_text = PyUnicode_AsWideCharString(joiner, &joiner_length);
+    if (joiner_text == nullptr) {
+        return nullptr;
+    }
+    std::wstring between(joiner_text, static_cast<std::size_t>(joiner_length));
+    PyMem_Free(joiner_text);
+    std::wstring out;
+    bool whole = true;
+    for (Py_ssize_t taken = 0; whole && taken < budget && PyList_Size(pending) > 0; ++taken) {
+        PyObject* item = pop_last(pending);
+        if (item == nullptr) {
+            return nullptr;
+        }
+        if (taken > 0) {
+            out += between;
+        }
+        if (item == Py_None) {
+            out += L"]}";
+        } else if (item == Py_True) {
+            out += L", ";
+        } else {
+            std::vector<PyObject*> folders;
+            whole = json_fields(item, iso_time, out) && folders_of(item, folders);
+            if (whole && folders.empty()) {
+                out += L"}";
+            } else if (whole) {
+                out += L", \"children\": [";
+                whole = PyList_Append(pending, Py_None) == 0;
+                for (std::size_t at = folders.size(); at-- > 0;) {  // the first folder ends up on top
+                    whole = whole && PyList_Append(pending, folders[at]) == 0
+                        && (at == 0 || PyList_Append(pending, Py_True) == 0);
+                    Py_DECREF(folders[at]);
+                }
+            }
+        }
+        Py_DECREF(item);
+    }
+    if (!whole) {
+        return nullptr;
+    }
+    return PyUnicode_FromWideChar(out.data(), static_cast<Py_ssize_t>(out.size()));
+}
+
+// ---- the capacity ledger's file totals (core/capacity.py, _Counts) ----
+
+constexpr const char* CAPACITY_CAPSULE = "je_file_tree._native.capacity";
+constexpr Py_ssize_t SNAPSHOT_LINKS_AT = 72;
+
+struct FileIdentity {
+    std::uint64_t device = 0;
+    std::uint64_t low = 0;
+    std::uint64_t high = 0;
+    bool operator<(const FileIdentity& other) const {
+        return std::tie(device, low, high) < std::tie(other.device, other.low, other.high);
+    }
+};
+
+struct LinkedFile {  // one file with several names: counted once, with its largest recorded allocation
+    long long allocated = 0;
+    bool in_bin = false;
+    bool foreign = false;
+};
+
+struct CapacityCounts {
+    long long named = 0;
+    long long unique = 0;
+    long long bin_seen = 0;
+    long long foreign = 0;
+    bool unknown = false;
+    std::map<FileIdentity, LinkedFile> links;
+
+    void count(long long allocated, bool in_bin, bool other_volume) {
+        if (other_volume) {
+            foreign += allocated;
+        } else {
+            unique += allocated;
+            if (in_bin) {
+                bin_seen += allocated;
+            }
+        }
+    }
+};
+
+void free_capacity(PyObject* capsule) {
+    delete static_cast<CapacityCounts*>(PyCapsule_GetPointer(capsule, CAPACITY_CAPSULE));
+}
+
+// capacity_new() -> the running totals of one ledger
+PyObject* capacity_new(PyObject*, PyObject*) {
+    CapacityCounts* counts = new (std::nothrow) CapacityCounts();
+    if (counts == nullptr) {
+        return PyErr_NoMemory();
+    }
+    PyObject* capsule = PyCapsule_New(counts, CAPACITY_CAPSULE, free_capacity);
+    if (capsule == nullptr) {
+        delete counts;
+    }
+    return capsule;
+}
+
+// _Counts.add for one file; false with a Python error set.
+bool capacity_file(PyObject* file, bool has_device, std::uint64_t device, bool in_bin, CapacityCounts& counts) {
+    long long allocated = 0;
+    PyObject* snapshot = PyObject_GetAttr(file, node_names.snapshot);
+    PyObject* error = PyObject_GetAttr(file, node_names.error);
+    bool whole = snapshot != nullptr && error != nullptr && integer_of(file, node_names.allocated, allocated);
+    if (whole && snapshot == Py_None) {
+        counts.named += allocated;
+        counts.unknown = true;
+        counts.count(allocated, in_bin, false);
+    } else if (whole) {
+        char* data = nullptr;
+        Py_ssize_t length = 0;
+        whole = PyBytes_AsStringAndSize(snapshot, &data, &length) == 0;
+        if (whole && length != static_cast<Py_ssize_t>(SNAPSHOT_SIZE)
+            && length != static_cast<Py_ssize_t>(SNAPSHOT_SIZE + TIMES_SIZE)) {
+            PyErr_SetString(PyExc_ValueError, "Invalid filesystem snapshot length");
+            whole = false;
+        }
+        if (whole) {
+            FileIdentity identity;
+            std::uint32_t names = 0;
+            std::memcpy(&identity.device, data, 8);
+            std::memcpy(&identity.low, data + 8, 8);
+            std::memcpy(&identity.high, data + 16, 8);
+            std::memcpy(&names, data + SNAPSHOT_LINKS_AT, 4);
+            bool other_volume = has_device && identity.device != device;
+            bool known = identity.low != 0 || identity.high != 0;
+            if (!other_volume) {
+                counts.named += allocated;
+            }
+            counts.unknown = counts.unknown || !known || names == 0 || error != Py_None;
+            if (known && names > 1) {
+                auto found = counts.links.find(identity);
+                if (found == counts.links.end()) {
+                    counts.links[identity] = LinkedFile{allocated, in_bin, other_volume};
+                } else {
+                    found->second.allocated = (std::max)(found->second.allocated, allocated);
+                    found->second.in_bin = found->second.in_bin || in_bin;
+                }
+            } else {
+                counts.count(allocated, in_bin, other_volume);
+            }
+        }
+    }
+    Py_XDECREF(snapshot);
+    Py_XDECREF(error);
+    return whole;
+}
+
+// capacity_add(totals, children, device or None, in_bin) -> the folders among ``children`` (links too);
+//   every file among them that is not a link is added to the totals as _Counts.add does.
+PyObject* capacity_add(PyObject*, PyObject* arguments) {
+    PyObject* capsule = nullptr;
+    PyObject* children = nullptr;
+    PyObject* device_given = nullptr;
+    int in_bin = 0;
+    if (!PyArg_ParseTuple(arguments, "OOOp", &capsule, &children, &device_given, &in_bin)) {
+        return nullptr;
+    }
+    CapacityCounts* counts = static_cast<CapacityCounts*>(PyCapsule_GetPointer(capsule, CAPACITY_CAPSULE));
+    std::uint64_t device = device_given != Py_None ? PyLong_AsUnsignedLongLong(device_given) : 0;
+    Py_ssize_t count = counts != nullptr && !PyErr_Occurred() ? PySequence_Size(children) : -1;
+    PyObject* folders = count >= 0 ? PyList_New(0) : nullptr;
+    if (folders == nullptr) {
+        return nullptr;
+    }
+    bool whole = true;
+    try {
+        for (Py_ssize_t at = 0; whole && at < count; ++at) {
+            PyObject* child = PySequence_GetItem(children, at);
+            int folder = child != nullptr ? truth_of(child, node_names.is_dir) : -1;
+            if (folder > 0) {
+                whole = PyList_Append(folders, child) == 0;
+            } else if (folder == 0) {
+                int link = truth_of(child, node_names.is_link);
+                whole = link >= 0 && (link > 0 || capacity_file(child, device_given != Py_None, device, in_bin != 0,
+                                                                *counts));
+            } else {
+                whole = false;
+            }
+            Py_XDECREF(child);
+        }
+    } catch (const std::bad_alloc&) {
+        PyErr_NoMemory();
+        whole = false;
+    }
+    if (!whole) {
+        Py_DECREF(folders);
+        return nullptr;
+    }
+    return folders;
+}
+
+// capacity_finish(totals) -> (named, unique, bin_seen, foreign, unknown), files with several names counted once
+PyObject* capacity_finish(PyObject*, PyObject* arguments) {
+    PyObject* capsule = nullptr;
+    if (!PyArg_ParseTuple(arguments, "O", &capsule)) {
+        return nullptr;
+    }
+    CapacityCounts* counts = static_cast<CapacityCounts*>(PyCapsule_GetPointer(capsule, CAPACITY_CAPSULE));
+    if (counts == nullptr) {
+        return nullptr;
+    }
+    for (const auto& linked : counts->links) {
+        counts->count(linked.second.allocated, linked.second.in_bin, linked.second.foreign);
+    }
+    counts->links.clear();
+    return Py_BuildValue("(LLLLO)", counts->named, counts->unique, counts->bin_seen, counts->foreign,
+                         counts->unknown ? Py_True : Py_False);
+}
+
+// ---- the summary: largest files, totals per extension and per age (core/analysis.py, summarise) ----
+
+constexpr const char* SUMMARY_CAPSULE = "je_file_tree._native.summary";
+constexpr double SECONDS_PER_DAY = 86400.0;
+constexpr int AGE_GROUPS = 5;
+constexpr double OLDEST_DAYS[AGE_GROUPS - 1] = {30.0, 182.5, 365.0, 730.0};  // analysis.AGE_GROUPS; the last takes the rest
+
+struct Total {
+    long long size = 0;
+    long long count = 0;
+    long long accounted = 0;
+};
+
+struct Candidate {  // a file that may be among the largest; ``order`` is when the walk met it
+    long long size = 0;
+    long long order = 0;
+    PyObject* node = nullptr;
+};
+
+// The worst candidate first: the smallest, and of equal ones the one met last.
+bool better(const Candidate& left, const Candidate& right) {
+    return left.size != right.size ? left.size > right.size : left.order < right.order;
+}
+
+struct SummaryState {
+    Py_ssize_t limit = 0;
+    double now = 0.0;
+    bool accounted = false;
+    long long seen = 0;
+    std::vector<Candidate> largest;  // a heap with the worst candidate at the front
+    std::unordered_map<std::wstring, Total> extensions;
+    Total ages[AGE_GROUPS];
+
+    ~SummaryState() {
+        for (Candidate& candidate : largest) {
+            Py_XDECREF(candidate.node);
+        }
+    }
+};
+
+void free_summary(PyObject* capsule) {
+    delete static_cast<SummaryState*>(PyCapsule_GetPointer(capsule, SUMMARY_CAPSULE));
+}
+
+// summary_new(limit, now, accounted) -> the running summary of one tree
+PyObject* summary_new(PyObject*, PyObject* arguments) {
+    Py_ssize_t limit = 0;
+    double now = 0.0;
+    int accounted = 0;
+    if (!PyArg_ParseTuple(arguments, "ndp", &limit, &now, &accounted)) {
+        return nullptr;
+    }
+    SummaryState* state = new (std::nothrow) SummaryState();
+    if (state == nullptr) {
+        return PyErr_NoMemory();
+    }
+    state->limit = limit;
+    state->now = now;
+    state->accounted = accounted != 0;
+    PyObject* capsule = PyCapsule_New(state, SUMMARY_CAPSULE, free_summary);
+    if (capsule == nullptr) {
+        delete state;
+    }
+    return capsule;
+}
+
+// analysis.age_of: the first group old enough; times that are not positive fall in the last one.
+int age_group(double modified, double now) {
+    if (modified <= 0) {
+        return AGE_GROUPS - 1;
+    }
+    double days = (now - modified) / SECONDS_PER_DAY;
+    int group = 0;
+    while (group < AGE_GROUPS - 1 && OLDEST_DAYS[group] < days) {
+        ++group;
+    }
+    return group;
+}
+
+// The counted size of a file: its named size unless it carries ``accounting``.
+bool accounted_size(PyObject* file, long long size, long long& value) {
+    PyObject* accounting = PyObject_GetAttr(file, node_names.accounting);
+    if (accounting == nullptr) {
+        return false;
+    }
+    value = size;
+    bool whole = true;
+    if (accounting != Py_None) {
+        PyObject* first = PySequence_GetItem(accounting, 0);
+        value = first != nullptr ? PyLong_AsLongLong(first) : -1;
+        whole = first != nullptr && !(value == -1 && PyErr_Occurred());
+        Py_XDECREF(first);
+    }
+    Py_DECREF(accounting);
+    return whole;
+}
+
+// One file of the walk; false with a Python error set.
+bool summary_file(PyObject* file, SummaryState& state) {
+    long long size = 0;
+    long long counted = 0;
+    PyObject* name = PyObject_GetAttr(file, node_names.name);
+    PyObject* modified = PyObject_GetAttr(file, node_names.modified);
+    double when = modified != nullptr ? PyFloat_AsDouble(modified) : -1.0;
+    Py_ssize_t length = 0;
+    wchar_t* text = name != nullptr ? PyUnicode_AsWideCharString(name, &length) : nullptr;
+    bool whole = text != nullptr && modified != nullptr && !(when == -1.0 && PyErr_Occurred())
+        && integer_of(file, node_names.size, size) && (!state.accounted || accounted_size(file, size, counted));
+    if (whole) {
+        Py_ssize_t dot = length;
+        while (dot > 0 && text[dot - 1] != L'.') {
+            --dot;
+        }
+        --dot;  // the last dot, or -1 without one
+        Total& extension = state.extensions[dot > 0 && dot < length - 1 ? std::wstring(text + dot, length - dot)
+                                                                       : std::wstring()];
+        extension.size += size;
+        extension.count += 1;
+        extension.accounted += counted;
+        Total& age = state.ages[age_group(when, state.now)];
+        age.size += size;
+        age.count += 1;
+        Candidate candidate{size, state.seen++, file};
+        if (static_cast<Py_ssize_t>(state.largest.size()) < state.limit) {
+            Py_INCREF(file);
+            state.largest.push_back(candidate);
+            std::push_heap(state.largest.begin(), state.largest.end(), better);
+        } else if (state.limit > 0 && better(candidate, state.largest.front())) {
+            std::pop_heap(state.largest.begin(), state.largest.end(), better);
+            Py_DECREF(state.largest.back().node);
+            Py_INCREF(file);
+            state.largest.back() = candidate;
+            std::push_heap(state.largest.begin(), state.largest.end(), better);
+        }
+    }
+    if (text != nullptr) {
+        PyMem_Free(text);
+    }
+    Py_XDECREF(name);
+    Py_XDECREF(modified);
+    return whole;
+}
+
+// summary_step(summary, stack, budget) -> None
+//   Takes up to ``budget`` nodes off ``stack`` (a list) as analysis._files_and_extensions does: a link
+//   is skipped, a folder's children go on the stack, a file is counted. Call until the stack is empty.
+PyObject* summary_step(PyObject*, PyObject* arguments) {
+    PyObject* capsule = nullptr;
+    PyObject* stack = nullptr;
+    Py_ssize_t budget = 0;
+    if (!PyArg_ParseTuple(arguments, "OO!n", &capsule, &PyList_Type, &stack, &budget)) {
+        return nullptr;
+    }
+    SummaryState* state = static_cast<SummaryState*>(PyCapsule_GetPointer(capsule, SUMMARY_CAPSULE));
+    if (state == nullptr) {
+        return nullptr;
+    }
+    bool whole = true;
+    try {
+        for (Py_ssize_t taken = 0; whole && taken < budget && PyList_Size(stack) > 0; ++taken) {
+            PyObject* node = pop_last(stack);
+            int link = node != nullptr ? truth_of(node, node_names.is_link) : -1;
+            int folder = link == 0 ? truth_of(node, node_names.is_dir) : 0;
+            whole = link >= 0 && folder >= 0;
+            if (whole && link == 0 && folder > 0) {
+                PyObject* children = PyObject_GetAttr(node, node_names.children);
+                Py_ssize_t end = PyList_Size(stack);
+                whole = children != nullptr && PyList_SetSlice(stack, end, end, children) == 0;
+                Py_XDECREF(children);
+            } else if (whole && link == 0) {
+                whole = summary_file(node, *state);
+            }
+            Py_XDECREF(node);
+        }
+    } catch (const std::bad_alloc&) {
+        PyErr_NoMemory();
+        whole = false;
+    }
+    if (!whole) {
+        return nullptr;
+    }
+    Py_RETURN_NONE;
+}
+
+// summary_finish(summary) -> (largest files, {extension as written: (size, count, counted size)}, [(size, count)] per age)
+PyObject* summary_finish(PyObject*, PyObject* arguments) {
+    PyObject* capsule = nullptr;
+    if (!PyArg_ParseTuple(arguments, "O", &capsule)) {
+        return nullptr;
+    }
+    SummaryState* state = static_cast<SummaryState*>(PyCapsule_GetPointer(capsule, SUMMARY_CAPSULE));
+    if (state == nullptr) {
+        return nullptr;
+    }
+    std::sort(state->largest.begin(), state->largest.end(), better);
+    PyObject* largest = PyList_New(0);
+    PyObject* extensions = PyDict_New();
+    PyObject* ages = PyList_New(0);
+    bool whole = largest != nullptr && extensions != nullptr && ages != nullptr;
+    for (std::size_t at = 0; whole && at < state->largest.size(); ++at) {
+        whole = PyList_Append(largest, state->largest[at].node) == 0;
+    }
+    for (auto found = state->extensions.begin(); whole && found != state->extensions.end(); ++found) {
+        PyObject* key = PyUnicode_FromWideChar(found->first.data(), static_cast<Py_ssize_t>(found->first.size()));
+        PyObject* value = Py_BuildValue("(LLL)", found->second.size, found->second.count, found->second.accounted);
+        whole = key != nullptr && value != nullptr && PyDict_SetItem(extensions, key, value) == 0;
+        Py_XDECREF(key);
+        Py_XDECREF(value);
+    }
+    for (int group = 0; whole && group < AGE_GROUPS; ++group) {
+        PyObject* value = Py_BuildValue("(LL)", state->ages[group].size, state->ages[group].count);
+        whole = value != nullptr && PyList_Append(ages, value) == 0;
+        Py_XDECREF(value);
+    }
+    if (!whole) {
+        Py_XDECREF(largest);
+        Py_XDECREF(extensions);
+        Py_XDECREF(ages);
+        return nullptr;
+    }
+    return Py_BuildValue("(NNN)", largest, extensions, ages);
+}
+
 PyMethodDef methods[] = {
     {"mft_open", mft_open, METH_VARARGS, "Read and index the master file table of an NTFS volume, read-only."},
     {"mft_info", mft_info, METH_VARARGS, "(volume serial number, records, names, damaged records) of a table."},
     {"mft_rows", mft_rows, METH_VARARGS, "The read_folder rows of one folder of a table, by file reference."},
     {"mft_snapshot", mft_snapshot, METH_VARARGS, "The snapshot of one folder of a table, or None."},
+    {"local_time_text", local_time, METH_VARARGS,
+     "The local time text of export._iso_time for a plain time, or None when Python must format it."},
+    {"capacity_new", capacity_new, METH_NOARGS, "The running file totals of one capacity ledger."},
+    {"capacity_add", capacity_add, METH_VARARGS, "Add the files among a folder's children; returns the folders."},
+    {"capacity_finish", capacity_finish, METH_VARARGS, "(named, unique, bin_seen, foreign, unknown) of a ledger."},
+    {"summary_new", summary_new, METH_VARARGS, "The running summary of one tree: (limit, now, accounted)."},
+    {"summary_step", summary_step, METH_VARARGS, "Take a bounded number of nodes off the walk's stack."},
+    {"summary_finish", summary_finish, METH_VARARGS, "(largest files, totals per extension, totals per age)."},
+    {"json_folders", json_folders, METH_VARARGS,
+     "Write a bounded number of folders of a tree as the folder JSON of exports and history."},
     {"read_folder", read_folder, METH_VARARGS,
      "List one folder: (name, kind, size, modified, snapshot, attributes) per entry, read-only."},
     {"snapshot", snapshot, METH_VARARGS, "The packed no-follow snapshot of one path, or None."},
@@ -987,7 +1757,9 @@ PyMODINIT_FUNC PyInit__native(void) {
         return nullptr;
     }
     by_name_query();  // resolve once here, under the interpreter lock
-    if (PyModule_AddIntConstant(module, "KIND_FILE", KIND_FILE) != 0
+    find_local_clock();
+    if (!intern_node_names()
+        || PyModule_AddIntConstant(module, "KIND_FILE", KIND_FILE) != 0
         || PyModule_AddIntConstant(module, "KIND_FOLDER", KIND_FOLDER) != 0
         || PyModule_AddIntConstant(module, "KIND_ASK_PYTHON", KIND_ASK_PYTHON) != 0
         || PyModule_AddIntConstant(module, "QUERY_BY_NAME", QUERY_BY_NAME) != 0

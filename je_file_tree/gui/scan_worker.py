@@ -371,9 +371,10 @@ class ScanWorker(QThread):
             try:
                 root = outcome.result.root
                 roots = root.children if root.path is None else (root,)
+                surveyed = outcome.capacity.coverage if outcome.capacity is not None and root.path is not None else None
                 for source in roots:
                     if source.snapshot is not None:
-                        self._history.save(source, cancel=self._cancel, options=self._options)
+                        self._history.save(source, cancel=self._cancel, options=self._options, coverage=surveyed)
             except HistoryCancelledError:
                 return False
             except (OSError, ValueError, UnicodeError, RecursionError) as error:

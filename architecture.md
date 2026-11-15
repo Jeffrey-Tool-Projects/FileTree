@@ -1235,6 +1235,19 @@ folder equals `os.lstat` (which also refuses a folder reached through a link or 
 The table can describe folders the account may not list. Measurements: `core/mft_scan.py` and
 docs/updates U-20261115-05.
 
+**Passes over a finished tree may be native.** After a scan the worker walks the tree for the summary, the
+capacity ledger and the saved history; on a whole drive those loops took as long as the scan.
+`core.native_tree.function(name)` hands out the optional `_native` function for a pass, or None (other
+systems, no module, an older module, `FILE_TREE_NATIVE_TREE=0`), and each caller keeps the Python code it
+stands in for: `analysis._native_summary` beside `_files_and_extensions`, `capacity._survey` beside
+`_Counts.add`, `export.folder_json_pieces` beside `_folder_json`, and `export._iso_time` asking
+`local_time_text` first. Every native pass does a bounded batch per call (`native_tree.BATCH`), so the
+caller still looks at its cancel event and calls `give_way()` in between, and must produce exactly what
+the Python code produces: `test/test_native_tree.py` compares the two, and `test/conftest.py` keeps every
+other test on the Python passes. Local time is formatted with the C runtime functions `time.localtime`
+itself uses, taken from the runtime library loaded in the process. Measurements: docs/updates
+U-20261115-10.
+
 **Background work gives way.** In CPython one thread runs Python at a time, and every call Qt makes into
 Python (each cell the folder tree paints, every event handler) needs that lock, so a worker walking the
 tree used to make the window queue behind it. `core.pacing.WINDOW` is a gate: `scan_worker.pace_workers`

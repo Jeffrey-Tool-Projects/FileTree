@@ -7,6 +7,7 @@ import shutil
 import time
 from dataclasses import dataclass, field
 
+from je_file_tree.core import native_tree
 from je_file_tree.core.coverage import Coverage, coverage_of
 from je_file_tree.core.node import Node
 from je_file_tree.core.mounts import MOUNT_BOUNDARY
@@ -47,9 +48,32 @@ class CapacityLedger:
 def capacity_ledger(root: Node, *, partial: bool = False) -> CapacityLedger:
     """Survey on a worker; report why a folder, interrupted or unreadable scan cannot reconcile a volume."""
     coverage = coverage_of(root)
-    counts = _Counts()
     root_info = unpack_snapshot(root.snapshot) if root.snapshot is not None else None
     device = root_info.device if root_info is not None else None
+    counts = _survey(root, device)
+    total, used, free, unavailable = _usage(root.path)
+    status = _status(root, coverage, counts.unknown or root_info is None, partial)
+    if total is None and root.path is not None:
+        status = "capacity_unavailable"
+    elif status == "estimated" and used is not None and counts.unique > used:
+        status = "allocation_exceeds_used"
+    remainder = used - counts.unique if status == "estimated" and used is not None else None
+    known = not counts.unknown and (root_info is not None or root.path is None)
+    return CapacityLedger(total, used, free, unavailable, counts.named, counts.unique if known else None,
+                          counts.named - counts.unique if known else None, counts.bin_seen if known else None,
+                          counts.bin_found and counts.bin_complete, counts.mounts, counts.foreign if known else None,
+                          coverage, status, remainder, time.time())
+
+
+def _survey(root: Node, device: int | None) -> _Counts:
+    """Walk the tree once: per folder here, per file in ``_Counts.add`` or in the native module.
+
+    Measured 2026-11-15 on 1.1 million files / 325,000 folders: the ledger took 3.3 s with the files
+    counted in Python and 1.7 s natively, with the same numbers (``docs/updates`` U-20261115-10).
+    """
+    counts = _Counts()
+    started, add, finish = (native_tree.function(name) for name in ("capacity_new", "capacity_add", "capacity_finish"))
+    totals = started() if started is not None and add is not None and finish is not None else None
     stack = [(root, _is_trash(root.path))]
     while stack:
         node, in_bin = stack.pop()
@@ -66,25 +90,23 @@ def capacity_ledger(root: Node, *, partial: bool = False) -> CapacityLedger:
         if node.error == MOUNT_BOUNDARY or (own is not None and above is not None
                                            and own != link_identity(above)[0]):
             counts.mounts += 1
-        if not node.is_link:
-            for child in node.children:
-                if child.is_dir:
-                    stack.append((child, in_bin or _trash_node(child)))
-                elif not child.is_link:
-                    counts.add(child, device, in_bin)
-    counts.finish()
-    total, used, free, unavailable = _usage(root.path)
-    status = _status(root, coverage, counts.unknown or root_info is None, partial)
-    if total is None and root.path is not None:
-        status = "capacity_unavailable"
-    elif status == "estimated" and used is not None and counts.unique > used:
-        status = "allocation_exceeds_used"
-    remainder = used - counts.unique if status == "estimated" and used is not None else None
-    known = not counts.unknown and (root_info is not None or root.path is None)
-    return CapacityLedger(total, used, free, unavailable, counts.named, counts.unique if known else None,
-                          counts.named - counts.unique if known else None, counts.bin_seen if known else None,
-                          counts.bin_found and counts.bin_complete, counts.mounts, counts.foreign if known else None,
-                          coverage, status, remainder, time.time())
+        if node.is_link:
+            continue
+        if totals is not None:  # the module counts the files and hands the folders back
+            stack.extend((child, in_bin or _trash_node(child))
+                         for child in add(totals, node.children, device, in_bin))  # type: ignore[misc]
+            continue
+        for child in node.children:
+            if child.is_dir:
+                stack.append((child, in_bin or _trash_node(child)))
+            elif not child.is_link:
+                counts.add(child, device, in_bin)
+    if totals is None:
+        counts.finish()
+    else:
+        counts.named, counts.unique, counts.bin_seen, counts.foreign, unknown = finish(totals)  # type: ignore[misc]
+        counts.unknown |= unknown
+    return counts
 
 
 def _usage(path: str | None) -> tuple[int | None, int | None, int | None, int | None]:
