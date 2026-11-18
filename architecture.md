@@ -775,6 +775,9 @@ unusable dates. New selections/scan roots invalidate old replies; MainWindow joi
 ChartStack navigation updates all charts and records one visit; stepping history does not append it.
 Detached nodes are pruned after edits, new scans reset references, and deep ancestor paths use a
 scroll area with a collapsed menu instead of widening the chart. Shortcuts apply while Chart is visible.
+The Up, Back, Forward and ancestor buttons take no focus, so `ResultsView.focus_chart` gives it to the
+chart after each; `MainWindow._leave_path_box` moves focus from the path box or start page to the tree
+when a scan begins. Enter meant for the chart therefore never reaches the path box (U-20261119-01).
 
 `printing` captures the visible results before opening QPrintDialog, then QPrinter fits those pixels
 on one printable page. PDF export uses the same fitted layout via QPdfWriter on ExportWorker, avoiding

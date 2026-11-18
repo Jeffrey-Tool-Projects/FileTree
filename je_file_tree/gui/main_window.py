@@ -429,9 +429,21 @@ class MainWindow(QMainWindow):
         self.results.begin_scan()
         self.scan_activity_changed.emit()
         self.pages.setCurrentIndex(RESULTS_PAGE)
+        self._leave_path_box()
         self._update_actions()
         self._live_timer.start()
         after_threads((*self._scan_workers, *background, *following), lambda: self._dispatch_scan(worker), self)
+
+    def _leave_path_box(self) -> None:
+        """Move keyboard focus from the path box (or the start page) to the results of a new scan.
+
+        Focus stayed in the path box after Enter started a scan, so a later Enter meant for the chart
+        or the tree scanned the whole root again and Backspace edited the path (U-20261119-01).
+        """
+        focused = self.focusWidget()  # the window's own focus, also while another program is active
+        if (focused is None or focused is self.path_edit or focused is self._scan_path
+                or self.welcome.isAncestorOf(focused)):
+            self.results.focus_results()
 
     def _dispatch_scan(self, worker: ScanWorker) -> None:
         if self._closing or worker is not self._worker or worker is not self._pending_scan:

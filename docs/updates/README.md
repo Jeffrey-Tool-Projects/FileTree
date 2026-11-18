@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261119-01 | 2026-11-19 | 圖表上切換上下層時按 Enter 會重新掃描整個根目錄 | #done #fix #gui #scan | [2026-11](2026-11.md) |
 | U-20261118-02 | 2026-11-18 | 掃描或操作進行中按下須等待的操作時說明原因 | #decision #gui #ux #i18n | [2026-11](2026-11.md) |
 | U-20261118-01 | 2026-11-18 | 掃描中的即時更新依耗時拉開間隔，不再逐列通知資料夾 | #snapshot #perf #gui #scan | [2026-11](2026-11.md) |
 | U-20261115-14 | 2026-11-15 | CI 發現一個測試以檔案表索引旗標當範例屬性 | #incident #ci #scanner #windows | [2026-11](2026-11.md) |

@@ -442,6 +442,14 @@ class ResultsView(QWidget):
         """Every entry selected in the tree (Ctrl+click and Shift+click pick several)."""
         return _selected_in(self.tree)
 
+    def focus_chart(self) -> None:
+        """Give keyboard focus to the chart on screen, where its navigation keys work."""
+        self.charts.current_chart().setFocus(Qt.FocusReason.OtherFocusReason)
+
+    def focus_results(self) -> None:
+        """Give keyboard focus to the folder tree (a new scan fills it)."""
+        self.tree.setFocus(Qt.FocusReason.OtherFocusReason)
+
     def focused_selection(self) -> list[Node]:
         """The entries selected where the keyboard is: the largest-files, search or duplicates list, else the tree."""
         for view in (self.largest_table, self.search_table, self.duplicates.view, self.cleanup.view):
@@ -748,6 +756,13 @@ class ResultsView(QWidget):
         """The Chart tab: the path and view buttons, the treemap options, the charts and the legend."""
         self._treemap_up.clicked.connect(self.charts.zoom_out)
         self.breadcrumbs.navigate.connect(self.charts.set_view_root)
+        # The Up, Back, Forward and ancestor buttons take no focus of their own: hand it to the chart, so
+        # that Enter (into a folder) and Backspace (up) go on there and never reach the path box at the
+        # top, where Enter scanned the whole root again (U-20261119-01).
+        self._treemap_up.clicked.connect(self.focus_chart)
+        self.breadcrumbs.back.clicked.connect(self.focus_chart)
+        self.breadcrumbs.forward.clicked.connect(self.focus_chart)
+        self.breadcrumbs.navigate.connect(lambda _node: self.focus_chart())
         self.charts.node_clicked.connect(self._treemap_clicked)
         self.charts.view_root_changed.connect(self._treemap_root_changed)
         self.charts.context_menu_requested.connect(self._emit_menu)
