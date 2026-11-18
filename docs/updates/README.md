@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261118-01 | 2026-11-18 | 掃描中的即時更新依耗時拉開間隔，不再逐列通知資料夾 | #snapshot #perf #gui #scan | [2026-11](2026-11.md) |
 | U-20261115-14 | 2026-11-15 | CI 發現一個測試以檔案表索引旗標當範例屬性 | #incident #ci #scanner #windows | [2026-11](2026-11.md) |
 | U-20261115-13 | 2026-11-15 | 計入硬連結與其他分頁的刪除不再重掃整個根目錄 | #decision #gui #scan #perf | [2026-11](2026-11.md) |
 | U-20261115-12 | 2026-11-15 | 新建立的空資料夾掃描後被判定已變更 | #incident #fix #scanner #native #windows | [2026-11](2026-11.md) |

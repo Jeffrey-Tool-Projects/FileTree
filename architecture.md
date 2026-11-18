@@ -1202,10 +1202,12 @@ on Windows by default the size rounded up to the volume's clusters, the system a
 files, 0 for files whose data is elsewhere (cloud placeholders, offline), never opening those.
 Each finished folder's files are added to the running totals of every folder above it. The root is handed
 out first (`started`), so `FolderTreeModel` shows the tree in live mode while it grows: each folder's
-children are a sorted copy frozen until the next `refresh()`, which the window calls every 700 ms (a layout
-change that moves persistent indexes, so expanded folders, selection and scroll position survive). A tick
-whose shown folders keep their members, sorted order and child presence only notifies the root and folder
-rows and repaints the visible tree, since file rows' own values are final when added (U-20261017-76). The
+children are a sorted copy frozen until the next `refresh()` (a layout change that moves persistent indexes,
+so expanded folders, selection and scroll position survive). `gui.live_refresh.LiveRefresh` calls it every
+700 ms at the fastest; each call is timed until the event loop is about to wait, and the next one waits four
+times that, up to 5 s, so live refreshes take at most about a fifth of the window's time however many rows
+are expanded (U-20261118-01). A tick whose shown folders keep their members, sorted order and child presence
+only notifies the root row and repaints the visible tree (U-20261017-76, U-20261118-01). The
 calling thread reports progress about ten times a second and watches the cancel event. When every folder
 is read, totals are added up again bottom-up and children sorted largest first; `analyse()` (largest
 files, per-type totals) runs still off the GUI thread and `succeeded(ScanOutcome)` ends live mode. Stop

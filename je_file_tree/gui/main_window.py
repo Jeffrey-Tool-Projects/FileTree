@@ -51,6 +51,7 @@ from je_file_tree.gui.startup_state import WorkspaceState
 from je_file_tree.gui.scan_preferences import MAX_SCAN_WORKERS as _MAX_SCAN_WORKERS, SCAN_FLAGS, ScanDefaults
 from je_file_tree.gui.special_files import SpecialFilesDialog
 from je_file_tree.gui.live_compare import LiveCompareDialog
+from je_file_tree.gui.live_refresh import LiveRefresh
 from je_file_tree.gui.git_history import GitHistoryDialog
 from je_file_tree.gui.history import HistoryDialog, HistorySettings, configured_history, history_folder, history_limit
 from je_file_tree.gui.recurring_review import RecurringReview
@@ -112,8 +113,6 @@ from je_file_tree.gui.change_watch import FollowChanges, supported as follow_sup
 from je_file_tree.gui.window_fit import fit_window
 
 WELCOME_PAGE, RESULTS_PAGE = range(2)
-# How often the tree of a running scan is refreshed.
-LIVE_REFRESH_MS = 700
 _MAX_RECENT = 10
 _UNITS = (AUTO_UNIT, *SIZE_UNITS[1:5])
 _LISTED_NAMES = 8  # entries named in a Recycle Bin question; the rest are counted
@@ -196,9 +195,7 @@ class MainWindow(QMainWindow):
         self.pages = QStackedWidget()
         for page in (self.welcome, self.results):
             self.pages.addWidget(page)
-        self._live_timer = QTimer(self)
-        self._live_timer.setInterval(LIVE_REFRESH_MS)
-        self._live_timer.timeout.connect(self.results.refresh_live)
+        self._live_timer = LiveRefresh(self.results.refresh_live, self)  # spaced by its cost (U-20261118-01)
         self.setCentralWidget(self.pages)
         self.path_edit = QLineEdit()
         self._actions: dict[str, QAction] = {}
