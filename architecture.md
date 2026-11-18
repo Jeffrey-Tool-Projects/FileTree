@@ -28,6 +28,13 @@ selection signals blocked and preserve the selected rule identity without refill
 observation strings never feed persistence. Limit-version mismatch retains dated old usage with an
 explicit waiting state and unknown excess. The settings schema and reminder state remain unchanged.
 
+Actions that read or change the scanned entries (`main_window._WAIT_FOR_SCAN`) stay enabled while a scan or a
+source operation runs; `MainWindow._run_action` and `_explain_busy` intercept them and `gui.busy_notice` says
+why they wait, in the status bar and next to the pointer. Actions that start a scan themselves
+(`_WAIT_FOR_OPERATION`) wait only for operations. `move_to_trash`, `delete_permanently` and the context menu's
+folder rescan explain the same way, so panel buttons never fail silently; authority checks are unchanged
+(U-20261118-02).
+
 `MainWindow.folder_context` resolves a typed `FolderContext` from the current result and selection,
 checking scan ownership, shared operation busy state, closing, links and virtual roots. Files use
 their containing folder. `DetailsPanel.set_folder_context` displays its copyable path and unavailable

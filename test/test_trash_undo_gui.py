@@ -211,7 +211,7 @@ def test_close_joins_native_inverse_and_reports_late_partial_truth(window, qapp,
         # Model a delayed GUI observer; native work stays held until the test releases it.
         time.sleep(gui_delay)
         qapp.processEvents()
-        assert window.operation_busy and not window._actions["open"].isEnabled()
+        assert window.operation_busy and window._actions["open"].isEnabled()  # it explains the wait instead
         window.start_scan(str(source.parent))
         assert window._worker is None, "scan cannot overlap an active inverse operation"
         window.close()

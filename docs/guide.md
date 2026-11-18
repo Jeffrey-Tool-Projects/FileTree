@@ -365,7 +365,10 @@ To give FileTree to someone without Python, compile it with Nuitka into a progra
    Dropping a folder scans it in place and accepts only the Copy action, preserving the source even when Shift requests Move.
 2. **Watch it fill in**: the tree appears right away and the biggest folders move to the top while
    FileTree works; the largest files and file types follow when the scan ends. *Stop* (or Esc) ends the
-   scan at any time and keeps what was read so far, marked as incomplete.
+   scan at any time and keeps what was read so far, marked as incomplete. While it runs, actions that read
+   or change the scanned files (Move to Recycle Bin, Rescan, exports and the like) wait for it: using one
+   says so in the status bar and next to the pointer instead of doing nothing. With many folders open the
+   tree refreshes less often, so the window stays responsive.
 3. **Find what takes the space**: the biggest folders are at the top of the tree. Open a folder with the
    arrow next to it, or explore the chart on the right.
 

@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QDialog
 import pytest
 
 from test_gui import _wait
+from je_file_tree.gui.busy_notice import busy_text
 from je_file_tree.gui.elevation_dialog import ElevationDialog, ElevationWorker
 from je_file_tree.gui.i18n import tr
 
@@ -154,7 +155,10 @@ def test_busy_or_closing_windows_do_not_launch(window, monkeypatch):
     window._path_dialogs.add(guard)
     try:
         window._update_actions()
-        assert not window._actions["elevate"].isEnabled()
+        elevate = window._actions["elevate"]
+        assert elevate.isEnabled()  # it stays usable and says why it waits (U-20261118-02)
+        elevate.trigger()
+        assert window.statusBar().currentMessage() == busy_text(elevate.text(), scanning=False)
         window.restart_as_admin()
     finally:
         window._path_dialogs.discard(guard)

@@ -15,6 +15,7 @@ from je_file_tree.core.scanner import ScanCancelledError, scan
 from je_file_tree.core.cleanup_policy import CleanupPolicy, RuleSetting
 from je_file_tree.core.history import ScanHistory, load_recurring
 from je_file_tree.core.recurring import ProposalCancelledError
+from je_file_tree.gui.busy_notice import busy_text
 from je_file_tree.gui import app as gui_app, background_monitor as service, background_worker as workers
 from je_file_tree.gui.background_dialog import BackgroundDialog
 from je_file_tree.gui.app import create_workspace
@@ -406,8 +407,11 @@ def test_recurring_view_guard_serializes_tabs_and_never_runs_sources(monitored, 
     called = []
 
     def view(dialog):
-        assert monitored.operations.busy and not owner._actions["recurring"].isEnabled()
-        assert not other._actions["recurring"].isEnabled()
+        assert monitored.operations.busy
+        # The other tab's action stays usable but waits, saying so, instead of opening a second view.
+        assert other._actions["recurring"].isEnabled()
+        other._actions["recurring"].trigger()
+        assert other.statusBar().currentMessage() == busy_text(other._actions["recurring"].text(), scanning=False)
         called.append(True)
         return 0
 
