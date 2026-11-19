@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+import os
 import stat
 import sys
 import threading
@@ -21,11 +22,16 @@ POLL_SECONDS = 0.25
 
 @dataclass(frozen=True, slots=True)
 class ChangeBatch:
-    """Captured folder paths needing fresh scans, or a full-root request after loss/uncertainty."""
+    """Folders whose own entries changed, folders to read whole, or a full-root request after loss.
+
+    ``folders`` and ``trees`` are reported paths inside the scan, never targets: the window maps each to
+    the deepest folder it scanned there (``node.folder_holding``) and reads that folder again.
+    """
 
     folders: tuple[str, ...] = ()
     full: bool = False
     reason: str = ""
+    trees: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,15 +118,47 @@ def check_folder(folder: WatchFolder) -> None:
         raise ValueError("Watched folder identity changed")
 
 
-def changed(folders: set[str], *, full: bool = False, reason: str = "") -> ChangeBatch:
-    """Bound an event batch; too many affected folders conservatively request a full scan."""
-    if full or len(folders) > MAX_CHANGED:
+def changed(folders: set[str], *, full: bool = False, reason: str = "", trees: set[str] | frozenset[str] = frozenset()
+            ) -> ChangeBatch:
+    """Bound an event batch; past ``MAX_CHANGED`` paths, the deepest give way to their parent folders, read whole.
+
+    A build touching a thousand folders refreshes the few folders holding them instead of the whole scan.
+    """
+    if full:
         return ChangeBatch(full=True, reason=reason or "overflow")
-    return ChangeBatch(tuple(sorted(folders)), reason=reason)
+    folders, trees = set(folders), set(trees)
+    while len(folders) + len(trees) > MAX_CHANGED:
+        deepest = max(map(_depth, folders | trees))
+        if not deepest:
+            return ChangeBatch(full=True, reason=reason or "overflow")  # only drive roots are left
+        lifted = {os.path.dirname(path) for path in folders | trees if _depth(path) == deepest}
+        folders = {path for path in folders if _depth(path) < deepest} - lifted
+        trees = {path for path in trees if _depth(path) < deepest} | lifted
+    return ChangeBatch(tuple(sorted(folders)), reason=reason, trees=tuple(sorted(trees)))
+
+
+def _depth(path: str) -> int:
+    return path.rstrip("\\/").count(os.sep)
+
+
+def merged(first: ChangeBatch, second: ChangeBatch) -> ChangeBatch:
+    """Both batches as one, bounded like ``changed``."""
+    return changed(set(first.folders) | set(second.folders), full=first.full or second.full,
+                   reason=second.reason or first.reason, trees=set(first.trees) | set(second.trees))
+
+
+Position = tuple[int, int]  # an NTFS change journal and the next record to read from it
 
 
 def watch(root: Node, on_change: Callable[[ChangeBatch], None], cancel: threading.Event,
           *, ready: Callable[[str], None] | None = None) -> None:
+    """``captured_scope`` then ``watch_scope``: a joinable native feed for ``root``."""
+    watch_scope(captured_scope(root, cancel), on_change, cancel, ready=ready)
+
+
+def watch_scope(scope: WatchScope, on_change: Callable[[ChangeBatch], None], cancel: threading.Event,  # noqa: PLR0913
+                *, ready: Callable[[str], None] | None = None, since: Position | None = None,
+                moved: Callable[[Position], None] | None = None) -> None:
     """Joinable native metadata feed; caller must rescan and separately revalidate later operations.
 
     Windows uses an existing NTFS USN journal when readable, otherwise one recursive directory
@@ -128,8 +166,9 @@ def watch(root: Node, on_change: Callable[[ChangeBatch], None], cancel: threadin
     No journal creation/deletion, payload reads, Qt watchers or filesystem mutations are involved.
     Overflow/gaps request full rescans; unsupported/failed feeds raise visible OSError/ValueError.
     Setup/rearm and concurrent scans remain observational rather than a consistent live snapshot.
+    A journal feed reports its read position to ``moved``; one started ``since`` such a position reads
+    on from there, so a feed armed after a refresh misses nothing that happened while it was armed.
     """
-    scope = captured_scope(root, cancel)
     folders = scope.folders
     if not folders or cancel.is_set():
         return
@@ -137,7 +176,7 @@ def watch(root: Node, on_change: Callable[[ChangeBatch], None], cancel: threadin
     if sys.platform == "win32":
         from je_file_tree.core.windows_watch import watch_windows  # noqa: PLC0415 - native backend
 
-        watch_windows(folders, on_change, cancel, ready, scope.shared)
+        watch_windows(folders, on_change, cancel, ready, scope.shared, since=since, moved=moved)
     elif sys.platform.startswith("linux"):
         from je_file_tree.core.linux_watch import watch_linux  # noqa: PLC0415 - native backend
 

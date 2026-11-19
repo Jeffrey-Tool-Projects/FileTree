@@ -714,16 +714,19 @@ existing USN and Linux inotify, with source preservation and joined cancellation
 recursive directory notifications. No journals are created.
 
 GUI Options → Follow changes is default off and persisted with `follow_changes`. Each tab owns a
-ChangeWorker with worker-built captured folder/Node maps and one lock-protected bounded batch;
-events never accumulate as Qt signals. The controller polls/coalesces for one second, defers scans
-during source reviews/operations, scan/analysis, modal questions and live Undo offers, and invokes
-the existing rescan_folder/branch replacement only for captured nodes. Unrelated dirty folders survive
-the first refresh. Unknown maps, lost events or hard-link accounting require a full-root scan.
-Source-operation gaps and a five-minute periodic reconciliation also require full scans; branch
-rearming does not postpone that deadline. Ordinary notifications continue during branch scanning,
-then cancel/join before tree replacement/rearming. New roots discard old events; opt-out/tab close
-cancel and join through wait_for. Unsupported/incomplete scopes and native errors stay visible in
-plain-text status, with no automatic error retry loop. Notifications never grant mutation approval.
+CaptureWorker (reads the tree for `captured_scope`) and a ChangeWorker (`watch_scope`, one
+lock-protected bounded batch); events never accumulate as Qt signals. The controller polls/coalesces
+for one second, defers during source reviews/operations, scan/analysis, modal questions and live
+Undo offers, then reads every reported folder's own entries again in one worker
+(`scan(path, options=ScanOptions(keep=core.refresh.kept_subfolders(node)))`, then
+`core.refresh.refill(node, result.root)`). `ChangeBatch.trees` (too many changes below one folder)
+are read whole. The feed keeps reporting during that read; when the read found, lost or replaced a
+subfolder (or listed a hard-linked file), the next feed, armed on a fresh scope, replaces it only once
+ready, a journal feed reading on `since=` the held `Position`. Lost events and
+source-operation gaps without a journal position require a full-root scan; nothing reads the root
+on a timer. New roots discard old events; opt-out/tab close cancel and join through wait_for.
+Unsupported/incomplete scopes and native errors stay visible in plain-text status, with no automatic
+error retry loop. Notifications never grant mutation approval.
 
 `background.MonitorConfig(enabled=False, threshold=10, interval_hours=24, roots=())` validates
 up to 32 explicitly chosen absolute roots, a 1–50% threshold and 1–720-hour schedule. `dumps` /

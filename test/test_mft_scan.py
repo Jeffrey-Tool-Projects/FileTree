@@ -340,7 +340,7 @@ def test_rescanning_one_folder_of_a_finished_scan_lists_it(window, tmp_path, mon
             super().__init__(path, options, *arguments, **named)
 
     monkeypatch.setattr(main, "ScanWorker", Recording)
-    monkeypatch.setattr(main, "queue_worker", lambda *_arguments: None)  # built and owned, never started
+    monkeypatch.setattr(main, "queue_worker", lambda *_arguments, **_options: None)  # built and owned, never started
     inner = window.results.tree_model.root.children[0]
     assert window._scan_options().mft
     window.rescan_folder(inner)

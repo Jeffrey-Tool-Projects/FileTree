@@ -7,7 +7,9 @@ import ntpath
 import struct
 import threading
 
-from je_file_tree.core.change_watch import ChangeBatch, POLL_SECONDS, WatchFile, WatchFolder, changed, check_folder
+from je_file_tree.core.change_watch import (
+    POLL_SECONDS, ChangeBatch, Position, WatchFile, WatchFolder, changed, check_folder,
+)
 from je_file_tree.core.compression_ops import _kernel
 from je_file_tree.core.windows_allocation import _FileID, _Identity
 from je_file_tree.core.windows_trash import _volume
@@ -33,21 +35,19 @@ class _Overlapped(ctypes.Structure):
                 ("offset", ctypes.c_uint32), ("offset_high", ctypes.c_uint32), ("event", ctypes.c_void_p)]
 
 
-def _parent(root: str, name: str, scopes: set[str]) -> str:
+def _parent(root: str, name: str) -> str:
     if (not name or ntpath.isabs(name) or ntpath.splitdrive(name)[0] or "\0" in name
             or any(part in ("", ".", "..") for part in name.replace("/", "\\").split("\\"))):
         raise ValueError("Unsafe Windows notification name")
-    parent = ntpath.dirname(ntpath.join(root, name))
-    while parent not in scopes:
-        next_parent = ntpath.dirname(parent)
-        if parent in (next_parent, root):
-            return root
-        parent = next_parent
-    return parent
+    return ntpath.dirname(ntpath.join(root, name))
 
 
 def parse_notifications(payload: bytes, root: str, scopes: set[str]) -> ChangeBatch:
-    """Validate native chained records and map names only to already captured folder parents."""
+    """Validate native chained records; each names the folder inside ``root`` whose entries changed.
+
+    That folder may be newer than the scan: the window reads the deepest folder it scanned there, which
+    lists the new one and reads it whole. ``scopes`` tells a scanned folder's own change from a file's.
+    """
     if not payload:
         return changed(set(), full=True, reason="notification_lost")
     if len(payload) > _BUFFER:
@@ -61,7 +61,7 @@ def parse_notifications(payload: bytes, root: str, scopes: set[str]) -> ChangeBa
         if action not in (1, 2, 3, 4, 5) or length % 2 or not length or end > len(payload):
             raise ValueError("Invalid Windows notification record")
         name = payload[offset + _NOTIFY.size:end].decode("utf-16-le")
-        parent = _parent(root, name, scopes)
+        parent = _parent(root, name)
         named = ntpath.normpath(ntpath.join(root, name))
         paths.add(named if action == _ACTION_MODIFIED and named in scopes else parent)
         if not next_offset:
@@ -148,7 +148,16 @@ def _journal(kernel, handle) -> tuple[int, int, int]:
     return identifier, max(first, lowest), next_usn
 
 
-def _watch_usn(kernel, folders, on_change, cancel, ready, shared) -> None:
+def _start(journal: int, first: int, next_usn: int, since: Position | None) -> int | None:
+    """Where to read from: on from ``since`` while the same journal still holds it, else None."""
+    if since is None:
+        return next_usn
+    if since[0] == journal and first <= since[1] <= next_usn:
+        return since[1]
+    return None
+
+
+def _watch_usn(kernel, folders, on_change, cancel, ready, shared, *, since=None, moved=None) -> None:  # noqa: PLR0913
     root, identifier = _volume(folders[0].path)
     scopes = {folder.inode: folder.path for folder in folders}
     aliases = {file.inode: file.parents for file in shared}
@@ -158,7 +167,11 @@ def _watch_usn(kernel, folders, on_change, cancel, ready, shared) -> None:
     if handle == ctypes.c_void_p(-1).value:
         raise ctypes.WinError(ctypes.get_last_error())
     try:
-        journal, _first, cursor = _journal(kernel, handle)
+        journal, first, cursor = _journal(kernel, handle)
+        cursor = _start(journal, first, cursor, since)
+        if cursor is None:
+            on_change(changed(set(), full=True, reason="journal_changed"))
+            return
         if ready:
             ready("usn")
         while not cancel.is_set():
@@ -171,6 +184,8 @@ def _watch_usn(kernel, folders, on_change, cancel, ready, shared) -> None:
                 return
             payload = _control(kernel, handle, _READ_USN, _READ.pack(cursor, 0xFFFFFFFF, 0, 0, 0, journal))
             cursor, batch = parse_usn(payload, scopes, folders[0].path, cursor, aliases)
+            if moved:
+                moved((journal, cursor))
             if (batch.folders or batch.full) and not cancel.is_set():
                 on_change(batch)
             if batch.full or cancel.wait(POLL_SECONDS):
@@ -267,9 +282,10 @@ def _watch_notifications(kernel, folders, on_change, cancel, ready) -> None:
         kernel.CloseHandle(handle)
 
 
-def watch_windows(folders: tuple[WatchFolder, ...], on_change: Callable[[ChangeBatch], None],
+def watch_windows(folders: tuple[WatchFolder, ...], on_change: Callable[[ChangeBatch], None],  # noqa: PLR0913
                   cancel: threading.Event, ready: Callable[[str], None] | None,
-                  shared: tuple[WatchFile, ...] = ()) -> None:
+                  shared: tuple[WatchFile, ...] = (), *, since: Position | None = None,
+                  moved: Callable[[Position], None] | None = None) -> None:
     """Use an existing journal when accessible; fallback is native, recursive, read-only and cancelable."""
     kernel = _apis()
     announced = False
@@ -281,7 +297,7 @@ def watch_windows(folders: tuple[WatchFolder, ...], on_change: Callable[[ChangeB
             ready(backend)
 
     try:
-        _watch_usn(kernel, folders, on_change, cancel, initialized, shared)
+        _watch_usn(kernel, folders, on_change, cancel, initialized, shared, since=since, moved=moved)
     except (OSError, ValueError, UnicodeError) as error:
         _LOG.debug("USN feed unavailable; using recursive notifications: %s", error)
         if not cancel.is_set():

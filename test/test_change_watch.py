@@ -87,7 +87,7 @@ def test_usn_gap_requests_full_scan_closes_handle_and_only_queries_existing_jour
 def test_initial_usn_denial_falls_back_without_triggering_repeated_full_rescans(monkeypatch):
     batches, backends = [], []
 
-    def denied(*_args):
+    def denied(*_args, **_kwargs):
         raise PermissionError("owned denied journal")
 
     def fallback(_kernel, _folders, _changed, _cancel, ready):
@@ -106,12 +106,49 @@ def test_initial_usn_denial_falls_back_without_triggering_repeated_full_rescans(
     assert not batches and backends == ["directory_changes"]
 
 
-def test_windows_notification_parents_are_known_and_new_descendants_use_known_ancestor():
+def test_windows_notifications_name_the_folder_whose_entries_changed_even_when_it_is_new():
     root = "C:\\owned"
     scopes = {root, root + "\\資料"}
     assert windows_watch.parse_notifications(_notify(), root, scopes).folders == (root + "\\資料",)
-    assert windows_watch.parse_notifications(_notify("new\\deep\\file"), root, scopes).folders == (root,)
+    # The window reads the deepest folder it scanned there, whose listing reads the new ones whole.
+    assert windows_watch.parse_notifications(_notify("new\\deep\\file"), root, scopes).folders == (
+        root + "\\new\\deep",)
     assert windows_watch.parse_notifications(b"", root, scopes).full
+
+
+def test_usn_feed_reads_on_from_a_handed_over_position_or_asks_for_the_whole_root(monkeypatch):
+    folder = change.WatchFolder("C:\\owned", 7, 22)
+    kernel = SimpleNamespace(CreateFileW=lambda *_args: 42, CloseHandle=lambda _handle: None)
+    reads, batches, positions = [], [], []
+    cancel = threading.Event()
+
+    def control(_kernel, _handle, code, data=b""):
+        if code == windows_watch._QUERY_USN:
+            return windows_watch._JOURNAL.pack(9, 50, 300, 50, 0, 4096, 1024)
+        reads.append(windows_watch._READ.unpack(data)[0])
+        cancel.set()
+        return struct.pack("<q", reads[-1])
+
+    monkeypatch.setattr(windows_watch, "_control", control)
+    monkeypatch.setattr(windows_watch, "_volume", lambda _path: ("C:\\", "{owned}"))
+    monkeypatch.setattr(windows_watch, "check_folder", lambda _folder: None)
+    windows_watch._watch_usn(kernel, (folder,), batches.append, cancel, None, (), since=(9, 120),
+                             moved=positions.append)
+    assert reads == [120] and positions == [(9, 120)] and not batches  # not from 300: nothing is skipped
+    for gone in ((9, 10), (8, 120)):  # overwritten, or another journal: what happened since is unknown
+        cancel.clear()
+        windows_watch._watch_usn(kernel, (folder,), batches.append, cancel, None, (), since=gone)
+    assert batches == [change.ChangeBatch(full=True, reason="journal_changed")] * 2 and reads == [120]
+
+
+def test_too_many_changed_folders_become_their_parent_folders_read_whole(tmp_path):
+    many = {str(tmp_path / f"d{number}" / "inner") for number in range(change.MAX_CHANGED + 1)}
+    batch = change.changed(many)
+    assert not batch.full and not batch.folders and batch.trees == (str(tmp_path),)
+    few = change.changed({str(tmp_path / "a")}, trees={str(tmp_path / "b")})
+    assert few.folders == (str(tmp_path / "a"),) and few.trees == (str(tmp_path / "b"),)
+    both = change.merged(few, change.ChangeBatch(full=True, reason="notification_lost"))
+    assert both.full and both.reason == "notification_lost"
 
 
 def test_known_directory_metadata_refreshes_itself_but_namespace_changes_refresh_parent():

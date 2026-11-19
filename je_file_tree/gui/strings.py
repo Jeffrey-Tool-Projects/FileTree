@@ -375,8 +375,10 @@ EN: dict[str, str] = {
     'background_warning': '{detail}',
     'background_low_space': 'Low available space on {root}: {free} ({percent}%)',
     'action_follow_changes': 'Follow changes',
-    'action_follow_changes_tip': ('Off by default. Refresh changed folders on Windows/Linux; '
-                                  'reconcile the root every five minutes.'),
+    'action_follow_changes_tip': ('Off by default. On Windows/Linux, read again only the folders that '
+                                  'changed, keeping their unchanged subfolders.'),
+    'follow_refreshed': 'Updated {count} changed folders',
+    'follow_refresh_failed': 'Could not update the changed folders: {reason}',
     'follow_waiting': 'Follow changes: waiting for a scan',
     'follow_starting': 'Follow changes: starting…',
     'follow_active': 'Following changes ({detail})',
@@ -2219,7 +2221,9 @@ ZH_TW: dict[str, str] = {
     'background_warning': '{detail}',
     'background_low_space': '{root} 可用空間不足：{free}（{percent}%）',
     'action_follow_changes': '跟隨變更',
-    'action_follow_changes_tip': '預設關閉。在 Windows／Linux 更新變動資料夾，每五分鐘完整核對根目錄。',
+    'action_follow_changes_tip': '預設關閉。在 Windows／Linux 只重新讀取有變動的資料夾，保留其中未變動的子資料夾。',
+    'follow_refreshed': '已更新 {count} 個變動的資料夾',
+    'follow_refresh_failed': '無法更新變動的資料夾：{reason}',
     'follow_waiting': '跟隨變更：等待掃描',
     'follow_starting': '跟隨變更：啟動中…',
     'follow_active': '跟隨變更（{detail}）',
@@ -3922,7 +3926,9 @@ ZH_CN: dict[str, str] = {
     'background_warning': '{detail}',
     'background_low_space': '{root} 可用空间不足：{free}（{percent}%）',
     'action_follow_changes': '跟随变更',
-    'action_follow_changes_tip': '默认关闭。在 Windows／Linux 更新变化文件夹，每五分钟完整核对根目录。',
+    'action_follow_changes_tip': '默认关闭。在 Windows／Linux 只重新读取有变化的文件夹，保留其中未变化的子文件夹。',
+    'follow_refreshed': '已更新 {count} 个变化的文件夹',
+    'follow_refresh_failed': '无法更新变化的文件夹：{reason}',
     'follow_waiting': '跟随变更：等待扫描',
     'follow_starting': '跟随变更：启动中…',
     'follow_active': '跟随变更（{detail}）',
@@ -5701,9 +5707,11 @@ JA: dict[str, str] = {
     'background_low_space': '{root} の空き容量が少ない: {free} ({percent}%)',
     'action_follow_changes': '変更を追跡する',
     'action_follow_changes_tip': (
-        'デフォルトではオフです。 Windows/Linux で変更されたフォルダーを更新します。 5分ごとにルートを調整し'
-        'ます。'
+        'デフォルトではオフです。 Windows/Linux で変更されたフォルダーだけを読み直し、変更のないサブフォルダーは'
+        'そのまま残します。'
     ),
+    'follow_refreshed': '変更された {count} 個のフォルダーを更新しました',
+    'follow_refresh_failed': '変更されたフォルダーを更新できませんでした: {reason}',
     'follow_waiting': '変更の追跡: スキャンを待機しています',
     'follow_starting': '変更を追跡: 開始中…',
     'follow_active': '次の変更点 ({detail})',
@@ -7802,8 +7810,10 @@ KO: dict[str, str] = {
     'background_low_space': '{root}의 사용 가능한 공간 부족: {free} ({percent}%)',
     'action_follow_changes': '변경 사항 따르기',
     'action_follow_changes_tip': (
-        '기본적으로 꺼져 있습니다. Windows/Linux에서 변경된 폴더를 새로 고칩니다. 5분마다 루트를 조정합니다.'
+        '기본적으로 꺼져 있습니다. Windows/Linux에서 변경된 폴더만 다시 읽고, 변경되지 않은 하위 폴더는 그대로 둡니다.'
     ),
+    'follow_refreshed': '변경된 폴더 {count}개를 업데이트했습니다',
+    'follow_refresh_failed': '변경된 폴더를 업데이트할 수 없습니다: {reason}',
     'follow_waiting': '변경 사항 따르기: 스캔 대기 중',
     'follow_starting': '변경사항 따르기: 시작 중…',
     'follow_active': '다음 변경 사항({detail})',

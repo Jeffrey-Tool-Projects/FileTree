@@ -328,17 +328,27 @@ Native cancellation joins outstanding Windows I/O before freeing storage. Notifi
 observational rescan requests and never operation authority. Reviewed native CI confirms ordinary
 and outside-alias events on both Windows USN and Linux inotify, with source preservation/joined cancellation.
 
-`gui.change_watch.FollowChanges` owns one default-off monitor per result tab. Its worker builds maps
-and coalesces native events under a lock to avoid unbounded Qt signal queues. The one-second GUI
-timer defers dirty folders during scans/analysis, source reviews, modal questions and Undo offers;
-bounded ancestor selection reuses rescan_folder and branch replacement. Events continue during
-branch scanning, then monitoring joins before tree replacement. Lost scopes/overflow, operation gaps
-and five-minute periodic reconciliation force full roots. `rescan_folder` stops the reader as a plain
-re-arm (`FollowChanges.stop`), never as an operation gap: that made every followed folder refresh end
-in a full-root scan. A finished Trash move, permanent delete or Undo withdraws its own gap request
+`gui.change_watch.FollowChanges` owns one default-off monitor per result tab (U-20261120-01). A
+`CaptureWorker` (a child thread, so scans and operations wait for it) reads the tree once for the
+`WatchScope`; a `ChangeWorker` runs the native feed over it and coalesces events under a lock, so Qt
+signal queues stay bounded. The feed reads nothing of the tree and has no Qt parent, so a folder is
+read again while it keeps reporting (`queue_worker(readers=...)` lets a scan wait only for the
+readers it stopped itself). A report names the folder whose own entries changed (`ChangeBatch.folders`),
+or, past `MAX_CHANGED`, the folder holding many changes, read whole (`ChangeBatch.trees`). The
+one-second timer defers during scans/analysis, source reviews, modal questions and Undo offers, maps
+each path to the deepest scanned folder (`core.node.folder_holding`) and hands them all to
+`gui.folder_refresh`: one `ListingWorker` lists each folder with `ScanOptions.keep` (its read
+subfolders, by name and identity, stay unread) and `core.refresh.refill` puts the listing into the
+same `Node` with the kept subfolders hung back, so a change in the scan root reads only the root's
+own entries and the view keeps its place. A kept subfolder replaced meanwhile is read whole next; a
+folder removed meanwhile makes its parent's listing be read. When a listing found, lost or replaced a
+subfolder, or listed a file with another name, the scope is captured again (otherwise the running feed
+still covers it all and carries on) and the new feed takes over only once armed; an NTFS journal feed starts from the position held when
+the refresh began (or when a source operation stopped the feed), so nothing between is missed. Only
+lost or overflowing feeds and an operation gap without a journal position read the whole root; there is
+no periodic full reconciliation. A finished Trash move, permanent delete or Undo withdraws its own gap request
 (`FollowChanges.resume`), in its tab and, through `MainWindow._tell_peers`, in every other tab of the
-OperationGroup, which offers only its own folders holding the changed paths (`core.node.folder_holding`). Branch
-rearming preserves the periodic deadline and unrelated pending paths; new roots discard old data.
+OperationGroup, which offers only its own folders holding the changed paths. New roots discard old data.
 Shared OperationGroup exclusion quiesces peer monitors before source mutation/tree changes. Native
 failures remain visible without retry loops; opt-out/tab close cancel/join through wait_for.
 

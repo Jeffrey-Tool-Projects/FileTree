@@ -49,10 +49,17 @@ def retire_worker(worker: QThread, parent: QObject) -> None:
 
 
 def queue_worker(worker: QThread, current: Callable[[], bool], parent: QObject,
-                 discarded: Callable[[], None] | None = None) -> None:
-    """Coalesce replacements behind retained workers; canceled/stale requests never start."""
-    provider = getattr(parent, "pending_source_workers", None)
-    sources = () if provider is None else provider()
+                 discarded: Callable[[], None] | None = None, *, readers: Iterable[QThread] | None = None) -> None:
+    """Coalesce replacements behind retained workers; canceled/stale requests never start.
+
+    ``readers`` stands in for the parent's source readers (``pending_source_workers``, which stops them):
+    a scan that changes nothing on disk passes the ones it stopped itself and leaves the others running.
+    """
+    if readers is None:
+        provider = getattr(parent, "pending_source_workers", None)
+        sources = () if provider is None else provider()
+    else:
+        sources = tuple(readers)
     previous = (pending for pending in (*parent.findChildren(QThread), *sources) if pending is not worker)
     def dispatch() -> None:
         if current():

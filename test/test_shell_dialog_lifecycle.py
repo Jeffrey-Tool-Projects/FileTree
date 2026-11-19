@@ -188,12 +188,12 @@ def test_opening_shell_settings_keeps_an_existing_live_reader(window, qapp, tmp_
     window.results.show_outcome(scan_worker.analyse(scan(tmp_path)))
     entered, release = threading.Event(), threading.Event()
 
-    def watch(_root, _changed, _cancel, *, ready):
+    def watch(_scope, _changed, _cancel, *, ready, **_feed):
         ready("directory_changes")
         entered.set()
         release.wait(5)
 
-    monkeypatch.setattr(change_watch, "watch", watch)
+    monkeypatch.setattr(change_watch, "watch_scope", watch)
     monkeypatch.setattr(change_watch, "supported", lambda: True)
     monkeypatch.setattr(shell, "supported", lambda: True)
     monkeypatch.setattr(shell, "installed", lambda: False)

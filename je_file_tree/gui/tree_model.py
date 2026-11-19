@@ -39,8 +39,9 @@ from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, 
 from je_file_tree.core.archives import VirtualEntry
 from je_file_tree.core.hard_links import HardLinkPlan
 from je_file_tree.core.node import Node, detach_many
+from je_file_tree.core.refresh import refill as refill_folder
 from je_file_tree.gui.node_text import node_name, node_path
-from je_file_tree.core.scanner import EXCLUDED, NOT_SCANNED
+from je_file_tree.core.scanner import EXCLUDED, NOT_SCANNED, ScanResult
 from je_file_tree.core.snapshot import unpack_snapshot
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import PLACEHOLDER_ROLE
@@ -644,6 +645,27 @@ class FolderTreeModel(QAbstractItemModel):
             old.replace_with(new)
             self._invalidate_size_order(parent)
         self._relayout(change)
+
+    def refill(self, listings: list[tuple[Node, ScanResult]]) -> list[tuple[Node, ScanResult, frozenset[str]]]:
+        """Put fresh listings of folders in place (``core.refresh.refill``), keeping what the view still can.
+
+        Unlike ``replace``, each folder stays the same node, so it stays expanded and selected, and so do
+        the subfolders it kept. Returns each folder refilled, its listing and the names it kept; a folder
+        no longer in the tree, or whose kept subfolder was replaced, is left as it was.
+        """
+        done: list[tuple[Node, ScanResult, frozenset[str]]] = []
+
+        def change() -> None:
+            self.invalidate_archives()
+            for folder, fresh in listings:
+                if self._root is None or not folder.is_in(self._root):
+                    continue
+                kept = refill_folder(folder, fresh.root)
+                if kept is not None:
+                    done.append((folder, fresh, kept))
+                    self._invalidate_size_order(folder)
+        self._relayout(change)
+        return done
 
     def _index_at(self, node: Node | None, column: int) -> QModelIndex:
         if node is None:
