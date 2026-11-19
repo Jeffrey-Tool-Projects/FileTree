@@ -22,6 +22,8 @@ _CHUNK_ROWS = 128
 _CHUNK_SECONDS = 0.004
 _END = object()
 _SELECTABLE = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+# A row answering True only stands for other rows (a large folder's "more entries" row): never copied.
+PLACEHOLDER_ROLE = Qt.ItemDataRole.UserRole + 30
 
 
 def _text(value: object) -> str:
@@ -231,7 +233,7 @@ class ListCapture(QObject):
             if index is _END:
                 self._complete = True
                 break
-            if index is not None:
+            if index is not None and not index.data(PLACEHOLDER_ROLE):
                 row = self._capture_row(index)
                 if row is None:
                     return

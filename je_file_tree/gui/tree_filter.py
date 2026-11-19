@@ -91,7 +91,12 @@ class TreeFilter(QObject):
         return self.proxy.mapFromSource(source) if self.tree.model() is self.proxy else source
 
     def reveal(self, node: Node) -> QModelIndex:
-        """Clear a filter hiding a chart/list target before the normal cross-view selection."""
+        """Clear a filter hiding a chart/list target before the normal cross-view selection.
+
+        A target beyond the pages shown of a large folder gets its page shown first.
+        """
+        if self.source.root is not None and node.is_in(self.source.root):
+            self.source.show_rows_for(node)
         index = self.index_for(node)
         if not index.isValid() and node.is_in(self.source.root):
             self.line.clear()
@@ -160,7 +165,7 @@ class TreeFilter(QObject):
             self._switch(True)
 
     def _switch(self, filtered: bool) -> None:
-        selected = self._selected_nodes()
+        selected = self.selected_nodes()
         current = self.tree.currentIndex().data(NODE_ROLE)
         state = self.tree.header().saveState()
         self._switching = True
@@ -190,7 +195,8 @@ class TreeFilter(QObject):
         finally:
             self._switching = False
 
-    def _selected_nodes(self) -> list[Node]:
+    def selected_nodes(self) -> list[Node]:
+        """The entries of the tree's selected rows, read from whole selected ranges where the model allows it."""
         # Native 10k whole rows: selectedRows used 3.71 of 5.42 profiled switch seconds (2026-10-17).
         model, selection = self.tree.model(), self.tree.selectionModel()
         ranges = selection.selection()

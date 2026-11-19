@@ -16,12 +16,19 @@ copy of its children taken the first time its rows are asked for, and keeps
 using that copy until ``refresh()``: the view never sees a list change under
 it, including initially empty groups. Expander checks only inspect child presence;
 they do not sort, copy or freeze unopened groups.
+
+A folder with more than ``PAGE_ROWS`` entries shows them a page at a time, in the
+current order, followed by a display-only ``MoreRows`` entry that shows the next
+page when clicked. QTreeView lays out every row of every expanded folder on each
+expand, sort and live refresh, calling this Python model for each one, so a page
+bounds that cost (U-20261119-02).
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
+from dataclasses import dataclass
 from typing import Any
 
 from PySide6.QtCore import QAbstractItemModel, QModelIndex, QObject, QPersistentModelIndex, Qt, Signal
@@ -36,6 +43,7 @@ from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.scanner import EXCLUDED, NOT_SCANNED
 from je_file_tree.core.snapshot import unpack_snapshot
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.list_transfer import PLACEHOLDER_ROLE
 from je_file_tree.gui.reasons import problem_text
 
 NAME, SIZE, ALLOCATED, SHARE, DRIVE_SHARE, FILES, FOLDERS, MODIFIED, ACCESSED, CREATED = range(10)
@@ -53,8 +61,19 @@ _RIGHT = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
 # At 1,000 requested files: 408.98 vs 6.28 ms (2026-10-16). Keep small selections on the C list search.
 _BATCHED_ROW_MINIMUM = 16
 _LAYOUT_CHANGE_SIGNATURE = ("QList<QPersistentModelIndex>", "QAbstractItemModel::LayoutChangeHint")
+# Expanding one folder of 150,000 files called index() and hasChildren() once per row: 2.7 s, and
+# 1.3 s per later relayout even for a model that does nothing else (a C++ model: 86 and 43 ms),
+# Windows, 2026-11-19. A page of PAGE_ROWS bounds both (U-20261119-02).
+PAGE_ROWS = 2000
 
 ModelIndex = QModelIndex | QPersistentModelIndex
+
+
+@dataclass(slots=True, eq=False)
+class MoreRows(VirtualEntry):
+    """The display-only last row of a folder shown a page at a time: the entries not shown yet."""
+
+    hidden: int = 0
 
 
 def sort_key(column: int) -> Callable[[Node], Any]:
@@ -92,6 +111,9 @@ class FolderTreeModel(QAbstractItemModel):
         self._sort_order = Qt.SortOrder.DescendingOrder
         self._preserving_sort = False
         self._orders: dict[int, list[Node]] = {}
+        self._shown: dict[int, list[Node]] = {}  # each folder's rows: its order, or pages of it and MoreRows
+        self._limits: dict[Node, int] = {}  # rows shown of folders paged further than PAGE_ROWS
+        self._more: dict[Node, MoreRows] = {}  # one stable last row per paged folder, for persistent indexes
         self._rows: dict[int, int] = {}
         self._queried_parents: set[Node] = set()
         self._live_presence: dict[int, bool] = {}  # shown folders' child presence at the last live relayout
@@ -123,6 +145,7 @@ class FolderTreeModel(QAbstractItemModel):
             SHARE_ROLE: lambda node, column: (self._drive_share(node) if column == DRIVE_SHARE
                                               else node.share_of_parent()),
             Qt.ItemDataRole.ForegroundRole: lambda node, _column: _muted() if node.error == EXCLUDED else None,
+            PLACEHOLDER_ROLE: lambda _node, _column: False,
         }
 
     # --- public API -------------------------------------------------------
@@ -153,6 +176,8 @@ class FolderTreeModel(QAbstractItemModel):
         self._live = live and root is not None
         self._queried_parents.clear()
         self._size_order_changed.clear()
+        self._limits.clear()
+        self._more.clear()
         self._clear_caches()
         self.endResetModel()
 
@@ -184,7 +209,7 @@ class FolderTreeModel(QAbstractItemModel):
         """Whether each shown folder has entries, which decides its expand arrow; reads frozen live orders."""
         presence = {} if self._root is None else {id(self._root): bool(self._root.children)}
         for parent in tuple(self._queried_parents):
-            for node in self._ordered(parent):
+            for node in self._shown_rows(parent):
                 if node.is_dir:
                     presence[id(node)] = bool(node.children)
         return presence
@@ -249,7 +274,7 @@ class FolderTreeModel(QAbstractItemModel):
             entry = self._root if row == 0 else None
         else:
             folder = self._entry(parent)
-            children = self._ordered(folder) if folder is not None else []
+            children = self._shown_rows(folder) if folder is not None else []
             entry = children[row] if 0 <= row < len(children) else None
         return None if isinstance(entry, VirtualEntry) else entry
 
@@ -271,8 +296,54 @@ class FolderTreeModel(QAbstractItemModel):
         return [node for node in rows[first:last+1] if node is not None and not isinstance(node, VirtualEntry)]
 
     def filesystem_rows(self, parent: Node) -> list[Node] | tuple[()]:
-        """Borrow current real-row candidates in source order; archive preview groups are wholly virtual."""
-        return () if parent in self._archives else self._ordered(parent)
+        """Borrow current real-row candidates in source order; archive preview groups are wholly virtual.
+
+        A paged folder's rows end with its ``MoreRows`` entry, which callers skip like other virtual rows.
+        """
+        return () if parent in self._archives else self._shown_rows(parent)
+
+    def hidden_rows(self, folder: Node) -> list[Node]:
+        """The entries of a paged folder that its ``MoreRows`` row stands for (empty when not paged)."""
+        rows = self._shown_rows(folder)
+        if not rows or not isinstance(rows[-1], MoreRows):
+            return []
+        return self._ordered(folder)[len(rows) - 1:]
+
+    def show_more(self, folder: Node) -> Node | None:
+        """Show the next page of a paged folder; the first entry that got a row, or None."""
+        if not self._visible(folder) or not self.hidden_rows(folder):
+            return None
+        first = len(self._shown_rows(folder)) - 1
+
+        def change() -> None:
+            self._limits[folder] = first + PAGE_ROWS
+        self._relayout(change)
+        rows = self._shown_rows(folder)
+        return rows[first] if first < len(rows) and not isinstance(rows[first], VirtualEntry) else None
+
+    def show_rows_for(self, node: Node) -> None:
+        """Extend the pages of the folders above ``node`` until it has a row (a chart or list picked it)."""
+        if isinstance(node, VirtualEntry) or not self._visible(node):
+            return
+        limits = {}
+        child = node
+        while child is not self._root and child.parent is not None:
+            parent = child.parent
+            ordered, shown = self._ordered(parent), len(self._shown_rows(parent)) - 1
+            if self.hidden_rows(parent):
+                try:
+                    position = ordered.index(child, shown)
+                except ValueError:
+                    position = -1
+                if position >= shown:
+                    limits[parent] = (position // PAGE_ROWS + 1) * PAGE_ROWS
+            child = parent
+        if limits:
+            self._relayout(lambda: self._limits.update(limits))
+
+    def entry(self, index: ModelIndex) -> Node | None:
+        """The entry of a row, including display-only ones (archive members, ``MoreRows``)."""
+        return self._entry(index) if index.model() is self else None
 
     def _entry(self, index: ModelIndex) -> Node | None:
         if not index.isValid():
@@ -314,7 +385,7 @@ class FolderTreeModel(QAbstractItemModel):
             if len(wanted) < _BATCHED_ROW_MINIMUM:
                 positions = {node: self._row_of(node) for node in wanted}
             else:
-                positions = {node: row for row, node in enumerate(self._ordered(parent)) if node in wanted}
+                positions = {node: row for row, node in enumerate(self._shown_rows(parent)) if node in wanted}
             rows = [row for node in entries if (row := positions.get(node, -1)) >= 0]
             if rows:
                 result[index] = rows
@@ -387,9 +458,9 @@ class FolderTreeModel(QAbstractItemModel):
             return self.createIndex(0, column, self._root) if row == 0 else QModelIndex()
         # Called for every visible row on each relayout: read the cached order directly (U-20261017-75).
         folder = parent.internalPointer()
-        children = self._orders.get(id(folder))
+        children = self._shown.get(id(folder))
         if children is None:
-            children = self._ordered(folder) if folder is not None else ()
+            children = self._shown_rows(folder) if folder is not None else ()
         if not 0 <= row < len(children):
             return QModelIndex()
         return self.createIndex(row, column, children[row])
@@ -410,7 +481,7 @@ class FolderTreeModel(QAbstractItemModel):
         if parent.column() != 0:
             return 0
         node = self._entry(parent)
-        return len(self._ordered(node)) if node is not None else 0
+        return len(self._shown_rows(node)) if node is not None else 0
 
     def columnCount(self, parent: ModelIndex = QModelIndex()) -> int:  # noqa: B008
         """Qt: the number of columns."""
@@ -506,6 +577,8 @@ class FolderTreeModel(QAbstractItemModel):
         handler = self._roles.get(role)
         if node is None or handler is None:
             return None
+        if isinstance(node, MoreRows):
+            return self._more_data(node, column, role)
         if isinstance(node, VirtualEntry):
             return self._virtual_data(node, column, role)
         return handler(node, column)
@@ -588,6 +661,9 @@ class FolderTreeModel(QAbstractItemModel):
             return True
         if node is root:
             return True
+        if isinstance(node, MoreRows):
+            rows = self._shown_rows(node.parent) if node.parent is not None else ()
+            return bool(rows) and rows[-1] is node
         ancestors = []
         parent = node.parent
         while isinstance(parent, VirtualEntry) and parent is not root:
@@ -605,7 +681,7 @@ class FolderTreeModel(QAbstractItemModel):
         for parent, wanted in parents.items():
             if len(wanted) < _BATCHED_ROW_MINIMUM:
                 continue
-            for row, child in enumerate(self._ordered(parent)):
+            for row, child in enumerate(self._shown_rows(parent)):
                 if child in wanted:
                     self._rows[id(child)] = row
                     wanted.remove(child)
@@ -616,7 +692,11 @@ class FolderTreeModel(QAbstractItemModel):
 
     def _clear_caches(self) -> None:
         self._orders.clear()
+        self._shown.clear()
         self._rows.clear()
+        for folder in [folder for folder in (*self._limits, *self._more) if not self._visible(folder)]:
+            self._limits.pop(folder, None)
+            self._more.pop(folder, None)
         for folder in tuple(self._size_order_changed):
             if not self._visible(folder):
                 self._size_order_changed.discard(folder)
@@ -644,7 +724,7 @@ class FolderTreeModel(QAbstractItemModel):
             if not index.isValid():
                 self._queried_parents.discard(parent)
                 continue
-            count = len(self._ordered(parent))
+            count = len(self._shown_rows(parent))
             if count:
                 groups.append((index, count))
         # Windows 100k rows / 1k selected: old full layout cost 455–504 ms for text/capacity (2026-10-16).
@@ -673,6 +753,26 @@ class FolderTreeModel(QAbstractItemModel):
         self._orders[id(folder)] = cached
         return cached
 
+    def _shown_rows(self, folder: Node) -> list[Node] | tuple[()]:
+        """``folder``'s rows: its ordered children, or the pages shown of them and its ``MoreRows`` entry."""
+        shown = self._shown.get(id(folder))
+        if shown is not None:
+            return shown
+        ordered = self._ordered(folder)
+        limit = self._limits.get(folder, PAGE_ROWS)
+        if len(ordered) <= limit or folder in self._archives:
+            shown = ordered
+        else:
+            more = self._more.get(folder)
+            if more is None:
+                more = self._more[folder] = MoreRows("", False, parent=folder)
+            more.hidden = len(ordered) - limit
+            more.size = sum(node.size for node in ordered[limit:])
+            shown = [*ordered[:limit], more]
+        if shown:
+            self._shown[id(folder)] = shown
+        return shown
+
     def _row_of(self, node: Node) -> int:
         """``node``'s row under its parent (-1 when it is no longer there)."""
         row = self._rows.get(id(node))
@@ -681,7 +781,7 @@ class FolderTreeModel(QAbstractItemModel):
         parent = node.parent
         if parent is None:
             return 0
-        siblings = self._ordered(parent)
+        siblings = self._shown_rows(parent)
         if node.is_dir:
             for position, sibling in enumerate(siblings):
                 if sibling.is_dir:
@@ -712,6 +812,20 @@ class FolderTreeModel(QAbstractItemModel):
         if role == Qt.ItemDataRole.TextAlignmentRole:
             return _RIGHT if column in _NUMERIC_COLUMNS else None
         return None
+
+    def _more_data(self, node: MoreRows, column: int, role: int) -> Any:
+        if role == Qt.ItemDataRole.DisplayRole:
+            if column == NAME:
+                return tr("tree_more_rows", count=format_count(node.hidden),
+                          page=format_count(min(PAGE_ROWS, node.hidden)))
+            return format_size(node.size, self._unit) if column == SIZE else ""
+        if role == Qt.ItemDataRole.ToolTipRole:
+            return tr("tree_more_rows_hint", page=format_count(PAGE_ROWS))
+        if role == Qt.ItemDataRole.TextAlignmentRole:
+            return _RIGHT if column in _NUMERIC_COLUMNS else None
+        if role == Qt.ItemDataRole.ForegroundRole:
+            return QApplication.palette().color(QPalette.ColorRole.Link)
+        return role == PLACEHOLDER_ROLE or None
 
     def _tooltip(self, node: Node) -> str:
         if node.error == NOT_SCANNED:

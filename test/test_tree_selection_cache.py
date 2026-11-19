@@ -6,7 +6,7 @@ from PySide6.QtCore import Qt
 from test_tree_row_identity import model as model  # noqa: PLC0414 - owned cleanup
 from je_file_tree.core.archives import VirtualEntry
 from je_file_tree.core.node import Node
-from je_file_tree.gui.tree_model import NAME, SIZE, FolderTreeModel
+from je_file_tree.gui.tree_model import NAME, PAGE_ROWS, SIZE, FolderTreeModel
 
 
 class _CountedRows(list):
@@ -31,7 +31,7 @@ def _root(count):
 
 @pytest.mark.parametrize("step", [1, 8])
 def test_bulk_selection_does_not_grow_the_shared_file_row_cache(model, step):
-    root = _root(4000)
+    root = _root(PAGE_ROWS)  # one page: rows past it are not shown, see test_tree_paging.py
     model.set_root(root)
     model.indexes_for(root.children[:16])  # Existing cache from a separate generic index lookup stays valid.
     before = dict(model._rows)
@@ -39,7 +39,7 @@ def test_bulk_selection_does_not_grow_the_shared_file_row_cache(model, step):
     root.children.visited = 0
     groups = model.selection_rows(wanted)
     parent = model.index_for(root)
-    assert groups == {parent: list(range(16, 4000, step))}
+    assert groups == {parent: list(range(16, PAGE_ROWS, step))}
     assert root.children.visited <= len(root.children), "one sibling pass for the requested parent"
     assert model._rows == before, "a selection must not leave every requested file in the shared cache"
 

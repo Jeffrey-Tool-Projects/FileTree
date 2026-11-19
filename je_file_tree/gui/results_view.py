@@ -17,7 +17,8 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 
 from PySide6.QtCore import (
-    QByteArray, QItemSelectionModel, QModelIndex, QPoint, QSettings, QSortFilterProxyModel, Qt, QTimer, Signal,
+    QByteArray, QEvent, QItemSelectionModel, QModelIndex, QObject, QPoint, QSettings, QSortFilterProxyModel, Qt,
+    QTimer, Signal,
 )
 from PySide6.QtGui import QFont, QFontMetrics, QResizeEvent, QShowEvent
 from PySide6.QtWidgets import (
@@ -106,6 +107,7 @@ from je_file_tree.gui.tree_model import (
     SHARE,
     SIZE,
     FolderTreeModel,
+    MoreRows,
 )
 from je_file_tree.gui.tree_filter import TreeFilter
 from je_file_tree.gui.treemap_widget import BY_AGE, BY_FOLDER, CATEGORY_COLOURS, COLOUR_MODES, LEVELS
@@ -440,7 +442,7 @@ class ResultsView(QWidget):
 
     def selected_nodes(self) -> list[Node]:
         """Every entry selected in the tree (Ctrl+click and Shift+click pick several)."""
-        return _selected_in(self.tree)
+        return self.tree_filter.selected_nodes()
 
     def focus_chart(self) -> None:
         """Give keyboard focus to the chart on screen, where its navigation keys work."""
@@ -455,7 +457,7 @@ class ResultsView(QWidget):
         for view in (self.largest_table, self.search_table, self.duplicates.view, self.cleanup.view):
             if view.hasFocus():
                 return _selected_in(view)
-        return _selected_in(self.tree)
+        return self.tree_filter.selected_nodes()
 
     def set_chart_mode(self, mode: str) -> None:
         """Show a chart mode; ignore unknown values."""
@@ -674,6 +676,9 @@ class ResultsView(QWidget):
         tree.setItemDelegateForColumn(DRIVE_SHARE, ShareBarDelegate(tree))
         tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tree.customContextMenuRequested.connect(lambda point: self._menu_for(tree, point))
+        tree.clicked.connect(self._show_more_rows)
+        tree.activated.connect(self._show_more_rows)
+        tree.installEventFilter(self)  # Return on macOS edits instead of activating: handle it everywhere
         header = tree.header()
         header.setStretchLastSection(False)
         header.setMinimumSectionSize(40)
@@ -687,6 +692,27 @@ class ResultsView(QWidget):
         self.tree_filter = TreeFilter(tree, self.tree_model, self)
         self.tree_filter.selection_model_changed.connect(self._connect_tree_selection)
         return tree
+
+    def _show_more_rows(self, index: QModelIndex) -> None:
+        """A click or Enter on a large folder's last row shows its next page and moves to the first new row."""
+        entry = index.internalPointer() if index.isValid() else None
+        if not isinstance(entry, MoreRows) or entry.parent is None:
+            return
+        first = self.tree_model.show_more(entry.parent)
+        target = self.tree_filter.index_for(first) if first is not None else QModelIndex()
+        if target.isValid():
+            self.tree.selectionModel().setCurrentIndex(
+                target, QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows)
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        """Qt: Return or Enter on a large folder's last row shows its next page on every platform."""
+        if (watched is self.tree and event.type() == QEvent.Type.KeyPress
+                and event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)):
+            current = self.tree.currentIndex()
+            if current.isValid() and isinstance(current.internalPointer(), MoreRows):
+                self._show_more_rows(current)
+                return True
+        return super().eventFilter(watched, event)
 
     def _connect_tree_selection(self) -> None:
         self.tree.selectionModel().currentChanged.connect(self._tree_current_changed)
@@ -1006,7 +1032,7 @@ class ResultsView(QWidget):
         node = index.data(NODE_ROLE) if index.isValid() else None
         if not isinstance(node, Node):
             return
-        picked = _selected_in(view)
+        picked = self.tree_filter.selected_nodes() if view is self.tree else _selected_in(view)
         if not any(entry is node for entry in picked):
             picked = [node]
         self.menu_source = view  # the receiver runs its menu inside this call
