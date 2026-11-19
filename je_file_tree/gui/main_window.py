@@ -51,6 +51,8 @@ from je_file_tree.gui.startup_state import WorkspaceState
 from je_file_tree.gui.scan_preferences import MAX_SCAN_WORKERS as _MAX_SCAN_WORKERS, SCAN_FLAGS, ScanDefaults
 from je_file_tree.gui.special_files import SpecialFilesDialog
 from je_file_tree.gui.live_compare import LiveCompareDialog
+from je_file_tree.gui.live_refresh import LiveRefresh
+from je_file_tree.gui.busy_notice import show_busy
 from je_file_tree.gui.git_history import GitHistoryDialog
 from je_file_tree.gui.history import HistoryDialog, HistorySettings, configured_history, history_folder, history_limit
 from je_file_tree.gui.recurring_review import RecurringReview
@@ -112,14 +114,23 @@ from je_file_tree.gui.change_watch import FollowChanges, supported as follow_sup
 from je_file_tree.gui.window_fit import fit_window
 
 WELCOME_PAGE, RESULTS_PAGE = range(2)
-# How often the tree of a running scan is refreshed.
-LIVE_REFRESH_MS = 700
 _MAX_RECENT = 10
 _UNITS = (AUTO_UNIT, *SIZE_UNITS[1:5])
 _LISTED_NAMES = 8  # entries named in a Recycle Bin question; the rest are counted
 _MAX_REFUSAL_NOTICE = 1024
 _ACTION_ICONS = {"open": "folder", "rescan": "refresh", "stop": "stop", "help": "help"}
 _STATUS_TIMEOUT_MS = 8000
+# Actions that read or change the scanned entries wait for a running scan or source operation. They stay
+# enabled meanwhile and, when used, say why they wait instead of doing nothing (gui.busy_notice).
+_WAIT_FOR_SCAN = frozenset({
+    "rescan", "export_folders", "export_largest", "export_list", "export_json", "export_chart_png",
+    "export_chart_svg", "print_view", "export_view_pdf", "export_report_html", "export_report_xlsx", "trash",
+    "permanent_delete", "find", "compare", "special_files", "live_compare", "git_history", "history",
+    "recurring", "scan_presets", "projects", "programs", "virtual_disks", "file_times", "volumes", "disks",
+    "bins", "cleanup_policy",
+})
+# These start a scan or a restart themselves, so only a running source operation makes them wait.
+_WAIT_FOR_OPERATION = frozenset({"open", "multi_scan", "elevate"})
 ASK_ADMIN_KEY = "ask_admin_at_start"
 EXCLUSIONS_KEY = "exclusions"
 SEARCHES_KEY = "saved_searches"
@@ -196,9 +207,7 @@ class MainWindow(QMainWindow):
         self.pages = QStackedWidget()
         for page in (self.welcome, self.results):
             self.pages.addWidget(page)
-        self._live_timer = QTimer(self)
-        self._live_timer.setInterval(LIVE_REFRESH_MS)
-        self._live_timer.timeout.connect(self.results.refresh_live)
+        self._live_timer = LiveRefresh(self.results.refresh_live, self)  # spaced by its cost (U-20261118-01)
         self.setCentralWidget(self.pages)
         self.path_edit = QLineEdit()
         self._actions: dict[str, QAction] = {}
@@ -420,9 +429,21 @@ class MainWindow(QMainWindow):
         self.results.begin_scan()
         self.scan_activity_changed.emit()
         self.pages.setCurrentIndex(RESULTS_PAGE)
+        self._leave_path_box()
         self._update_actions()
         self._live_timer.start()
         after_threads((*self._scan_workers, *background, *following), lambda: self._dispatch_scan(worker), self)
+
+    def _leave_path_box(self) -> None:
+        """Move keyboard focus from the path box (or the start page) to the results of a new scan.
+
+        Focus stayed in the path box after Enter started a scan, so a later Enter meant for the chart
+        or the tree scanned the whole root again and Backspace edited the path (U-20261119-01).
+        """
+        focused = self.focusWidget()  # the window's own focus, also while another program is active
+        if (focused is None or focused is self.path_edit or focused is self._scan_path
+                or self.welcome.isAncestorOf(focused)):
+            self.results.focus_results()
 
     def _dispatch_scan(self, worker: ScanWorker) -> None:
         if self._closing or worker is not self._worker or worker is not self._pending_scan:
@@ -555,7 +576,8 @@ class MainWindow(QMainWindow):
             entries.append(("archive_stop", lambda: self.results.archives.stop(node)))
         if node.is_dir and not node.is_link:
             entries.append(("menu_show_chart", lambda: self._show_in_chart(node)))
-            entries.append(("menu_rescan_here", lambda: self.rescan_folder(node)))
+            entries.append(("menu_rescan_here", lambda: self._explain_busy(tr("menu_rescan_here"))
+                            or self.rescan_folder(node)))
             entries.append(("menu_scan_here", lambda: self.start_scan(node.path)))
             if (elevation.supported() and self._worker is None and not self.operation_busy
                     and self.results.outcome is not None and self.results.outcome.result.root.path is not None):
@@ -851,7 +873,9 @@ class MainWindow(QMainWindow):
         """
         chosen = _movable(nodes)
         root = self.results.tree_model.root
-        if (not chosen or root is None or root.path is None or self._worker is not None or self.operation_busy
+        if (not chosen or root is None or root.path is None
+                or self._explain_busy(tr("action_trash"))  # a scan or operation runs: say so
+                or self._worker is not None or self.operation_busy
                 or copies is not None and not copies.matches(root, chosen)
                 or proposal is not None and (not proposal.matches(root, chosen)
                                             or not self._proposal_current(proposal))):
@@ -916,8 +940,9 @@ class MainWindow(QMainWindow):
         """
         chosen = _movable(nodes)
         root = self.results.tree_model.root
-        if (not chosen or root is None or root.path is None or self._worker is not None or self.operation_busy
-                or self._closing):
+        if (not chosen or root is None or root.path is None
+                or self._explain_busy(tr("permanent_delete"))  # a scan or operation runs: say so
+                or self._worker is not None or self.operation_busy or self._closing):
             return
         managed = {node for node in chosen if system_file(node.path) is not None}
         if managed:
@@ -1246,6 +1271,23 @@ class MainWindow(QMainWindow):
     def _find(self) -> None:
         if self.pages.currentIndex() == RESULTS_PAGE and self.results.outcome is not None:
             self.results.show_search()
+
+    def _run_action(self, key: str, run: Callable[[], object]) -> None:
+        """Run a menu action, or say why it waits for the running scan or operation (``_WAIT_FOR_SCAN``)."""
+        waits = key in _WAIT_FOR_SCAN or key in _WAIT_FOR_OPERATION
+        if waits and self._explain_busy(self._actions[key].text(), scan=key in _WAIT_FOR_SCAN):
+            return
+        run()
+
+    def _explain_busy(self, action: str, *, scan: bool = True) -> bool:
+        """Whether ``action`` has to wait (a scan, with ``scan``, or a source operation); if so, say so."""
+        if self._closing:
+            return False
+        scanning = scan and self._worker is not None
+        if not scanning and not self.operation_busy:
+            return False
+        show_busy(self, action, scanning=scanning)
+        return True
 
     def _trash_selected(self) -> None:
         if self.pages.currentIndex() == RESULTS_PAGE:
@@ -1692,10 +1734,11 @@ class MainWindow(QMainWindow):
             action = QAction(self)
             if shortcut is not None:
                 action.setShortcut(QKeySequence(shortcut))
-            action.triggered.connect(lambda _checked=False, run=handler: run())
+            action.triggered.connect(lambda _checked=False, run=handler, name=key: self._run_action(name, run))
             self._actions[key] = action
         self._reclaim_action = QAction(self)
-        self._reclaim_action.triggered.connect(lambda _checked=False: self.show_reclaim())
+        self._reclaim_action.triggered.connect(
+            lambda _checked=False: self._explain_busy(self._reclaim_action.text()) or self.show_reclaim())
         self._configure_actions()
 
     def _configure_actions(self) -> None:
@@ -1881,42 +1924,39 @@ class MainWindow(QMainWindow):
             self.pending_source_workers()
         if self._operations is not None:
             self._operations.refresh(self)
-        self._actions["elevate"].setEnabled(
-            not self._closing and not self.operation_busy and not self._settings_dialogs)
+        # Actions in _WAIT_FOR_SCAN / _WAIT_FOR_OPERATION stay enabled while a scan or an operation runs, so
+        # that using one says why it waits (_run_action) instead of a greyed item doing nothing.
         scanning = self._worker is not None or self.operation_busy
-        self._actions["scan_presets"].setEnabled(not scanning and not self._closing and not self._settings_dialogs)
-        self.welcome.presets.setEnabled(self._actions["scan_presets"].isEnabled())
-        self._actions["recurring"].setEnabled(self._recurring_show is not None and not scanning)
-        has_results = self.results.outcome is not None
+        self._actions["elevate"].setEnabled(not self._closing and not self._settings_dialogs)
+        self._actions["scan_presets"].setEnabled(not self._closing and not self._settings_dialogs)
+        self.welcome.presets.setEnabled(self._actions["scan_presets"].isEnabled() and not scanning)
+        self._actions["recurring"].setEnabled(self._recurring_show is not None)
         self._actions["stop"].setEnabled(scanning)
-        self._actions["open"].setEnabled(not self.operation_busy)
-        self._actions["cleanup_policy"].setEnabled(not scanning)
-        self._actions["live_compare"].setEnabled(not scanning)
-        self._actions["volumes"].setEnabled(not scanning)
-        self._actions["disks"].setEnabled(not scanning)
-        self._actions["bins"].setEnabled(not scanning)
-        self._actions["rescan"].setEnabled(bool(self._last_path or self._last_roots) and not scanning)
-        for key in ("export_folders", "export_largest", "export_json", "export_chart_png", "trash", "permanent_delete",
-                    "find", "compare"):
-            self._actions[key].setEnabled(has_results and not scanning)
-        self._actions["export_chart_svg"].setEnabled(has_results and not scanning
-                                                    and self.results.charts.mode in SVG_MODES)
-        for key in ("print_view", "export_view_pdf", "special_files", "git_history", "projects", "history",
-                    "programs", "virtual_disks", "file_times"):
-            self._actions[key].setEnabled(has_results and not scanning)
-        for key in ("export_report_html", "export_report_xlsx"):
-            self._actions[key].setEnabled(has_results and not scanning and not self.operation_busy
-                                          and not self._analysers)
-        self._actions['export_list'].setEnabled(has_results and not scanning
-                                              and self.results.current_list() is not None)
-        virtual = has_results and self.results.outcome.result.root.path is None
-        for key in ("trash", "permanent_delete", "history", "git_history"):
-            self._actions[key].setEnabled(has_results and not scanning and not virtual)
-        self._reclaim_action.setEnabled(has_results and not scanning and not virtual)
-        self._actions["multi_scan"].setEnabled(not self.operation_busy)
+        for key in ("open", "multi_scan", "cleanup_policy", "live_compare", "volumes", "disks", "bins"):
+            self._actions[key].setEnabled(True)
+        self._actions["rescan"].setEnabled(bool(self._last_path or self._last_roots))
+        # A running scan's live tree can be selected before there is an outcome: its actions explain the wait.
+        self._update_result_actions(self.results.outcome is not None
+                                    or scanning and self.results.tree_model.root is not None)
         self.welcome.scan_all.setEnabled(not scanning and bool(self.welcome.drive_rows))
         self._update_bin_buttons()
         self._update_refresh_notice()
+
+    def _update_result_actions(self, shown: bool) -> None:
+        """Enable the actions on the results on screen (``shown``); a running scan makes them explain instead."""
+        for key in ("export_folders", "export_largest", "export_json", "export_chart_png", "find", "compare",
+                    "print_view", "export_view_pdf", "special_files", "projects", "programs", "virtual_disks",
+                    "file_times"):
+            self._actions[key].setEnabled(shown)
+        self._actions["export_chart_svg"].setEnabled(shown and self.results.charts.mode in SVG_MODES)
+        for key in ("export_report_html", "export_report_xlsx"):
+            self._actions[key].setEnabled(shown and not self._analysers)
+        self._actions["export_list"].setEnabled(shown and self.results.current_list() is not None)
+        outcome = self.results.outcome
+        virtual = outcome is not None and outcome.result.root.path is None
+        for key in ("trash", "permanent_delete", "history", "git_history"):
+            self._actions[key].setEnabled(shown and not virtual)
+        self._reclaim_action.setEnabled(shown and not virtual)
 
     def _update_bin_buttons(self) -> None:
         ready = not self._closing and self._worker is None and not self.operation_busy

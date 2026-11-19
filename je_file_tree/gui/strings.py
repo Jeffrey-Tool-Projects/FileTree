@@ -11,6 +11,10 @@ def _cjk(html: str) -> str:
 
 
 EN: dict[str, str] = {
+    "busy_scanning": ("“{action}” has to wait for the scan that is running. "
+        "Let it finish, or stop it first (Esc)."),
+    "busy_operation": ("“{action}” has to wait: another operation on the scanned files is still running. "
+        "Try again once it has finished."),
     "budget_filter": "Show budgets",
     "budget_filter_all": "All budgets",
     "budget_filter_over": "Over limit",
@@ -1913,6 +1917,10 @@ listed greyed out, with size 0.</li>
 }
 
 ZH_TW: dict[str, str] = {
+    "busy_scanning": ("掃描進行中，「{action}」須等掃描完成才能執行。"
+        "請等掃描結束，或先停止掃描（Esc）。"),
+    "busy_operation": ("另一項檔案操作仍在進行，「{action}」須等它完成才能執行。"
+        "請在操作結束後再試一次。"),
     "budget_filter": "顯示預算",
     "budget_filter_all": "全部預算",
     "budget_filter_over": "超過上限",
@@ -3609,6 +3617,10 @@ FileTree 不會永久刪除任何東西：每次都會先詢問，
 }
 
 ZH_CN: dict[str, str] = {
+    "busy_scanning": ("扫描进行中，“{action}”须等扫描完成才能执行。"
+        "请等扫描结束，或先停止扫描（Esc）。"),
+    "busy_operation": ("另一项文件操作仍在进行，“{action}”须等它完成才能执行。"
+        "请在操作结束后再试一次。"),
     "budget_filter": "显示预算",
     "budget_filter_all": "全部预算",
     "budget_filter_over": "超过上限",
@@ -5317,6 +5329,10 @@ FileTree 不会永久删除任何东西：每次都会先询问，
 
 
 JA: dict[str, str] = {
+    "busy_scanning": ("スキャン中のため「{action}」は実行できません。"
+        "スキャンの完了を待つか、先にスキャンを停止してください（Esc）。"),
+    "busy_operation": ("別のファイル操作が実行中のため「{action}」は実行できません。"
+        "操作の完了後にもう一度お試しください。"),
     "budget_filter": "予算を表示",
     "budget_filter_all": "すべての予算",
     "budget_filter_over": "上限超過",
@@ -7428,6 +7444,10 @@ JA: dict[str, str] = {
 
 
 KO: dict[str, str] = {
+    "busy_scanning": ("스캔이 진행 중이라 '{action}'을(를) 실행할 수 없습니다. "
+        "스캔이 끝날 때까지 기다리거나 먼저 스캔을 중지하세요(Esc)."),
+    "busy_operation": ("다른 파일 작업이 진행 중이라 '{action}'을(를) 실행할 수 없습니다. "
+        "작업이 끝난 후 다시 시도하세요."),
     "budget_filter": "예산 표시",
     "budget_filter_all": "모든 예산",
     "budget_filter_over": "한도 초과",

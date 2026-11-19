@@ -169,28 +169,16 @@ class FolderTreeModel(QAbstractItemModel):
         self._live_presence = self._shown_presence() if self._live else {}
 
     def _repaint_live_folders(self) -> None:
-        """Notify the root and every shown folder row: during a scan only folder totals change.
+        """Notify the root row only: during a scan only totals change, and the view repaints the rest.
 
-        A file row's own values are final when the scanner adds it; only its share of the growing
-        parent changes, which the view repaints on screen (ResultsView.refresh_live). One range over
-        every shown row made Qt query hasChildren 100,000 times (about 0.3 s, U-20261017-76).
+        ``ResultsView.refresh_live`` repaints the tree's viewport, so every row on screen reads its
+        fresh totals; rows off screen read them when they are shown. Qt's ``QTreeView::dataChanged``
+        queries ``hasChildren`` for every row of a range, so notifying the shown folder rows cost a
+        Python call per folder: with 100,000 shown folders a tick took 342 ms against 117 ms with the
+        root alone (U-20261118-01).
         """
-        last = len(COLUMN_KEYS) - 1
         if self._root is not None:
-            self.dataChanged.emit(self.index(0, 0), self.index(0, last), [])
-        for parent in tuple(self._queried_parents):
-            parent_index = self.index_for(parent)
-            if not parent_index.isValid():
-                continue
-            start = None
-            order = self._orders.get(id(parent), ())
-            for row, node in enumerate((*order, None)):
-                if node is not None and node.is_dir:
-                    start = row if start is None else start
-                elif start is not None:
-                    self.dataChanged.emit(self.index(start, 0, parent_index),
-                                          self.index(row - 1, last, parent_index), [])
-                    start = None
+            self.dataChanged.emit(self.index(0, 0), self.index(0, len(COLUMN_KEYS) - 1), [])
 
     def _shown_presence(self) -> dict[int, bool]:
         """Whether each shown folder has entries, which decides its expand arrow; reads frozen live orders."""

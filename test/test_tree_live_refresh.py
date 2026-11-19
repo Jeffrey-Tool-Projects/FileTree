@@ -1,4 +1,4 @@
-"""Live ticks repaint unchanged shown rows and relayout every structural change (U-20261017-76)."""
+"""Live ticks repaint unchanged shown rows and relayout every structural change (U-20261017-76, U-20261118-01)."""
 
 from PySide6.QtCore import Qt
 
@@ -31,7 +31,7 @@ def _record(model):
     return events
 
 
-def test_unchanged_members_and_order_only_repaint_root_and_folder_rows(qapp):
+def test_unchanged_members_and_order_only_repaint_the_root_row(qapp):
     model, root, folder, empty = _live_tree()
     _show(model, root)
     model.refresh()  # the first live tick learns which shown folders have entries
@@ -40,8 +40,9 @@ def test_unchanged_members_and_order_only_repaint_root_and_folder_rows(qapp):
     root.size = 61
     model.refresh()
     assert events["layouts"] == 0
-    # Rows by size: folder (31), file1 (20), file0 (10), empty (0): two folder runs; file rows are not notified.
-    assert [change[:2] for change in events["changes"]] == [(root, root), (folder, folder), (empty, empty)]
+    # The view repaints the rows on screen (ResultsView.refresh_live); notifying every shown folder row
+    # made Qt ask hasChildren once per folder (U-20261118-01).
+    assert [change[:2] for change in events["changes"]] == [(root, root)]
     assert all(change[2:] == (0, model.columnCount() - 1) for change in events["changes"])
     assert _show(model, root) == [folder, root.children[3], root.children[2], empty]
 

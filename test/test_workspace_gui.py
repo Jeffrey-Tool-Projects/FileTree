@@ -10,6 +10,7 @@ import pytest
 from test_gui import _wait
 from test_worker_lifecycle import _held_follow
 from je_file_tree.core.operations import MoveReceipt
+from je_file_tree.gui.busy_notice import busy_text
 from je_file_tree.gui import change_watch, file_actions, i18n, main_window, scan_worker
 from je_file_tree.gui.app import create_workspace
 from je_file_tree.gui.qt_translation import apply_qt_translation
@@ -72,7 +73,9 @@ def test_operation_owner_blocks_peer_commands_before_confirmation(workspace, tmp
     try:
         first._update_actions()
         assert first.operation_busy and second.operation_busy
-        assert not second._actions["open"].isEnabled()
+        assert second._actions["open"].isEnabled()  # usable, but it says why it waits (U-20261118-02)
+        second._actions["open"].trigger()
+        assert second.statusBar().currentMessage() == busy_text(second._actions["open"].text(), scanning=False)
         monkeypatch.setattr(scan_worker.ScanWorker, "start", lambda _self: pytest.fail("peer scan dispatched"))
         monkeypatch.setattr(QMessageBox, "question", lambda *_args: pytest.fail("peer Trash approval dispatched"))
         second.move_to_trash(chosen)

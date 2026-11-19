@@ -28,6 +28,13 @@ selection signals blocked and preserve the selected rule identity without refill
 observation strings never feed persistence. Limit-version mismatch retains dated old usage with an
 explicit waiting state and unknown excess. The settings schema and reminder state remain unchanged.
 
+Actions that read or change the scanned entries (`main_window._WAIT_FOR_SCAN`) stay enabled while a scan or a
+source operation runs; `MainWindow._run_action` and `_explain_busy` intercept them and `gui.busy_notice` says
+why they wait, in the status bar and next to the pointer. Actions that start a scan themselves
+(`_WAIT_FOR_OPERATION`) wait only for operations. `move_to_trash`, `delete_permanently` and the context menu's
+folder rescan explain the same way, so panel buttons never fail silently; authority checks are unchanged
+(U-20261118-02).
+
 `MainWindow.folder_context` resolves a typed `FolderContext` from the current result and selection,
 checking scan ownership, shared operation busy state, closing, links and virtual roots. Files use
 their containing folder. `DetailsPanel.set_folder_context` displays its copyable path and unavailable
@@ -768,6 +775,9 @@ unusable dates. New selections/scan roots invalidate old replies; MainWindow joi
 ChartStack navigation updates all charts and records one visit; stepping history does not append it.
 Detached nodes are pruned after edits, new scans reset references, and deep ancestor paths use a
 scroll area with a collapsed menu instead of widening the chart. Shortcuts apply while Chart is visible.
+The Up, Back, Forward and ancestor buttons take no focus, so `ResultsView.focus_chart` gives it to the
+chart after each; `MainWindow._leave_path_box` moves focus from the path box or start page to the tree
+when a scan begins. Enter meant for the chart therefore never reaches the path box (U-20261119-01).
 
 `printing` captures the visible results before opening QPrintDialog, then QPrinter fits those pixels
 on one printable page. PDF export uses the same fitted layout via QPdfWriter on ExportWorker, avoiding
@@ -1202,10 +1212,12 @@ on Windows by default the size rounded up to the volume's clusters, the system a
 files, 0 for files whose data is elsewhere (cloud placeholders, offline), never opening those.
 Each finished folder's files are added to the running totals of every folder above it. The root is handed
 out first (`started`), so `FolderTreeModel` shows the tree in live mode while it grows: each folder's
-children are a sorted copy frozen until the next `refresh()`, which the window calls every 700 ms (a layout
-change that moves persistent indexes, so expanded folders, selection and scroll position survive). A tick
-whose shown folders keep their members, sorted order and child presence only notifies the root and folder
-rows and repaints the visible tree, since file rows' own values are final when added (U-20261017-76). The
+children are a sorted copy frozen until the next `refresh()` (a layout change that moves persistent indexes,
+so expanded folders, selection and scroll position survive). `gui.live_refresh.LiveRefresh` calls it every
+700 ms at the fastest; each call is timed until the event loop is about to wait, and the next one waits four
+times that, up to 5 s, so live refreshes take at most about a fifth of the window's time however many rows
+are expanded (U-20261118-01). A tick whose shown folders keep their members, sorted order and child presence
+only notifies the root row and repaints the visible tree (U-20261017-76, U-20261118-01). The
 calling thread reports progress about ten times a second and watches the cancel event. When every folder
 is read, totals are added up again bottom-up and children sorted largest first; `analyse()` (largest
 files, per-type totals) runs still off the GUI thread and `succeeded(ScanOutcome)` ends live mode. Stop

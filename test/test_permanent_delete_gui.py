@@ -22,6 +22,7 @@ from test_gui import window as window  # noqa: PLC0414 - shared fixture
 from je_file_tree.core.node import Node
 from je_file_tree.core.protected import PROGRAMS, Protection
 from je_file_tree.core.system_files import SystemFile
+from je_file_tree.gui.busy_notice import busy_text
 from je_file_tree.gui import i18n, main_window
 from je_file_tree.gui import permanent_delete as gui_delete
 from je_file_tree.gui.permanent_delete import LISTED, PermanentDeleteWorker, PermanentReportDialog
@@ -286,7 +287,10 @@ def test_the_action_sits_beside_the_trash_action_and_follows_its_state(window, q
     assert action.isEnabled() == trash.isEnabled() is True
     window._path_dialogs.add(object())
     window._update_actions()
-    assert action.isEnabled() == trash.isEnabled() is False
+    # While an operation runs both stay usable and say why they wait (U-20261118-02).
+    assert action.isEnabled() == trash.isEnabled() is True
+    action.trigger()
+    assert window.statusBar().currentMessage() == busy_text(action.text(), scanning=False)
     window._path_dialogs.clear()
     window._update_actions()
 
