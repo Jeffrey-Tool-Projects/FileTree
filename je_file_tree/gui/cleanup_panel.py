@@ -36,6 +36,7 @@ class CleanupPanel(QWidget):
         self.unit = AUTO_UNIT
         self.model = grouped_list.GroupedListModel(self)
         self.view = grouped_list.build_view(self.model)
+        grouped_list.open_groups_when_shown(self.view)  # the tab is usually hidden when suggestions arrive
         self.status = QLabel()
         self.status.setWordWrap(True)
         # a long line would otherwise claim its whole width and squeeze the folder tree beside the tabs

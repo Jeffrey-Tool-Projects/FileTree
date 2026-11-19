@@ -12,7 +12,7 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from PySide6.QtCore import (
-    QAbstractItemModel, QAbstractTableModel, QItemSelection, QItemSelectionModel, QModelIndex, QObject,
+    QAbstractItemModel, QAbstractTableModel, QEvent, QItemSelection, QItemSelectionModel, QModelIndex, QObject,
     QPersistentModelIndex, Qt,
 )
 from PySide6.QtGui import QFont, QIcon
@@ -317,17 +317,60 @@ def build_view(model: GroupedListModel) -> QTreeView:
     return view
 
 
+class _ExpandWhenShown(QObject):
+    """Opens the groups of a view filled while hidden, the first time it is shown (U-20261119-05).
+
+    Qt lays out every line of an opened group even in a hidden view, about two calls into the Python
+    model per line: measured 2026-11-19, 56,321 empty folders (a scan of the Windows folder) took 0.6-0.7 s
+    on the GUI thread the moment the clean-up suggestions arrived, while the charts were being used.
+    """
+
+    def __init__(self, view: QTreeView) -> None:
+        super().__init__(view)
+        self.view = view
+        self.pending = False
+        self.icons = False  # whether the groups waiting to open show thumbnails
+        view.installEventFilter(self)
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        """Qt: open the groups once the view is shown."""
+        if watched is self.view and event.type() == QEvent.Type.Show and self.pending:
+            self.pending = False
+            model = self.view.model()
+            if isinstance(model, GroupedListModel):
+                _expand_groups(model, self.view, icons=self.icons)
+        return False
+
+
 def fill(model: GroupedListModel, view: QTreeView, groups: Sequence[tuple[str, Sequence[Node]]], unit: str,
          *, tips: Sequence[str] | None = None, keepers: Sequence[Node | None] | None = None,
          icons: Mapping[Node, QIcon] | None = None) -> None:
-    """Show ``groups`` (a title and its entries, in the order given), all opened; ``tips``: one tooltip per group."""
+    """Show ``groups`` (a title and its entries, in the order given), all opened; ``tips``: one tooltip per group.
+
+    A view marked with ``open_groups_when_shown`` that is hidden opens its groups when it is next shown.
+    """
     model.set_groups(groups, unit, tips=tips, keepers=keepers, icons=icons)
     for row in range(model.rowCount()):
         view.setFirstColumnSpanned(row, QModelIndex(), True)  # a group's line runs across the columns
     for column, width in _COLUMN_WIDTHS.items():
         view.setColumnWidth(column, width)
     view.header().setSectionResizeMode(_FOLDER_COLUMN, QHeaderView.ResizeMode.Stretch)
-    if icons is None and view.uniformRowHeights() and model.rowCount() >= _BATCHED_EXPANSION_MINIMUM:
+    waiting = view.findChild(_ExpandWhenShown)
+    if waiting is not None:
+        waiting.pending, waiting.icons = not view.isVisible(), icons is not None
+        if waiting.pending:
+            return
+    _expand_groups(model, view, icons=icons is not None)
+
+
+def open_groups_when_shown(view: QTreeView) -> None:
+    """Let ``fill`` leave the groups of ``view`` closed while it is hidden, opening them when it is shown."""
+    if view.findChild(_ExpandWhenShown) is None:
+        _ExpandWhenShown(view)
+
+
+def _expand_groups(model: GroupedListModel, view: QTreeView, *, icons: bool) -> None:
+    if not icons and view.uniformRowHeights() and model.rowCount() >= _BATCHED_EXPANSION_MINIMUM:
         view.scheduleDelayedItemsLayout()
     for row in range(model.rowCount()):
         view.expand(model.index(row, 0))

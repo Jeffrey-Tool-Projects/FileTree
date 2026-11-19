@@ -1458,6 +1458,9 @@ entry indexes use their one-based group number, avoiding per-cell Qt objects and
 Only requested display/tooltip roles format sizes, dates and paths. Every captured row is immediately
 addressable; group headers have no Node role, and entries remain selectable read-only leaves even
 when their Nodes represent folders. Resets discard prior groups/icons and clear stale selections.
+A view marked with `open_groups_when_shown` (the clean-up list) that is hidden while it is filled
+opens its groups when it is next shown: Qt lays out every line of an opened group even in a hidden view,
+and 56,321 empty folders took 0.6-0.7 s on the GUI thread while the charts were in use (U-20261119-05).
 `fill` configures column geometry before expanding group roots only. For at least 500 groups with
 uniform row heights and no supplied icon collection, it schedules one native delayed layout before the ordered root
 expansions, so Qt can retain its normal signals while
