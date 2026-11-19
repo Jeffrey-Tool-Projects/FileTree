@@ -4,14 +4,24 @@ from __future__ import annotations
 
 import html
 
-from PySide6.QtCore import QLineF, QPoint, QPointF, QRectF, QSize, Qt, Signal
-from PySide6.QtGui import QContextMenuEvent, QKeyEvent, QMouseEvent, QPainter, QPaintEvent, QPen, QWheelEvent
-from PySide6.QtWidgets import QToolTip, QWidget
+from PySide6.QtCore import QEvent, QLineF, QPoint, QPointF, QRectF, QSize, Qt, Signal
+from PySide6.QtGui import (
+    QContextMenuEvent,
+    QHelpEvent,
+    QKeyEvent,
+    QMouseEvent,
+    QPainter,
+    QPaintEvent,
+    QPen,
+    QWheelEvent,
+)
+from PySide6.QtWidgets import QWidget
 
 from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, format_size
 from je_file_tree.core.node import Node
 from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.tree_layout import MAX_VISIBLE, PAGE_SIZE, DiagramItem, layout
+from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
 
 
@@ -158,14 +168,15 @@ class TreeDiagramWidget(QWidget):
         if item is not None and item.node is not None and item.node.is_dir:
             self.set_view_root(item.node)
 
-    def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        """Describe the card under the mouse without reading file contents."""
-        item = self.item_at(event.position().x(), event.position().y())
-        if item is None:
-            QToolTip.hideText()
-        elif item.node is not None:
-            QToolTip.showText(event.globalPosition().toPoint(), html.escape(node_path(item.node)), self)
-        super().mouseMoveEvent(event)
+    def event(self, event: QEvent) -> bool:
+        """Qt: describe the card under the mouse once it rests (``chart_tooltip``), without reading files."""
+        if event.type() == QEvent.Type.ToolTip and isinstance(event, QHelpEvent):
+            item = self.item_at(event.pos().x(), event.pos().y())
+            if item is None or item.node is None:
+                return show_chart_tip(self, event, None)
+            return show_chart_tip(self, event, html.escape(node_path(item.node)),
+                                  self.card_rect(item).toAlignedRect())
+        return super().event(event)
 
     def wheelEvent(self, event: QWheelEvent) -> None:
         """Ctrl+wheel zooms; plain wheel remains scroll-area panning."""

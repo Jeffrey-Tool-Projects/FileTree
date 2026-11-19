@@ -329,8 +329,11 @@ class FolderTreeModel(QAbstractItemModel):
         child = node
         while child is not self._root and child.parent is not None:
             parent = child.parent
-            ordered, shown = self._ordered(parent), len(self._shown_rows(parent)) - 1
-            if self.hidden_rows(parent):
+            rows = self._shown_rows(parent)
+            # A child already on a page is found among the shown rows; only one past them is searched
+            # for in the rest (U-20261119-04: searching every selection cost 6.5 ms per 150,000 entries).
+            if rows and isinstance(rows[-1], MoreRows) and self._row_of(child) < 0:
+                shown, ordered = len(rows) - 1, self._ordered(parent)
                 try:
                     position = ordered.index(child, shown)
                 except ValueError:

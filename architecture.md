@@ -1406,6 +1406,9 @@ gives arcs as fractions of the circle, at most `RINGS` rings, arcs thinner than 
 `core.tree_layout.layout` returns at most 240 folder cards, expands branches and pages wide sibling lists;
 the GUI caches that layout and scrolls/zooms it). It shows one at a time, the treemap first
 (`charts.DEFAULT_MODE`); the mode and tree direction are saved in `chart_mode` / `tree_orientation`.
+Chart tooltips answer Qt's `QEvent.ToolTip` through `chart_tooltip.show_chart_tip`, once the mouse rests;
+a `QToolTip.showText` per hover change cost 35-45 ms. The bar chart paints only the exposed lines, repaints
+just the changed hover/selection lines and asks the style for its folder icon once (U-20261119-04).
 All views offer the same interface (`set_view_root`, `zoom_out`, `set_selected`, `invalidate`,
 `node_clicked`, `view_root_changed`, `context_menu_requested`); when one moves to another folder the stack
 moves the others and signals the page once, so the results page drives the stack as a single chart.

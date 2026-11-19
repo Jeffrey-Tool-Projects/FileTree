@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261119-04 | 2026-11-19 | 長條圖在滑鼠移動與捲動時卡頓 | #perf #gui #fix | [2026-11](2026-11.md) |
 | U-20261119-03 | 2026-11-19 | macOS 上在「還有更多項目」列按 Enter 沒有反應 | #incident #fix #gui #macos | [2026-11](2026-11.md) |
 | U-20261119-02 | 2026-11-19 | 大型資料夾在檔案樹中分頁顯示，展開與更新不再卡頓 | #perf #gui #ux #i18n | [2026-11](2026-11.md) |
 | U-20261119-01 | 2026-11-19 | 圖表上切換上下層時按 Enter 會重新掃描整個根目錄 | #done #fix #gui #scan | [2026-11](2026-11.md) |
