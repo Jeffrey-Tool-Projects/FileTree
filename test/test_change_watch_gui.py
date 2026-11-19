@@ -386,3 +386,14 @@ def test_a_folder_removed_before_it_is_read_reads_the_folder_that_held_it(window
     window.refresh_folders([(nested, False)])
     _wait(qapp, lambda: window._worker is None and not window._analysers)
     assert controller._pending.folders == (str(source / "資料"),)
+
+
+def test_a_removed_folder_whose_folder_was_read_too_asks_for_nothing_more(window, qapp, tmp_path, monkeypatch):
+    source, root = _source(window, tmp_path)
+    controller = _enable(window, qapp, monkeypatch)
+    branch = next(child for child in root.children if child.name == "資料")
+    nested = next(child for child in branch.children if child.name == "nested")
+    (source / "資料" / "nested").rmdir()
+    window.refresh_folders([(branch, False), (nested, False)])
+    _wait(qapp, lambda: window._worker is None and not window._analysers)
+    assert nested not in branch.children and not controller._pending.folders

@@ -105,8 +105,9 @@ def _refreshed(window: MainWindow, chosen: list[tuple[Node, bool]], results: tup
     window._scan_ended()
     listings = [(node, result) for (node, _whole), result in zip(chosen, results, strict=True) if result is not None]
     follow = window._follow
+    read = {id(node) for node, _result in listings}
     for (node, _whole), result in zip(chosen, results, strict=True):
-        if result is None:
+        if result is None and (node.parent is None or id(node.parent) not in read):  # its folder shows it gone
             follow.request(node.parent.path if node.parent is not None else None)
     failed = window.results.refill_folders(listings)
     for node in failed:

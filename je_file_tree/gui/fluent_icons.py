@@ -93,14 +93,27 @@ def _question() -> QPainterPath:
 NAMES = tuple(_SHAPES)
 
 
+_DRAWN: dict[tuple[str, int, int], QIcon] = {}  # one per icon and palette; a theme change adds a few more
+
+
 def icon(name: str, colour: QColor, disabled: QColor | None = None) -> QIcon:
-    """The named line icon in ``colour`` (and ``disabled`` for the disabled state)."""
-    strokes = _SHAPES[name]()
-    result = QIcon()
-    for mode, ink in ((QIcon.Mode.Normal, colour), (QIcon.Mode.Disabled, disabled or colour)):
-        for size in _SIZES:
-            result.addPixmap(_render(strokes, ink, size), mode)
-    return result
+    """The named line icon in ``colour`` (and ``disabled`` for the disabled state).
+
+    Drawn once per colour pair: the result navigation asks for every page's icon each time its texts
+    are updated, and drawing them all took about 100 ms, after every Follow changes refresh too
+    (U-20261120-02).
+    """
+    disabled = disabled or colour
+    key = (name, colour.rgba(), disabled.rgba())
+    drawn = _DRAWN.get(key)
+    if drawn is None:
+        strokes = _SHAPES[name]()
+        drawn = QIcon()
+        for mode, ink in ((QIcon.Mode.Normal, colour), (QIcon.Mode.Disabled, disabled)):
+            for size in _SIZES:
+                drawn.addPixmap(_render(strokes, ink, size), mode)
+        _DRAWN[key] = drawn
+    return drawn
 
 
 def palette_icon(name: str, palette: QPalette) -> QIcon:
