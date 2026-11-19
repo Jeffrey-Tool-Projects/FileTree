@@ -21,7 +21,7 @@ from pathlib import PurePath
 from typing import TYPE_CHECKING
 
 from je_file_tree.core.coverage import Coverage, coverage_of
-from je_file_tree.core.node import Node, outermost
+from je_file_tree.core.node import PACE_EVERY, Node, outermost
 from je_file_tree.core.pacing import give_way
 
 if TYPE_CHECKING:
@@ -229,13 +229,17 @@ def empty_folders(root: Node) -> list[Node]:
         folder = stack.pop()
         order.append(folder)
         stack.extend(child for child in folder.children if child.is_dir and not child.is_link)
+    # Both passes below give way too: unpaced, they held the interpreter for 0.3 s after a scan of
+    # C:\Windows (172,165 folders) and the folder tree stalled 381 ms while scrolled (U-20261119-06).
     empty: set[int] = set()
-    for folder in reversed(order):  # children before their parents
+    for count, folder in enumerate(reversed(order)):  # children before their parents
+        if count % PACE_EVERY == 0:
+            give_way()
         if folder.error is None and all(child.is_dir and not child.is_link and id(child) in empty
                                         for child in folder.children):
             empty.add(id(folder))
-    return outermost(folder for folder in order if id(folder) in empty and folder is not root
-                     and not (root.path is None and folder.parent is root))
+    return outermost((folder for folder in order if id(folder) in empty and folder is not root
+                      and not (root.path is None and folder.parent is root)), pace=give_way)
 
 
 class _Matcher:

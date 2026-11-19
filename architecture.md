@@ -1286,6 +1286,8 @@ tree used to make the window queue behind it. `core.pacing.WINDOW` is a gate: `s
 loop is about to wait (`aboutToBlock`). Every walk over the tree calls `pacing.give_way()` once per folder
 (the scan's workers, `_add_up`, the analysis, clean-up, search, compare, export, each file hashed), which
 waits while the gate is closed, at most `PAUSE_LIMIT` (50 ms) and never on the thread that closed it, so
+nothing can hang on it. A pass over a list built from the tree paces too, every `node.PACE_EVERY` (256)
+entries: `outermost(..., pace=give_way)` and clean-up's emptiness pass held the window 0.3 s (U-20261119-06).
 nothing can hang on it. Emergency/destruction joins go through `scan_worker.wait_for`, which opens the
 gate first. Normal whole-root scan replacement uses `worker_lifecycle.ThreadFence`: GUI-owned timers poll
 `QThread.wait(0)` until owned scans/watchers/gentle work have fully joined, then dispatch only the latest

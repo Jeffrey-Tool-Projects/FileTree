@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 
 from je_file_tree.core.snapshot import snapshot_times
@@ -158,17 +158,25 @@ class Node:
             node = node.parent
 
 
-def outermost(nodes: Iterable[Node]) -> list[Node]:
+PACE_EVERY = 256  # entries between two calls of a ``pace`` step: a fraction of a millisecond of work
+
+
+def outermost(nodes: Iterable[Node], *, pace: Callable[[], object] | None = None) -> list[Node]:
     """``nodes`` without repeats and without those inside another one of them, in the order given.
 
     Moving or deleting a folder takes everything in it along, so this is the set to act on when
-    several entries were picked.
+    several entries were picked. A worker passes ``pace`` (``pacing.give_way``): called every
+    ``PACE_EVERY`` entries, so a long list never holds up the window (U-20261119-06).
     """
     chosen: dict[int, Node] = {}
-    for node in nodes:
+    for count, node in enumerate(nodes):
+        if pace is not None and count % PACE_EVERY == 0:
+            pace()
         chosen.setdefault(id(node), node)
     kept: list[Node] = []
-    for node in chosen.values():
+    for count, node in enumerate(chosen.values()):
+        if pace is not None and count % PACE_EVERY == 0:
+            pace()
         above = node.parent
         while above is not None and id(above) not in chosen:
             above = above.parent
