@@ -30,7 +30,7 @@ from je_file_tree.core import mft_scan, native_scan
 from je_file_tree.core.allocation import Allocation, OrdinaryAllocation, allocation_for, ordinary_allocation
 from je_file_tree.core.cpu_load import WorkerGovernor
 from je_file_tree.core.exclusions import Excluded, exclusion_test
-from je_file_tree.core.node import Node
+from je_file_tree.core.node import PACE_EVERY, Node
 from je_file_tree.core.hard_links import HardLinkAccounting, account_hard_links
 from je_file_tree.core.owner_id import file_owner
 from je_file_tree.core.mounts import MOUNT_BOUNDARY, MountChangedError, MountSurvey, boundary_path, mount_points
@@ -764,24 +764,47 @@ def _size_first(node: Node) -> tuple[int, str]:
 def _add_up(folders: list[Node]) -> None:
     """Fill in folder totals, deepest folders first, and sort each folder's children largest first.
 
-    ``folders`` must list every folder after its parent.
+    ``folders`` must list every folder after its parent. A folder of more than ``PACE_EVERY`` entries
+    gives way between pages of them: adding up and sorting the 41,610 entries of one folder in
+    the Windows folder took 42 ms in one go, and up to 150 ms with the window waiting on it (U-20261119-07).
     """
     for folder in reversed(folders):
         give_way()
         size = allocated = files = subfolders = 0
         newest = folder.modified
         children = folder.children
-        for child in children:
-            size += child.size
-            allocated += child.allocated
-            files += child.file_count
-            if child.is_dir and not child.is_link and child.error != EXCLUDED:
-                subfolders += 1 + child.dir_count
-            newest = max(newest, child.modified)
+        for page in (children,) if len(children) <= PACE_EVERY else _pages(children):
+            for child in page:
+                size += child.size
+                allocated += child.allocated
+                files += child.file_count
+                if child.is_dir and not child.is_link and child.error != EXCLUDED:
+                    subfolders += 1 + child.dir_count
+                newest = max(newest, child.modified)
         folder.size = size
         folder.allocated = allocated
         folder.file_count = files
         folder.dir_count = subfolders
         folder.modified = newest
-        if isinstance(children, list) and len(children) > 1:
+        if isinstance(children, list) and len(children) > PACE_EVERY:
+            _sort_size_first(children)
+        elif isinstance(children, list) and len(children) > 1:
             children.sort(key=_size_first)
+
+
+def _pages(children: list[Node]) -> Iterator[list[Node]]:
+    """``children`` ``PACE_EVERY`` at a time, giving way before every page but the first."""
+    for start in range(0, len(children), PACE_EVERY):
+        if start:
+            give_way()
+        yield children[start:start + PACE_EVERY]
+
+
+def _sort_size_first(children: list[Node]) -> None:
+    """Largest first, by name among equals: a long list's keys are made a page at a time, giving way between."""
+    keys: list[tuple[int, str]] = []
+    for start in range(0, len(children), PACE_EVERY):
+        give_way()
+        keys.extend(_size_first(child) for child in children[start:start + PACE_EVERY])
+    order = sorted(range(len(children)), key=keys.__getitem__)  # stable, like list.sort
+    children[:] = [children[index] for index in order]

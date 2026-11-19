@@ -10,7 +10,7 @@ import time
 
 import pytest
 
-from je_file_tree.core import cleanup, pacing
+from je_file_tree.core import cleanup, pacing, scanner
 from je_file_tree.core.node import PACE_EVERY, Node, outermost
 from je_file_tree.core.pacing import Gate
 
@@ -98,3 +98,37 @@ def _line_of(function, text: str, occurrence: int) -> int:
     lines, first = inspect.getsourcelines(function)
     found = [first + offset for offset, line in enumerate(lines) if line.strip() == text]
     return found[occurrence - 1]
+
+
+def _flat(count: int) -> Node:
+    """A folder of ``count`` files with repeated sizes and names differing in case: ties must keep the order."""
+    folder = Node("flat", True, children=[])
+    folder.children.extend(Node(f"{'F' if number % 3 else 'f'}ile-{number % 50}", False, size=number % 7,
+                                allocated=number, file_count=1, modified=float(number), parent=folder)
+                           for number in range(count))
+    return folder
+
+
+@pytest.mark.parametrize("count", [3, PACE_EVERY, PACE_EVERY + 1, 1000])
+def test_a_large_folder_is_added_up_and_sorted_a_page_at_a_time(monkeypatch, count):
+    folder = _flat(count)
+    expected = sorted(folder.children, key=scanner._size_first)
+    paced = []
+    monkeypatch.setattr(scanner, "give_way", lambda: paced.append(1))
+    scanner._add_up([folder])
+    assert [id(child) for child in folder.children] == [id(child) for child in expected], "the same order as before"
+    assert folder.size == sum(number % 7 for number in range(count)) and folder.file_count == count
+    assert folder.allocated == sum(range(count)) and folder.modified == float(count - 1)
+    pages = math.ceil(count / PACE_EVERY)
+    # one per folder, one between pages of the totals, one per page of sort keys
+    assert len(paced) == (2 * pages if count > PACE_EVERY else 1), "41,610 entries took 42 ms in one go"
+
+
+def test_matching_a_large_folder_gives_way_between_pages(monkeypatch):
+    folder = _flat(1000)
+    folder.name = "C:\flat"  # an absolute path: a root the clean-up rules can look into
+    paced = []
+    monkeypatch.setattr(cleanup, "give_way", lambda: paced.append(1))
+    cleanup._visit(folder, (folder.name.casefold(),), cleanup._Matcher(cleanup.RULES, time.time()),
+                   {}, cleanup.coverage_of(folder), set(), set())
+    assert len(paced) == (1000 - 1) // PACE_EVERY, "one folder's 41,610 files took 100 ms to match"

@@ -1288,6 +1288,8 @@ loop is about to wait (`aboutToBlock`). Every walk over the tree calls `pacing.g
 waits while the gate is closed, at most `PAUSE_LIMIT` (50 ms) and never on the thread that closed it, so
 nothing can hang on it. A pass over a list built from the tree paces too, every `node.PACE_EVERY` (256)
 entries: `outermost(..., pace=give_way)` and clean-up's emptiness pass held the window 0.3 s (U-20261119-06).
+A folder of more than 256 entries is added up, sorted (`scanner._sort_size_first`) and matched by clean-up
+a page at a time too: one folder of 41,610 entries took 42 ms to add up and 100 ms to match (U-20261119-07).
 nothing can hang on it. Emergency/destruction joins go through `scan_worker.wait_for`, which opens the
 gate first. Normal whole-root scan replacement uses `worker_lifecycle.ThreadFence`: GUI-owned timers poll
 `QThread.wait(0)` until owned scans/watchers/gentle work have fully joined, then dispatch only the latest

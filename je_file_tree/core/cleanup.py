@@ -181,7 +181,9 @@ def _visit(folder: Node, parts: tuple[str, ...], matcher: _Matcher,
     """Put ``folder``'s matching entries in ``found``; returns the subfolders still to look into."""
     names = _regular_names(folder)
     deeper: list[tuple[Node, tuple[str, ...]]] = []
-    for child in folder.children:
+    for count, child in enumerate(folder.children):
+        if count and count % PACE_EVERY == 0:
+            give_way()  # one folder's 41,610 files took 100 ms to match (U-20261119-07)
         if child.is_link or child.error is not None or child in omitted:
             continue
         if child.is_dir:
