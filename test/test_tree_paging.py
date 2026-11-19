@@ -165,6 +165,7 @@ def test_clicking_the_last_row_shows_the_next_page_and_moves_to_it(window, qapp,
     assert current.data(NODE_ROLE) is many.children[PAGE]
     assert results.selected_nodes() == [many.children[PAGE]]
     results.tree.setCurrentIndex(_more_row(results, many))
+    results.tree.activated.disconnect(results._show_more_rows)  # as on macOS, where Return never activates
     QTest.keyClick(results.tree, Qt.Key.Key_Return)
     assert results.tree.currentIndex().data(NODE_ROLE) is many.children[2 * PAGE]
     assert results.tree_model.rowCount(results.tree_model.index_for(many)) == len(many.children)

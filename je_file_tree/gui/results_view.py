@@ -17,7 +17,8 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 
 from PySide6.QtCore import (
-    QByteArray, QItemSelectionModel, QModelIndex, QPoint, QSettings, QSortFilterProxyModel, Qt, QTimer, Signal,
+    QByteArray, QEvent, QItemSelectionModel, QModelIndex, QObject, QPoint, QSettings, QSortFilterProxyModel, Qt,
+    QTimer, Signal,
 )
 from PySide6.QtGui import QFont, QFontMetrics, QResizeEvent, QShowEvent
 from PySide6.QtWidgets import (
@@ -677,6 +678,7 @@ class ResultsView(QWidget):
         tree.customContextMenuRequested.connect(lambda point: self._menu_for(tree, point))
         tree.clicked.connect(self._show_more_rows)
         tree.activated.connect(self._show_more_rows)
+        tree.installEventFilter(self)  # Return on macOS edits instead of activating: handle it everywhere
         header = tree.header()
         header.setStretchLastSection(False)
         header.setMinimumSectionSize(40)
@@ -701,6 +703,16 @@ class ResultsView(QWidget):
         if target.isValid():
             self.tree.selectionModel().setCurrentIndex(
                 target, QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows)
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        """Qt: Return or Enter on a large folder's last row shows its next page on every platform."""
+        if (watched is self.tree and event.type() == QEvent.Type.KeyPress
+                and event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)):
+            current = self.tree.currentIndex()
+            if current.isValid() and isinstance(current.internalPointer(), MoreRows):
+                self._show_more_rows(current)
+                return True
+        return super().eventFilter(watched, event)
 
     def _connect_tree_selection(self) -> None:
         self.tree.selectionModel().currentChanged.connect(self._tree_current_changed)
