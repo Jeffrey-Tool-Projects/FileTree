@@ -12,7 +12,7 @@ from PySide6.QtCore import QAbstractItemModel, QAbstractProxyModel, QModelIndex,
 
 from je_file_tree.core.archives import VirtualEntry
 from je_file_tree.core.node import Node
-from je_file_tree.gui.tree_model import FolderTreeModel, ModelIndex, _LAYOUT_CHANGE_SIGNATURE
+from je_file_tree.gui.tree_model import FolderTreeModel, ModelIndex, MoreRows, _LAYOUT_CHANGE_SIGNATURE
 
 _FLAGS = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 _NO_HINT = QAbstractItemModel.LayoutChangeHint.NoLayoutChangeHint
@@ -157,9 +157,13 @@ class ExpandedTreeProxy(QAbstractProxyModel):
             custom = self._custom_filter()
             source_parent = source.index_for(parent) if custom else QModelIndex()
             for source_row, child in enumerate(source.filesystem_rows(parent)):
-                accepted = (self.filterAcceptsRow(source_row, source_parent) if custom
-                            else id(child) in self.allowed)
-                if not isinstance(child, VirtualEntry) and accepted:
+                if isinstance(child, MoreRows):  # kept while an entry it stands for matches
+                    accepted = custom or any(id(hidden) in self.allowed for hidden in source.hidden_rows(parent))
+                else:
+                    accepted = (not isinstance(child, VirtualEntry)
+                                and (self.filterAcceptsRow(source_row, source_parent) if custom
+                                     else id(child) in self.allowed))
+                if accepted:
                     rows.append(child)
                     positions.append(source_row)
         cached = _Group(rows, positions, source.index_for(parent) if rows and source is not None else QModelIndex())
@@ -210,7 +214,7 @@ class ExpandedTreeProxy(QAbstractProxyModel):
         node = self._entry(parent)
         if node is None or parent.column() != 0:
             return []
-        return self._group(node).nodes[first:last+1]
+        return [entry for entry in self._group(node).nodes[first:last+1] if not isinstance(entry, VirtualEntry)]
 
     def map_selection_rows(self, groups: dict[QModelIndex, list[int]]) -> dict[QModelIndex, list[int]]:
         """Project source row groups using numeric coordinates; hidden ancestors cannot create roots."""
@@ -239,6 +243,8 @@ class ExpandedTreeProxy(QAbstractProxyModel):
         if source is None or not index.isValid() or index.model() is not source or not self._accept_root():
             return QModelIndex()
         node = source.node(index)
+        if node is None and isinstance(entry := source.entry(index), MoreRows):
+            node = entry
         if node is self._root:
             return self.createIndex(0, index.column(), node)
         if node is None or node.parent is None or not source._visible(node):

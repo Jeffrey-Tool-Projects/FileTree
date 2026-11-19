@@ -191,6 +191,19 @@ Repeated row reads return an existing sorted/frozen sibling order before consult
 children or sort metadata. Cache misses retain the lazy scanner-order shortcut. Existing root,
 layout/structure and archive-preview notifications invalidate orders, including empty live snapshots.
 
+`QTreeView` lays out every row of every expanded folder on each expand, sort and live refresh, calling
+the Python model about twice per row; that dispatch alone is about 1.3–2.5 s for 150,000 rows, against
+43–86 ms for a C++ model (U-20261119-02). `FolderTreeModel` therefore shows a real folder with more than
+`PAGE_ROWS` entries a page at a time: its rows (`_shown_rows`) are the first pages of the sorted/frozen
+order plus one display-only `MoreRows` entry (a `VirtualEntry`, never actionable) counting the rest.
+Clicking it or pressing Enter calls `show_more` through one relayout; `TreeFilter.reveal` calls
+`show_rows_for` so a chart or list target past a page gets its row. Pages persist per folder across
+sorts and refreshes, and the stable `MoreRows` instance keeps persistent indexes on it. Archive preview
+groups are never paged. Row lookups, selection mapping, repaint ranges and `filesystem_rows` read the
+shown rows; `hidden_rows` lets `ExpandedTreeProxy` keep `MoreRows` while a hidden entry matches. List
+copy/export skips rows answering `list_transfer.PLACEHOLDER_ROLE`. The tree's selected entries are read
+from whole selected ranges (`TreeFilter.selected_nodes`), not through Qt's per-row `selectedRows()`.
+
 Unit/capacity changes instead emit column- and role-specific
 [same-parent `dataChanged` ranges](https://doc.qt.io/qtforpython-6/PySide6/QtCore/QAbstractItemModel.html#PySide6.QtCore.QAbstractItemModel.dataChanged)
 for the root row and previously queried nonempty sibling groups. The model records those parents

@@ -370,7 +370,9 @@ To give FileTree to someone without Python, compile it with Nuitka into a progra
    says so in the status bar and next to the pointer instead of doing nothing. With many folders open the
    tree refreshes less often, so the window stays responsive.
 3. **Find what takes the space**: the biggest folders are at the top of the tree. Open a folder with the
-   arrow next to it, or explore the chart on the right.
+   arrow next to it, or explore the chart on the right. A folder with more than 2,000 entries shows them
+   2,000 at a time, so the window stays responsive: click its last row, or press Enter on it, for the next
+   ones. Picking an entry in the chart or a list shows the page it is on.
 
 ### Reading the results
 

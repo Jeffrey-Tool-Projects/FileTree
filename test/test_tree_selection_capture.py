@@ -69,7 +69,7 @@ def test_partial_cells_and_custom_semantics_keep_qt_row_capture(capture, monkeyp
         return original_rows(*args)
 
     monkeypatch.setattr(selection, "selectedRows", selected_rows)
-    assert controller._selected_nodes() == expected
+    assert controller.selected_nodes() == expected
     assert calls == [True]
     if custom == "partial":
         assert set(expected) == set(root.children[5:11])
@@ -140,7 +140,7 @@ def test_foreign_proxy_keeps_its_own_node_role_semantics(capture):
         QItemSelection(proxy.index(0, 0, parent), proxy.index(5, proxy.columnCount()-1, parent)),
         QItemSelectionModel.SelectionFlag.ClearAndSelect)
     assert controller.tree.selectionModel().selectedRows()
-    assert controller._selected_nodes() == []
+    assert controller.selected_nodes() == []
 
 
 def test_custom_source_class_uses_its_node_data(qapp):
@@ -159,7 +159,7 @@ def test_custom_source_class_uses_its_node_data(qapp):
         tree.expand(source.index_for(root))
         _pick(controller, 0, 4)
         assert tree.selectionModel().selectedRows()
-        assert controller._selected_nodes() == []
+        assert controller.selected_nodes() == []
     finally:
         controller.shutdown()
         tree.close()

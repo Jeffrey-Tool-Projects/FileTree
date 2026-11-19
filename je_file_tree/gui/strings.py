@@ -624,6 +624,10 @@ EN: dict[str, str] = {
     "photos_limited": "Limited inventory or display; up to {count} image rows/thumbnails shown.",
     "archive_loading": "Reading archive metadata…",
     "archive_virtual_name": "{name} [virtual]",
+    "tree_more_rows": "{count} more entries — click to show the next {page}",
+    "tree_more_rows_hint": ("Large folders show {page} entries at a time so the window stays responsive. "
+                            "Click this row or press Enter for the next page; an entry picked in a chart "
+                            "or list shows the page it is on."),
     "archive_virtual_hint": ("Archive member: declared uncompressed size, outside disk totals. "
                              "No file actions or extraction."),
     "archive_failed": "Preview unavailable: {reason}",
@@ -2447,6 +2451,9 @@ ZH_TW: dict[str, str] = {
     "photos_limited": "清單或顯示範圍受限；最多顯示 {count} 個圖片列／縮圖。",
     "archive_loading": "正在讀取壓縮檔中繼資料…",
     "archive_virtual_name": "{name}［虛擬］",
+    "tree_more_rows": "還有 {count} 個項目，按一下顯示接下來的 {page} 個",
+    "tree_more_rows_hint": ("大型資料夾每次顯示 {page} 個項目，讓視窗保持流暢。"
+        "按一下這一列或按 Enter 顯示下一頁；在圖表或清單中選取的項目會自動顯示所在的頁面。"),
     "archive_virtual_hint": "壓縮檔內容：宣告的未壓縮大小，不計入磁碟總量。不提供檔案操作或解壓縮。",
     "archive_failed": "無法預覽：{reason}",
     "archive_rejected": "已略過 {count} 個不安全、連結或衝突的項目",
@@ -4148,6 +4155,9 @@ ZH_CN: dict[str, str] = {
     "photos_limited": "列表或显示范围受限；最多显示 {count} 个图片行／缩略图。",
     "archive_loading": "正在读取压缩文件元数据…",
     "archive_virtual_name": "{name}［虚拟］",
+    "tree_more_rows": "还有 {count} 个项目，单击显示接下来的 {page} 个",
+    "tree_more_rows_hint": ("大型文件夹每次显示 {page} 个项目，使窗口保持流畅。"
+        "单击此行或按 Enter 显示下一页；在图表或列表中选中的项目会自动显示其所在的页面。"),
     "archive_virtual_hint": "压缩文件内容：声明的未压缩大小，不计入磁盘总量。不提供文件操作或解压。",
     "archive_failed": "无法预览：{reason}",
     "archive_rejected": "已跳过 {count} 个不安全、链接或冲突的项目",
@@ -5949,6 +5959,10 @@ JA: dict[str, str] = {
     'photos_limited': '在庫または展示が限られている。最大 {count} 件の画像行/サムネイルが表示されます。',
     'archive_loading': 'アーカイブ メタデータを読み取り中…',
     'archive_virtual_name': '{name} [仮想]',
+    'tree_more_rows': 'さらに {count} 個の項目 — クリックすると次の {page} 個を表示',
+    'tree_more_rows_hint': ('大きなフォルダーは、ウィンドウの応答性を保つため一度に {page} 個ずつ表示します。'
+        'この行をクリックするか Enter キーを押すと次のページを表示します。'
+        'グラフや一覧で選んだ項目は、その項目のページが自動的に表示されます。'),
     'archive_virtual_hint': (
         'アーカイブ メンバー: 宣言された非圧縮サイズ、ディスク合計外。ファイル操作や抽出はありません。'
     ),
@@ -8027,6 +8041,10 @@ KO: dict[str, str] = {
     'photos_limited': '제한된 재고 또는 디스플레이 최대 {count}개의 이미지 행/썸네일이 표시됩니다.',
     'archive_loading': '아카이브 메타데이터를 읽는 중…',
     'archive_virtual_name': '{name} [가상]',
+    'tree_more_rows': '항목 {count}개 더 있음 — 클릭하면 다음 {page}개 표시',
+    'tree_more_rows_hint': ('큰 폴더는 창이 원활하게 반응하도록 한 번에 {page}개 항목씩 표시합니다. '
+        '이 행을 클릭하거나 Enter 키를 누르면 다음 페이지를 표시합니다. '
+        '차트나 목록에서 선택한 항목은 해당 페이지가 자동으로 표시됩니다.'),
     'archive_virtual_hint': '아카이브 멤버: 선언된 비압축 크기, 디스크 총계 외부. 파일 작업이나 추출이 없습니다.',
     'archive_failed': '미리보기를 사용할 수 없음: {reason}',
     'archive_rejected': '{count} 안전하지 않거나 연결되었거나 충돌하는 구성원이 생략되었습니다.',
