@@ -14,6 +14,7 @@ from PySide6.QtCore import QEvent, QPoint, QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import (
     QColor,
     QContextMenuEvent,
+    QHelpEvent,
     QMouseEvent,
     QPainter,
     QPainterPath,
@@ -22,12 +23,13 @@ from PySide6.QtGui import (
     QPixmap,
     QResizeEvent,
 )
-from PySide6.QtWidgets import QToolTip, QWidget
+from PySide6.QtWidgets import QWidget
 
 from je_file_tree.core.formatting import AUTO_UNIT, format_share, format_size
 from je_file_tree.core.node import Node
 from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.sunburst import Segment, layout, segment_at
+from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.age_colours import age_colour
 from je_file_tree.gui.colours import readable_ink
@@ -145,17 +147,21 @@ class SunburstWidget(QWidget):
                 painter.setPen(pen)
                 painter.drawPath(self._path(segment))
 
+    def event(self, event: QEvent) -> bool:
+        """Qt: describe the arc under the mouse once it rests (``chart_tooltip``)."""
+        if event.type() == QEvent.Type.ToolTip and isinstance(event, QHelpEvent):
+            found = self.hit(event.pos().x(), event.pos().y())
+            text = self._describe(found.node) if isinstance(found, Segment) else None
+            return show_chart_tip(self, event, text)
+        return super().event(event)
+
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        """Qt: highlight the arc under the mouse and describe it in a tooltip."""
+        """Qt: highlight the arc under the mouse."""
         found = self.hit(event.position().x(), event.position().y())
         segment = found if isinstance(found, Segment) else None
         if segment is not self._hover:
             self._hover = segment
             self.update()
-            if segment is None:
-                QToolTip.hideText()
-            else:
-                QToolTip.showText(event.globalPosition().toPoint(), self._describe(segment.node), self)
         super().mouseMoveEvent(event)
 
     def leaveEvent(self, event: QEvent) -> None:

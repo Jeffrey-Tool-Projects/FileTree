@@ -93,6 +93,20 @@ def test_show_rows_for_extends_every_paged_folder_above_the_node(model):
     assert model.rowCount(model.index_for(folder)) == 2 * PAGE + 1, "pages up to the target, then the last row"
 
 
+class _Unsearched(list):
+    def index(self, *_args):
+        raise AssertionError("an entry already on a page is never searched for in the rest")
+
+
+def test_show_rows_for_an_entry_on_a_page_searches_nothing(model, monkeypatch):
+    root = _root(8)
+    model.set_root(root)
+    ordered = _Unsearched(model._ordered(root))
+    monkeypatch.setattr(model, "_ordered", lambda folder: ordered if folder is root else [])
+    model.show_rows_for(root.children[1])  # each chart click asked this: 6.5 ms per 150,000 entries
+    assert model.rowCount(model.index_for(root)) == PAGE + 1
+
+
 def test_sorting_keeps_the_pages_shown_in_the_new_order(model):
     root = _root(8)
     model.set_root(root)

@@ -22,6 +22,7 @@ from PySide6.QtGui import (
     QBrush,
     QColor,
     QContextMenuEvent,
+    QHelpEvent,
     QMouseEvent,
     QPainter,
     QPaintEvent,
@@ -30,13 +31,14 @@ from PySide6.QtGui import (
     QPixmap,
     QResizeEvent,
 )
-from PySide6.QtWidgets import QApplication, QToolTip, QWidget
+from PySide6.QtWidgets import QApplication, QWidget
 
 from je_file_tree.core.analysis import category_of, extension_of
 from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, format_size
 from je_file_tree.core.node import Node
 from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.treemap import Rect, Tile, layout
+from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.age_colours import age_colour
 from je_file_tree.gui.colours import blend, readable_ink
@@ -201,17 +203,23 @@ class TreemapWidget(QWidget):
         self._outline(painter, selected, QColor("#000000"), 1)
         self._outline(painter, self._hover, QColor(self.palette().highlight().color()), 2)
 
+    def event(self, event: QEvent) -> bool:
+        """Qt: describe the tile under the mouse once it rests (``chart_tooltip``)."""
+        if event.type() == QEvent.Type.ToolTip and isinstance(event, QHelpEvent):
+            tile = self.tile_at(event.pos().x(), event.pos().y())
+            if tile is None:
+                return show_chart_tip(self, event, None)
+            area = QRectF(tile.rect.x, tile.rect.y, tile.rect.width, tile.rect.height).toAlignedRect()
+            return show_chart_tip(self, event, self._describe(tile), area)
+        return super().event(event)
+
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        """Qt: highlight the tile under the mouse and describe it in a tooltip."""
+        """Qt: highlight the tile under the mouse."""
         point = event.position()
         tile = self.tile_at(point.x(), point.y())
         if tile is not self._hover:
             self._hover = tile
             self.update()
-            if tile is None:
-                QToolTip.hideText()
-            else:
-                QToolTip.showText(event.globalPosition().toPoint(), self._describe(tile), self)
         super().mouseMoveEvent(event)
 
     def leaveEvent(self, event: QEvent) -> None:

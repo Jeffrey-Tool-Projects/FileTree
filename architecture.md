@@ -1286,6 +1286,10 @@ tree used to make the window queue behind it. `core.pacing.WINDOW` is a gate: `s
 loop is about to wait (`aboutToBlock`). Every walk over the tree calls `pacing.give_way()` once per folder
 (the scan's workers, `_add_up`, the analysis, clean-up, search, compare, export, each file hashed), which
 waits while the gate is closed, at most `PAUSE_LIMIT` (50 ms) and never on the thread that closed it, so
+nothing can hang on it. A pass over a list built from the tree paces too, every `node.PACE_EVERY` (256)
+entries: `outermost(..., pace=give_way)` and clean-up's emptiness pass held the window 0.3 s (U-20261119-06).
+A folder of more than 256 entries is added up, sorted (`scanner._sort_size_first`) and matched by clean-up
+a page at a time too: one folder of 41,610 entries took 42 ms to add up and 100 ms to match (U-20261119-07).
 nothing can hang on it. Emergency/destruction joins go through `scan_worker.wait_for`, which opens the
 gate first. Normal whole-root scan replacement uses `worker_lifecycle.ThreadFence`: GUI-owned timers poll
 `QThread.wait(0)` until owned scans/watchers/gentle work have fully joined, then dispatch only the latest
@@ -1406,6 +1410,9 @@ gives arcs as fractions of the circle, at most `RINGS` rings, arcs thinner than 
 `core.tree_layout.layout` returns at most 240 folder cards, expands branches and pages wide sibling lists;
 the GUI caches that layout and scrolls/zooms it). It shows one at a time, the treemap first
 (`charts.DEFAULT_MODE`); the mode and tree direction are saved in `chart_mode` / `tree_orientation`.
+Chart tooltips answer Qt's `QEvent.ToolTip` through `chart_tooltip.show_chart_tip`, once the mouse rests;
+a `QToolTip.showText` per hover change cost 35-45 ms. The bar chart paints only the exposed lines, repaints
+just the changed hover/selection lines and asks the style for its folder icon once (U-20261119-04).
 All views offer the same interface (`set_view_root`, `zoom_out`, `set_selected`, `invalidate`,
 `node_clicked`, `view_root_changed`, `context_menu_requested`); when one moves to another folder the stack
 moves the others and signals the page once, so the results page drives the stack as a single chart.
@@ -1455,6 +1462,9 @@ entry indexes use their one-based group number, avoiding per-cell Qt objects and
 Only requested display/tooltip roles format sizes, dates and paths. Every captured row is immediately
 addressable; group headers have no Node role, and entries remain selectable read-only leaves even
 when their Nodes represent folders. Resets discard prior groups/icons and clear stale selections.
+A view marked with `open_groups_when_shown` (the clean-up list) that is hidden while it is filled
+opens its groups when it is next shown: Qt lays out every line of an opened group even in a hidden view,
+and 56,321 empty folders took 0.6-0.7 s on the GUI thread while the charts were in use (U-20261119-05).
 `fill` configures column geometry before expanding group roots only. For at least 500 groups with
 uniform row heights and no supplied icon collection, it schedules one native delayed layout before the ordered root
 expansions, so Qt can retain its normal signals while

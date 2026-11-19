@@ -3,6 +3,10 @@
 Easier to read exactly than the treemap: every entry has its name, its size and its share of the
 folder in plain text, and the bars are scaled to the largest entry so small differences show. Only
 the ``MAX_BARS`` largest entries get a bar; the rest share one line.
+
+Only the lines on screen are drawn, and a hover change repaints just the two lines it changes: with
+every line drawn, each repaint took about 19 ms (measured 2026-11-19, 100 bars, U-20261119-04). The
+folder icon is asked of the style once: each ``standardIcon`` call took 41-52 ms on Windows, per folder line.
 """
 
 from __future__ import annotations
@@ -10,12 +14,13 @@ from __future__ import annotations
 import heapq
 
 from PySide6.QtCore import QEvent, QPoint, QRectF, QSize, Qt, Signal
-from PySide6.QtGui import QColor, QContextMenuEvent, QMouseEvent, QPainter, QPaintEvent
-from PySide6.QtWidgets import QStyle, QToolTip, QWidget
+from PySide6.QtGui import QColor, QContextMenuEvent, QHelpEvent, QIcon, QMouseEvent, QPainter, QPaintEvent
+from PySide6.QtWidgets import QStyle, QWidget
 
 from je_file_tree.core.analysis import category_of, extension_of
 from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, format_size
 from je_file_tree.core.node import Node
+from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.treemap_widget import CATEGORY_COLOURS
 
@@ -51,6 +56,7 @@ class BarChartWidget(QWidget):
         self._rest: tuple[int, int] = (0, 0)  # entries without a bar: count, size
         self._hover: int | None = None
         self._selected: Node | None = None
+        self._folder_icon: QIcon | None = None  # the style's, asked for once (it is slow)
 
     # --- the same interface as the treemap --------------------------------
 
@@ -75,8 +81,15 @@ class BarChartWidget(QWidget):
 
     def set_selected(self, node: Node | None) -> None:
         """Outline ``node`` when it has a bar."""
+        if node is self._selected:
+            return
+        if self._rows is not None:
+            for old in (self._selected, node):
+                if old is not None and old in self._rows:
+                    self._update_line(self._rows.index(old))
+        else:
+            self.update()
         self._selected = node
-        self.update()
 
     def invalidate(self) -> None:
         """Read the folder again (after a scan step, a deletion or a rescan)."""
@@ -114,30 +127,38 @@ class BarChartWidget(QWidget):
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, tr("bars_empty_folder"))
             return
         largest = max(rows[0].accounted_size, 1)
-        for index, node in enumerate(rows):
+        height = self._row_height()
+        first = max(event.rect().top() // height, 0)
+        last = event.rect().bottom() // height
+        for index in range(first, min(last + 1, len(rows))):
+            node = rows[index]
             self._draw_row(painter, index, node, node.accounted_size / largest, root.accounted_size)
         count, size = self._rest
-        if count:
+        if count and first <= len(rows) <= last:
             label = tr("bars_more", count=format_count(count), size=format_size(size, self.unit))
             self._draw_line(painter, len(rows), label, None, min(size / largest, 1.0), size, root.accounted_size)
 
-    def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        """Qt: highlight the bar under the mouse and describe it in a tooltip."""
-        node = self.node_at(event.position().y())
-        index = None if node is None else int(event.position().y() // self._row_height())
-        if index != self._hover:
-            self._hover = index
-            self.update()
+    def event(self, event: QEvent) -> bool:
+        """Qt: describe the bar under the mouse once it rests (``chart_tooltip``); a new style, a new icon."""
+        if event.type() == QEvent.Type.StyleChange:
+            self._folder_icon = None
+        if event.type() == QEvent.Type.ToolTip and isinstance(event, QHelpEvent):
+            node = self.node_at(event.pos().y())
             if node is None:
-                QToolTip.hideText()
-            else:
-                QToolTip.showText(event.globalPosition().toPoint(), self._describe(node), self)
+                return show_chart_tip(self, event, None)
+            index = int(event.pos().y() // self._row_height())
+            return show_chart_tip(self, event, self._describe(node), self._line_rect(index).toRect())
+        return super().event(event)
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        """Qt: highlight the bar under the mouse."""
+        node = self.node_at(event.position().y())
+        self._set_hover(None if node is None else int(event.position().y() // self._row_height()))
         super().mouseMoveEvent(event)
 
     def leaveEvent(self, event: QEvent) -> None:
         """Qt: drop the highlight when the mouse leaves."""
-        self._hover = None
-        self.update()
+        self._set_hover(None)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         """Qt: a left click selects the entry."""
@@ -160,6 +181,16 @@ class BarChartWidget(QWidget):
 
     # --- drawing -----------------------------------------------------------
 
+    def _set_hover(self, index: int | None) -> None:
+        if index != self._hover:
+            for line in (self._hover, index):
+                if line is not None:
+                    self._update_line(line)
+            self._hover = index
+
+    def _update_line(self, index: int) -> None:
+        self.update(self._line_rect(index).toAlignedRect())
+
     def _row_height(self) -> int:
         return self.fontMetrics().height() + 10
 
@@ -167,10 +198,11 @@ class BarChartWidget(QWidget):
         """The entries with a bar, the largest first (read from the folder when it changed)."""
         if self._rows is None:
             children = list(self._view_root.children) if self._view_root is not None else []
-            self._rows = heapq.nlargest(MAX_BARS, children, key=lambda node: node.accounted_size)
-            rest = len(children) - len(self._rows)
-            total = sum(node.accounted_size for node in children)
-            self._rest = (rest, total - sum(node.accounted_size for node in self._rows))
+            sizes = [node.accounted_size for node in children]  # each size read once: a property call
+            largest = heapq.nlargest(MAX_BARS, range(len(children)), key=sizes.__getitem__)
+            self._rows = [children[index] for index in largest]
+            shown = sum(sizes[index] for index in largest)
+            self._rest = (len(children) - len(largest), sum(sizes) - shown)
         return self._rows
 
     def _draw_row(self, painter: QPainter, index: int, node: Node, fraction: float, total: int) -> None:
@@ -190,8 +222,10 @@ class BarChartWidget(QWidget):
         icon_size = self.fontMetrics().height()
         text_colour = self.palette().text().color()
         if node is not None and node.is_dir:
-            icon = self.style().standardIcon(QStyle.StandardPixmap.SP_DirIcon)
-            icon.paint(painter, int(line.x() + 4), int(line.y() + (height - icon_size) / 2), icon_size, icon_size)
+            if self._folder_icon is None:
+                self._folder_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_DirIcon)
+            self._folder_icon.paint(painter, int(line.x() + 4), int(line.y() + (height - icon_size) / 2),
+                                    icon_size, icon_size)
         name_rect = QRectF(line.x() + icon_size + 8, line.y(), name_width - icon_size - 8, height)
         painter.setPen(text_colour)
         align = Qt.AlignmentFlag.AlignVCenter
