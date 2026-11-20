@@ -70,6 +70,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261120-04 | 2026-11-20 | 修正兩個偶爾失敗的測試，以及只在 Windows 能通過的名稱查詢測試 | #test #ci | [2026-11](2026-11.md) |
 | U-20261120-03 | 2026-11-20 | 「跟隨變更」在操作期間不中斷、硬連結只讀相關資料夾，並支援 macOS | #feature #perf #gui #macos | [2026-11](2026-11.md) |
 | U-20261120-02 | 2026-11-20 | 在本機原生驗證「跟隨變更」只讀變動資料夾，並修正兩處多餘工作 | #validation #perf #gui | [2026-11](2026-11.md) |
 | U-20261120-01 | 2026-11-20 | 「跟隨變更」只重新讀取變動的資料夾，不再重掃整個掃描 | #perf #gui #scan | [2026-11](2026-11.md) |

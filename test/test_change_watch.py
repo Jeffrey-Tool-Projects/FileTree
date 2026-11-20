@@ -196,11 +196,16 @@ def test_usn_uses_captured_ids_and_external_shared_alias_changes_refresh_known_p
 def test_a_file_relinked_elsewhere_reads_only_the_folders_holding_its_names(monkeypatch):
     names = {1: ["\\owned\\資料\\file", "\\elsewhere\\alias"], 2: ["\\elsewhere\\only"]}
 
+    def failure(code):
+        error = OSError("owned lookup failure")
+        error.winerror = code  # what ctypes.WinError sets; plain OSError has none outside Windows
+        return error
+
     def names_of(_kernel, _volume, number):
         if number == 3:
-            raise OSError(None, "gone", None, 2)
+            raise failure(2)  # the file is gone
         if number == 4:
-            raise OSError(None, "denied", None, 5)
+            raise failure(5)  # access denied
         return names[number]
 
     monkeypatch.setattr(windows_watch, "_names_of", names_of)
