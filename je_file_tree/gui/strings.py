@@ -375,8 +375,8 @@ EN: dict[str, str] = {
     'background_warning': '{detail}',
     'background_low_space': 'Low available space on {root}: {free} ({percent}%)',
     'action_follow_changes': 'Follow changes',
-    'action_follow_changes_tip': ('Off by default. On Windows/Linux, read again only the folders that '
-                                  'changed, keeping their unchanged subfolders.'),
+    'action_follow_changes_tip': ('Off by default. On Windows, Linux and macOS, read again only the folders '
+                                  'that changed, keeping their unchanged subfolders.'),
     'follow_refreshed': 'Updated {count} changed folders',
     'follow_refresh_failed': 'Could not update the changed folders: {reason}',
     'follow_waiting': 'Follow changes: waiting for a scan',
@@ -384,10 +384,11 @@ EN: dict[str, str] = {
     'follow_active': 'Following changes ({detail})',
     'follow_failed': 'Follow changes stopped: {detail}',
     'follow_incomplete': 'Follow changes needs a complete physical scan',
-    'follow_unsupported': 'Follow changes supports Windows and Linux',
+    'follow_unsupported': 'Follow changes supports Windows, Linux and macOS',
     'follow_backend_usn': 'NTFS USN',
     'follow_backend_directory_changes': 'directory notifications',
     'follow_backend_inotify': 'inotify',
+    'follow_backend_fsevents': 'FSEvents',
     'action_check_updates_tip': 'Ask PyPI over HTTPS at most once a day; notice only, with no installation.',
     'update_available': 'FileTree {version} is available',
     'multi_roots': 'Multiple roots',
@@ -2221,7 +2222,8 @@ ZH_TW: dict[str, str] = {
     'background_warning': '{detail}',
     'background_low_space': '{root} 可用空間不足：{free}（{percent}%）',
     'action_follow_changes': '跟隨變更',
-    'action_follow_changes_tip': '預設關閉。在 Windows／Linux 只重新讀取有變動的資料夾，保留其中未變動的子資料夾。',
+    'action_follow_changes_tip': ('預設關閉。在 Windows、Linux 與 macOS 只重新讀取有變動的資料夾，'
+                                  '保留其中未變動的子資料夾。'),
     'follow_refreshed': '已更新 {count} 個變動的資料夾',
     'follow_refresh_failed': '無法更新變動的資料夾：{reason}',
     'follow_waiting': '跟隨變更：等待掃描',
@@ -2229,10 +2231,11 @@ ZH_TW: dict[str, str] = {
     'follow_active': '跟隨變更（{detail}）',
     'follow_failed': '跟隨變更已停止：{detail}',
     'follow_incomplete': '跟隨變更需要完整的實際目錄掃描',
-    'follow_unsupported': '跟隨變更支援 Windows 與 Linux',
+    'follow_unsupported': '跟隨變更支援 Windows、Linux 與 macOS',
     'follow_backend_usn': 'NTFS USN',
     'follow_backend_directory_changes': '目錄通知',
     'follow_backend_inotify': 'inotify',
+    'follow_backend_fsevents': 'FSEvents',
     'action_check_updates_tip': '每天最多透過 HTTPS 向 PyPI 查詢一次；僅通知，不安裝更新。',
     'update_available': 'FileTree {version} 已推出',
     'multi_roots': '多個掃描來源',
@@ -3926,7 +3929,8 @@ ZH_CN: dict[str, str] = {
     'background_warning': '{detail}',
     'background_low_space': '{root} 可用空间不足：{free}（{percent}%）',
     'action_follow_changes': '跟随变更',
-    'action_follow_changes_tip': '默认关闭。在 Windows／Linux 只重新读取有变化的文件夹，保留其中未变化的子文件夹。',
+    'action_follow_changes_tip': ('默认关闭。在 Windows、Linux 与 macOS 只重新读取有变化的文件夹，'
+                                  '保留其中未变化的子文件夹。'),
     'follow_refreshed': '已更新 {count} 个变化的文件夹',
     'follow_refresh_failed': '无法更新变化的文件夹：{reason}',
     'follow_waiting': '跟随变更：等待扫描',
@@ -3934,10 +3938,11 @@ ZH_CN: dict[str, str] = {
     'follow_active': '跟随变更（{detail}）',
     'follow_failed': '跟随变更已停止：{detail}',
     'follow_incomplete': '跟随变更需要完整的实际目录扫描',
-    'follow_unsupported': '跟随变更支持 Windows 与 Linux',
+    'follow_unsupported': '跟随变更支持 Windows、Linux 与 macOS',
     'follow_backend_usn': 'NTFS USN',
     'follow_backend_directory_changes': '目录通知',
     'follow_backend_inotify': 'inotify',
+    'follow_backend_fsevents': 'FSEvents',
     'action_check_updates_tip': '每天最多通过 HTTPS 向 PyPI 查询一次；仅通知，不安装更新。',
     'update_available': 'FileTree {version} 已发布',
     'multi_roots': '多个扫描来源',
@@ -5707,8 +5712,8 @@ JA: dict[str, str] = {
     'background_low_space': '{root} の空き容量が少ない: {free} ({percent}%)',
     'action_follow_changes': '変更を追跡する',
     'action_follow_changes_tip': (
-        'デフォルトではオフです。 Windows/Linux で変更されたフォルダーだけを読み直し、変更のないサブフォルダーは'
-        'そのまま残します。'
+        'デフォルトではオフです。 Windows、Linux、macOS で変更されたフォルダーだけを読み直し、'
+        '変更のないサブフォルダーはそのまま残します。'
     ),
     'follow_refreshed': '変更された {count} 個のフォルダーを更新しました',
     'follow_refresh_failed': '変更されたフォルダーを更新できませんでした: {reason}',
@@ -5717,10 +5722,11 @@ JA: dict[str, str] = {
     'follow_active': '次の変更点 ({detail})',
     'follow_failed': '変更の追跡が停止されました: {detail}',
     'follow_incomplete': '変更を追跡するには完全な物理スキャンが必要です',
-    'follow_unsupported': '変更を追跡すると、Windows および Linux がサポートされます',
+    'follow_unsupported': '変更の追跡は Windows、Linux、macOS に対応しています',
     'follow_backend_usn': 'NTFS USN',
     'follow_backend_directory_changes': 'ディレクトリ通知',
-    'follow_backend_inotify': '通知する',
+    'follow_backend_inotify': 'inotify',
+    'follow_backend_fsevents': 'FSEvents',
     'action_check_updates_tip': (
         '多くても 1 日に 1 回、HTTPS 経由で PyPI に問い合わせます。通知のみで、インストールはありません。'
     ),
@@ -7810,7 +7816,8 @@ KO: dict[str, str] = {
     'background_low_space': '{root}의 사용 가능한 공간 부족: {free} ({percent}%)',
     'action_follow_changes': '변경 사항 따르기',
     'action_follow_changes_tip': (
-        '기본적으로 꺼져 있습니다. Windows/Linux에서 변경된 폴더만 다시 읽고, 변경되지 않은 하위 폴더는 그대로 둡니다.'
+        '기본적으로 꺼져 있습니다. Windows, Linux, macOS에서 변경된 폴더만 다시 읽고, '
+        '변경되지 않은 하위 폴더는 그대로 둡니다.'
     ),
     'follow_refreshed': '변경된 폴더 {count}개를 업데이트했습니다',
     'follow_refresh_failed': '변경된 폴더를 업데이트할 수 없습니다: {reason}',
@@ -7819,10 +7826,11 @@ KO: dict[str, str] = {
     'follow_active': '다음 변경 사항({detail})',
     'follow_failed': '변경사항 팔로우가 중지되었습니다: {detail}',
     'follow_incomplete': '변경 사항을 따르려면 완전한 물리적 스캔이 필요합니다.',
-    'follow_unsupported': '변경 사항에 따라 Windows 및 Linux을 지원합니다.',
+    'follow_unsupported': '변경 사항 따르기는 Windows, Linux, macOS를 지원합니다',
     'follow_backend_usn': 'NTFS USN',
     'follow_backend_directory_changes': '디렉터리 알림',
     'follow_backend_inotify': 'inotify',
+    'follow_backend_fsevents': 'FSEvents',
     'action_check_updates_tip': '최대 하루에 한 번 HTTPS를 통해 PyPI에 문의하세요. 설치 없이 참고만 가능합니다.',
     'update_available': 'FileTree {version} 사용 가능',
     'multi_roots': '여러 뿌리',

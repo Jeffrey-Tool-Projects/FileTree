@@ -181,5 +181,9 @@ def watch_scope(scope: WatchScope, on_change: Callable[[ChangeBatch], None], can
         from je_file_tree.core.linux_watch import watch_linux  # noqa: PLC0415 - native backend
 
         watch_linux(folders, on_change, cancel, ready, scope.shared)
+    elif sys.platform == "darwin":
+        from je_file_tree.core.mac_watch import watch_mac  # noqa: PLC0415 - native backend
+
+        watch_mac(folders, on_change, cancel, ready, scope.shared)
     else:
-        raise ValueError("Follow changes is available on Windows and Linux")
+        raise ValueError("Follow changes is available on Windows, Linux and macOS")

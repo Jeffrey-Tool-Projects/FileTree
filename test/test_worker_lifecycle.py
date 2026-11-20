@@ -196,19 +196,25 @@ def test_slow_folder_check_runs_off_gui_and_can_be_canceled(window, qapp, tmp_pa
 
 
 def _held_follow(window, qapp, monkeypatch):
+    """Follow changes with its capture held: the capture reads the tree, so operations wait for it."""
     release, entered = threading.Event(), threading.Event()
+    real = change_watch.captured_scope
+
+    def held(root, cancel):
+        entered.set()
+        release.wait(5)  # busy until released, cancelled or not, like a long walk of the tree
+        return real(root, cancel)
 
     def watch(_scope, _changed, cancel, *, ready, **_feed):
         ready("directory_changes")
-        entered.set()
-        cancel.wait(5)
-        release.wait(5)
+        cancel.wait()
 
+    monkeypatch.setattr(change_watch, "captured_scope", held)
     monkeypatch.setattr(change_watch, "watch_scope", watch)
     monkeypatch.setattr(change_watch, "supported", lambda: True)
     window._actions["follow_changes"].setChecked(True)
     _pump(qapp, entered.is_set)
-    return release, window._follow.worker
+    return release, window._follow._capture
 
 
 def test_follow_reconfiguration_queues_only_latest_reader_without_gui_wait(window, qapp, tmp_path, monkeypatch):
@@ -265,7 +271,7 @@ def test_trash_queues_behind_native_reader_without_gui_wait(
         window.move_to_trash(root.children)
         assert reader.cancel.is_set() and reader.isRunning()
         assert window.operation_busy and not calls
-        assert window._follow._operation_gap
+        assert window._follow._operating and not window._follow._operation_gap
         if cancel:
             window.stop_scan()
         QTimer.singleShot(20, release.set)
@@ -304,7 +310,7 @@ def test_cancel_queued_branch_keeps_previous_result_and_clears_busy_state(window
         _pump(qapp, lambda: window._worker is None)
         assert release.is_set() and not calls
         assert window.results.outcome is previous and kept.read_bytes() == b"kept"
-        assert window._follow.worker is reader and not reader.cancel.is_set()
+        _pump(qapp, lambda: window._follow.worker is not None)  # the capture ran on and armed the feed
     finally:
         release.set()
         held.wait()

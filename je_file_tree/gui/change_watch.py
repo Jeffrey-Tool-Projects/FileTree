@@ -19,7 +19,9 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import QObject, QThread, Qt, QTimer
 from PySide6.QtWidgets import QApplication, QLabel
 
-from je_file_tree.core.change_watch import ChangeBatch, Position, WatchScope, captured_scope, merged, watch_scope
+from je_file_tree.core.change_watch import (
+    ChangeBatch, Position, WatchScope, captured_scope, changed, merged, watch_scope,
+)
 from je_file_tree.core.node import Node, folder_holding
 from je_file_tree.core.scanner import EXCLUDED
 from je_file_tree.gui.i18n import tr
@@ -30,12 +32,13 @@ if TYPE_CHECKING:
     from je_file_tree.gui.main_window import MainWindow
 
 ENABLED_KEY = "follow_changes"
-COALESCE_SECONDS = 1.0
+COALESCE_SECONDS = 0.5  # changes this close together are read in one go; analysing after each also spaces them
+TICK_MS = 250
 
 
 def supported() -> bool:
-    """Native change feeds currently support Windows and Linux."""
-    return sys.platform == "win32" or sys.platform.startswith("linux")
+    """Native change feeds: NTFS journal or directory notifications, inotify, FSEvents."""
+    return sys.platform in ("win32", "darwin") or sys.platform.startswith("linux")
 
 
 class CaptureWorker(QThread):
@@ -137,7 +140,9 @@ class FollowChanges(QObject):
         self.root: Node | None = None
         self.enabled, self._closing = False, False
         self._pending = ChangeBatch()
-        self._operation_gap = False  # the feed was stopped for a source operation: read the whole root again
+        self._operation_gap = False  # a feed was lost during a source operation: read the whole root again
+        self._operating = False  # a source operation runs (``quiesce``): a lost feed counts as its gap
+        self._stale = False  # the scope was not captured again since an operation: capture it when idle
         self._handoff: Position | None = None  # where the next journal feed reads on from
         self._since = 0.0
         self._status, self._detail = "follow_waiting", ""
@@ -148,7 +153,7 @@ class FollowChanges(QObject):
         self.label.hide()
         window.statusBar().addPermanentWidget(self.label)
         self.timer = QTimer(self)
-        self.timer.setInterval(1000)
+        self.timer.setInterval(TICK_MS)
         self.timer.timeout.connect(self.tick)
 
     def configure(self, enabled: bool) -> None:
@@ -271,7 +276,7 @@ class FollowChanges(QObject):
         if clear:
             self.root = None
             self._pending, self._since = ChangeBatch(), 0.0
-            self._operation_gap = False
+            self._operation_gap = self._operating = self._stale = False
             self._handoff = None
         retiring = tuple(self._retiring)
         if wait:
@@ -280,32 +285,35 @@ class FollowChanges(QObject):
         return retiring
 
     def quiesce(self, *, wait: bool = True) -> tuple[QThread, ...]:
-        """Stop tree capture before source operations; their observation gap requires full reconciliation.
+        """Stop reading the tree before a source operation changes it; the feed keeps reporting.
 
-        A journal feed's position is kept: the next one reads on from it, which closes that gap.
+        Only the capture reads the tree, so only it is stopped (the operation waits for what this
+        returns); it runs again once the operation is over, which may have added or removed folders.
+        The feed reads none of the tree and holds no handle that keeps an entry from being moved or
+        removed, so what the operation and any other program change meanwhile is reported and read
+        again afterwards: no gap is left, and nothing asks for the whole root (U-20261120-03).
         """
-        active = self.worker is not None
-        if active:
-            self.hold()
-        retiring = self.stop(wait=wait)
-        if active:
-            if not self._operation_gap and not self._pending.full and not self._pending.folders:
-                self._since = time.monotonic()
-            self._operation_gap = True
+        capture, self._capture = self._capture, None
+        if capture is not None:
+            self._retire(capture)
+        self._operating = self._stale = True
+        retiring = tuple(worker for worker in self._retiring if isinstance(worker, CaptureWorker))
+        if wait:
+            for pending in retiring:
+                wait_for(pending)
         return retiring
 
     def resume(self) -> None:
-        """Follow again after an operation whose changes the results already show or have on offer.
+        """Follow on after an operation whose changes the results already show or have on offer.
 
-        Stopping the feed for a source operation asks for the whole root to be read again, because
-        nothing was observed meanwhile, unless a journal feed reads on from where it stopped. A move to
-        the Recycle Bin or a permanent delete takes its entries out of the results itself (and leaves
-        the folders of anything else on offer), so only that request is withdrawn: folders reported
-        before the stop stay pending, and a whole-root request made for any other reason stays.
+        A move to the Recycle Bin, a permanent delete or an Undo can report so many changes that a
+        directory-notification feed overflows; the results show those entries already, so a whole-root
+        request that arrived during it is withdrawn. Folders reported meanwhile are still read again.
         """
-        self._operation_gap = False
+        self._operation_gap = self._operating = False
         root = self.root
-        if self.enabled and not self._closing and root is not None and self.worker is None:
+        if (self.enabled and not self._closing and root is not None and self.worker is None
+                and self._capture is None):
             self.adopt(root)
 
     def request(self, path: str | None, *, whole: bool = False) -> None:
@@ -324,13 +332,20 @@ class FollowChanges(QObject):
     def _merge(self, batch: ChangeBatch) -> None:
         if not batch.folders and not batch.trees and not batch.full:
             return
+        if batch.full and self._operating:  # lost while a source operation ran: its gap, which it may withdraw
+            self._operation_gap = True
+            if not self._pending.full and not self._pending.folders and not self._pending.trees:
+                self._since = time.monotonic()
+            batch = ChangeBatch(batch.folders, trees=batch.trees)
+            if not batch.folders and not batch.trees:
+                return
         pending = self._pending
         if not pending.full and not pending.folders and not pending.trees:
             self._since = time.monotonic()
         self._pending = merged(pending, batch)
 
     def tick(self) -> None:
-        """Poll bounded events once a second and avoid scans during reviews, Undo offers or analysis."""
+        """Poll bounded events four times a second and avoid scans during reviews, Undo offers or analysis."""
         if not self.enabled or self._closing or self.window._closing:
             return
         for feed in (self._previous, self.worker):
@@ -345,14 +360,28 @@ class FollowChanges(QObject):
                 return
             elif worker.backend:
                 if self._previous is not None:
-                    self._retire(self._previous)
-                    self._previous = None
-                if worker.since is not None and worker.backend == "usn":
-                    self._operation_gap = False  # it read on from where the stopped feed was
+                    self._handed_over(self._previous, worker)
                 self._set_status("follow_active", worker.backend)
+        if (self._stale and self.root is not None and not self.window.operation_busy
+                and self.window._worker is None):
+            self._stale = False
+            self.adopt(self.root)  # capture again what the operation may have changed
         if self.window._trash_rescans:
             self.window._rescan_after_trash()  # folders left on offer before following was turned on
         self._flush()
+
+    def _handed_over(self, previous: ChangeWorker, worker: ChangeWorker) -> None:
+        """``worker`` is armed: retire ``previous``.
+
+        An inotify feed watches a folder only once it is armed, so the folders it watches that
+        ``previous`` did not are read again, which shows what changed in them meanwhile. A journal feed
+        reads on from the held position, and directory notifications watch the whole root anyway.
+        """
+        self._previous = None
+        self._retire(previous)
+        if worker.backend == "inotify":
+            known = {folder.path for folder in previous.scope.folders}
+            self._merge(changed({folder.path for folder in worker.scope.folders if folder.path not in known}))
 
     def _arm_alone(self, failed: ChangeWorker) -> None:
         """The new feed could not run beside the old one (an inotify watch limit): stop that one first."""
@@ -380,6 +409,7 @@ class FollowChanges(QObject):
                 or outcome.partial or outcome.result.root is not self.root):
             return
         batch = self._pending
+        self._operating = False  # whatever operation ran is over: a feed lost during it reads the whole root
         if batch.full or self._operation_gap:
             self._pending, self._operation_gap = ChangeBatch(), False
             window.rescan_folder(self.root)
@@ -394,6 +424,8 @@ class FollowChanges(QObject):
             window.refresh_folders(chosen)
 
     def _set_status(self, key: str, detail: str = "") -> None:
+        if (key, detail) == (self._status, self._detail) and self.label.text():
+            return
         self._status, self._detail = key, detail
         self.retranslate()
 

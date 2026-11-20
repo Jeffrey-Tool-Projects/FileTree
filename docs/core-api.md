@@ -700,7 +700,10 @@ Windows reads an existing NTFS USN journal without creating/deleting one; unavai
 fall back to one recursive ReadDirectoryChangesW handle. Partial roots with captured shared files
 require readable USN, because recursive directory notifications cannot cover outside aliases.
 Linux uses one inotify descriptor, anchored folder watches and captured shared-inode watches;
-kernel resource limits are visible failures. Unsupported/corrupt records raise OSError/ValueError.
+kernel resource limits are visible failures. macOS uses one FSEvents stream on the scanned
+folder (`mac_watch.parse_fsevents` maps its directory events, `MustScanSubDirs` to `trees`, dropped or
+wrapped events and root/mount changes to a full scan); partial roots with shared files are refused.
+Unsupported/corrupt records raise OSError/ValueError.
 Cancellation closes native resources; Windows cancels and joins outstanding kernel I/O before
 releasing its buffers. Setup/rearm races remain observational, and notifications confer no source
 operation authority. This core API remains independent of the GUI.
@@ -722,9 +725,10 @@ Undo offers, then reads every reported folder's own entries again in one worker
 `core.refresh.refill(node, result.root)`). `ChangeBatch.trees` (too many changes below one folder)
 are read whole. The feed keeps reporting during that read; when the read found, lost or replaced a
 subfolder (or listed a hard-linked file), the next feed, armed on a fresh scope, replaces it only once
-ready, a journal feed reading on `since=` the held `Position`. Lost events and
-source-operation gaps without a journal position require a full-root scan; nothing reads the root
-on a timer. New roots discard old events; opt-out/tab close cancel and join through wait_for.
+ready, a journal feed reading on `since=` the held `Position`. Source operations stop only the
+capture; the feed keeps reporting through them. `windows_watch.parse_usn(..., linked=set())` collects
+files whose names changed so `_linked_folders` can look up their names by file number instead of
+reading the whole root. Only lost events require a full-root scan; nothing reads the root on a timer. New roots discard old events; opt-out/tab close cancel and join through wait_for.
 Unsupported/incomplete scopes and native errors stay visible in plain-text status, with no automatic
 error retry loop. Notifications never grant mutation approval.
 

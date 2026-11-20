@@ -11,10 +11,17 @@ from je_file_tree.core.change_watch import (
     POLL_SECONDS, ChangeBatch, Position, WatchFile, WatchFolder, changed, check_folder,
 )
 from je_file_tree.core.compression_ops import _kernel
+from je_file_tree.core.pacing import give_way
 from je_file_tree.core.windows_allocation import _FileID, _Identity
 from je_file_tree.core.windows_trash import _volume
 
 _BUFFER = 32768
+# ReadDirectoryChangesW keeps changes for its handle in a buffer this size; when a burst fills it, all
+# of them are lost and the whole root is read again. Over a network it refuses more than 64 KiB.
+_NOTIFY_LOCAL, _NOTIFY_REMOTE = 262144, 65536
+_DRIVE_REMOTE = 4
+_MAX_LINKED = 64  # files whose other names changed, resolved per journal read; past it, read the whole root
+_GONE = (2, 3, 87)  # not found, path not found, invalid parameter (a file number no longer in use)
 _NOTIFY = struct.Struct("III")
 _USN = struct.Struct("<IHHQQqqIIIIHH")
 _JOURNAL = struct.Struct("<QqqqqQQ")
@@ -50,7 +57,7 @@ def parse_notifications(payload: bytes, root: str, scopes: set[str]) -> ChangeBa
     """
     if not payload:
         return changed(set(), full=True, reason="notification_lost")
-    if len(payload) > _BUFFER:
+    if len(payload) > _NOTIFY_LOCAL:
         raise ValueError("Oversized Windows notification buffer")
     offset, paths = 0, set()
     while offset < len(payload):
@@ -72,9 +79,26 @@ def parse_notifications(payload: bytes, root: str, scopes: set[str]) -> ChangeBa
     raise ValueError("Unterminated Windows notification chain")
 
 
-def parse_usn(payload: bytes, scopes: dict[int, str], root: str, start: int,
-              shared: dict[int, tuple[str, ...]] | None = None) -> tuple[int, ChangeBatch]:
-    """Accept bounded V2 records/cursors; unknown volume parents are outside the captured map."""
+def _relinked(inode: int, parent: int, scopes: dict[int, str], shared: dict[int, tuple[str, ...]] | None,
+              linked: set[int] | None) -> bool:
+    """Note a file whose names changed; True when, unable to look its names up, the whole root is needed."""
+    if shared is not None and inode in shared:
+        return False  # its captured names' folders are read
+    if linked is not None:
+        linked.add(inode)  # its other names, in the scan or not, are looked up
+        return False
+    return parent not in scopes
+
+
+def parse_usn(payload: bytes, scopes: dict[int, str], root: str, start: int,  # noqa: PLR0913
+              shared: dict[int, tuple[str, ...]] | None = None, linked: set[int] | None = None
+              ) -> tuple[int, ChangeBatch]:
+    """Accept bounded V2 records/cursors; unknown volume parents are outside the captured map.
+
+    A file that gained or lost a name outside the scan may still have one inside it. With ``linked``,
+    such files are collected there for the caller to look up (``_linked_folders``); without it, the
+    whole root is asked for.
+    """
     if not _CURSOR_BYTES <= len(payload) <= _BUFFER:
         raise ValueError("Invalid USN reply size")
     next_usn, = struct.unpack_from("<q", payload)
@@ -93,7 +117,7 @@ def parse_usn(payload: bytes, scopes: dict[int, str], root: str, start: int,
         name = payload[offset + name_at:offset + name_at + length].decode("utf-16-le")
         if "\0" in name or "/" in name or "\\" in name or name in (".", ".."):
             raise ValueError("Invalid USN filename")
-        if reason & _HARD_LINK_CHANGE:
+        if reason & _HARD_LINK_CHANGE and _relinked(inode, parent, scopes, shared, linked):
             return next_usn, changed(set(), full=True, reason="hard_links_changed")
         known_folder = inode in scopes and attributes & 0x10
         if parent in scopes and (not known_folder or reason & _RENAME_DELETE):
@@ -109,8 +133,26 @@ def parse_usn(payload: bytes, scopes: dict[int, str], root: str, start: int,
     return next_usn, changed(paths)
 
 
+class _FileIdDescriptor(ctypes.Structure):
+    _fields_ = [("size", ctypes.c_uint32), ("kind", ctypes.c_int), ("file_id", ctypes.c_uint64),
+                ("high", ctypes.c_uint64)]
+
+
 def _apis():
     kernel = _kernel()
+    kernel.OpenFileById.argtypes = [ctypes.c_void_p, ctypes.POINTER(_FileIdDescriptor), ctypes.c_uint32,
+                                    ctypes.c_uint32, ctypes.c_void_p, ctypes.c_uint32]
+    kernel.OpenFileById.restype = ctypes.c_void_p
+    kernel.GetFinalPathNameByHandleW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_uint32, ctypes.c_uint32]
+    kernel.GetFinalPathNameByHandleW.restype = ctypes.c_uint32
+    kernel.FindFirstFileNameW.argtypes = [ctypes.c_wchar_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32),
+                                          ctypes.c_wchar_p]
+    kernel.FindFirstFileNameW.restype = ctypes.c_void_p
+    kernel.FindNextFileNameW.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32), ctypes.c_wchar_p]
+    kernel.FindNextFileNameW.restype = ctypes.c_int
+    kernel.FindClose.argtypes = [ctypes.c_void_p]
+    kernel.GetDriveTypeW.argtypes = [ctypes.c_wchar_p]
+    kernel.GetDriveTypeW.restype = ctypes.c_uint32
     kernel.DeviceIoControl.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p, ctypes.c_uint32,
                                        ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p, ctypes.c_void_p]
     kernel.DeviceIoControl.restype = ctypes.c_int
@@ -157,7 +199,73 @@ def _start(journal: int, first: int, next_usn: int, since: Position | None) -> i
     return None
 
 
+def _names_of(kernel, volume, number: int) -> list[str]:
+    """Every name of file ``number`` on ``volume``, relative to the volume's root (metadata only)."""
+    descriptor = _FileIdDescriptor(ctypes.sizeof(_FileIdDescriptor), 0, number, 0)
+    handle = kernel.OpenFileById(volume, ctypes.byref(descriptor), 0x80, 7, None, 0x02200000)
+    if handle in (None, ctypes.c_void_p(-1).value):
+        raise ctypes.WinError(ctypes.get_last_error())
+    text = ctypes.create_unicode_buffer(32768)
+    try:
+        length = kernel.GetFinalPathNameByHandleW(handle, text, len(text), 0)
+        if not length or length >= len(text):
+            raise ctypes.WinError(ctypes.get_last_error())
+    finally:
+        kernel.CloseHandle(handle)
+    names, size = [], ctypes.c_uint32(len(text))
+    found = kernel.FindFirstFileNameW(text.value, 0, ctypes.byref(size), text)
+    if found in (None, ctypes.c_void_p(-1).value):
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        names.append(text.value)
+        while True:
+            size = ctypes.c_uint32(len(text))
+            if not kernel.FindNextFileNameW(found, ctypes.byref(size), text):
+                break
+            names.append(text.value)
+    finally:
+        kernel.FindClose(found)
+    return names
+
+
+def _linked_folders(kernel, volume, numbers: set[int], drive: str, root: str) -> set[str] | None:
+    """The folders inside ``root`` holding a name of each file in ``numbers``; None when one cannot be told.
+
+    A hard link made or removed anywhere on the volume used to read the whole scan again (Windows
+    servicing makes many); now only a file with a name inside the scan reads that name's folder.
+    """
+    if len(numbers) > _MAX_LINKED:
+        return None
+    base = ntpath.normcase(root.rstrip("\\"))
+    found = set()
+    for number in numbers:
+        try:
+            names = _names_of(kernel, volume, number)
+        except OSError as error:
+            if getattr(error, "winerror", None) in _GONE:
+                continue  # no name left: those in the scan went with records of their own folders
+            return None
+        for name in names:
+            path = ntpath.join(drive, name.lstrip("\\"))
+            folder = ntpath.normcase(path)
+            if folder.startswith(base + "\\"):
+                found.add(ntpath.dirname(path))
+    return found
+
+
+def _with_linked(kernel, volume, batch: ChangeBatch, linked: set[int], drive: str, root: str  # noqa: PLR0913
+                 ) -> ChangeBatch:
+    """``batch`` with the folders holding a name of each file in ``linked`` (all of the root if unknown)."""
+    if not linked or batch.full:
+        return batch
+    elsewhere = _linked_folders(kernel, volume, linked, drive, root)
+    if elsewhere is None:
+        return changed(set(), full=True, reason="hard_links_changed")
+    return changed(set(batch.folders) | elsewhere, trees=set(batch.trees))
+
+
 def _watch_usn(kernel, folders, on_change, cancel, ready, shared, *, since=None, moved=None) -> None:  # noqa: PLR0913
+    moved = moved or (lambda _position: None)
     root, identifier = _volume(folders[0].path)
     scopes = {folder.inode: folder.path for folder in folders}
     aliases = {file.inode: file.parents for file in shared}
@@ -183,12 +291,18 @@ def _watch_usn(kernel, folders, on_change, cancel, ready, shared, *, since=None,
                 on_change(changed(set(), full=True, reason="journal_changed"))
                 return
             payload = _control(kernel, handle, _READ_USN, _READ.pack(cursor, 0xFFFFFFFF, 0, 0, 0, journal))
-            cursor, batch = parse_usn(payload, scopes, folders[0].path, cursor, aliases)
-            if moved:
-                moved((journal, cursor))
-            if (batch.folders or batch.full) and not cancel.is_set():
+            started, linked = cursor, set()
+            cursor, batch = parse_usn(payload, scopes, folders[0].path, cursor, aliases, linked)
+            batch = _with_linked(kernel, handle, batch, linked, root, folders[0].path)
+            moved((journal, cursor))
+            if (batch.folders or batch.trees or batch.full) and not cancel.is_set():
                 on_change(batch)
-            if batch.full or cancel.wait(POLL_SECONDS):
+            if batch.full:
+                return
+            if started < cursor < next_usn:
+                give_way()  # more records wait: read on now, so a busy volume never leaves the feed behind
+                continue
+            if cancel.wait(POLL_SECONDS):
                 return
     finally:
         kernel.CloseHandle(handle)
@@ -230,9 +344,17 @@ def _completion(kernel, handle, overlap: _Overlapped, cancel: threading.Event) -
     return 0
 
 
-def _notification(kernel, handle, overlap: _Overlapped, cancel: threading.Event,
-                  armed: Callable[[], None] | None = None) -> bytes:
-    buffer = ctypes.create_string_buffer(_BUFFER)
+def _notify_size(kernel, path: str) -> int:
+    """The largest notification buffer ReadDirectoryChangesW takes for ``path``."""
+    if path.startswith("\\\\"):
+        return _NOTIFY_REMOTE
+    drive = ntpath.splitdrive(path)[0] + "\\"
+    return _NOTIFY_REMOTE if kernel.GetDriveTypeW(drive) == _DRIVE_REMOTE else _NOTIFY_LOCAL
+
+
+def _notification(kernel, handle, overlap: _Overlapped, cancel: threading.Event,  # noqa: PLR0913
+                  armed: Callable[[], None] | None = None, size: int = _NOTIFY_LOCAL) -> bytes:
+    buffer = ctypes.create_string_buffer(size)
     kernel.ResetEvent(overlap.event)
     if (not kernel.ReadDirectoryChangesW(handle, buffer, len(buffer), True, 0x15F, None, ctypes.byref(overlap), None)
             and ctypes.get_last_error() != _PENDING):
@@ -261,12 +383,13 @@ def _watch_notifications(kernel, folders, on_change, cancel, ready) -> None:
     try:
         overlap = _Overlapped(event=event)
         scopes = {folder.path for folder in folders}
+        size = _notify_size(kernel, folders[0].path)
         first = True
         while not cancel.is_set():
             check_folder(folders[0])
             try:
                 armed = (lambda: ready("directory_changes")) if first and ready else None
-                payload = _notification(kernel, handle, overlap, cancel, armed)
+                payload = _notification(kernel, handle, overlap, cancel, armed, size)
                 first = False
                 batch = parse_notifications(payload, folders[0].path, scopes)
             except OSError as error:

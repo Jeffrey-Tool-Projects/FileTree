@@ -107,24 +107,45 @@ def test_whole_scan_replaces_the_folders_on_offer(window, qapp, tmp_path):
     assert notice.isHidden()
 
 
-def test_busy_review_retains_events_and_joins_before_tree_mutation(window, qapp, tmp_path, monkeypatch):
+def test_a_review_keeps_the_feed_and_reads_only_the_changed_folder_after(window, qapp, tmp_path, monkeypatch):
     source, root = _source(window, tmp_path)
     controller = _enable(window, qapp, monkeypatch)
     _dirty(controller, source / "資料")
     old = controller.worker
-    calls = []
-    monkeypatch.setattr(window, "rescan_folder", calls.append)
+    rescans, refreshed = [], []
+    monkeypatch.setattr(window, "rescan_folder", rescans.append)
+    monkeypatch.setattr(window, "refresh_folders", refreshed.append)
     dialog = QDialog(window)
     window._path_dialogs.add(dialog)
     window._update_actions()
+    window.pending_source_workers()  # what an approved operation asks for before it runs
     controller.tick()
-    assert not calls and controller.worker is None and old.cancel.is_set()
-    _wait(qapp, lambda: not controller._retiring)
-    assert not calls
-    assert controller._operation_gap
+    assert not rescans and not refreshed and controller.worker is old and not old.cancel.is_set()
+    assert controller._operating and not controller._operation_gap
     window._path_dialogs.remove(dialog)
     controller.tick()
-    assert calls == [root]
+    assert not rescans and [[(node.path, whole) for node, whole in chosen] for chosen in refreshed] == [
+        [(str(source / "資料"), False)]]
+    dialog.deleteLater()
+
+
+def test_a_feed_lost_during_an_operation_that_does_not_withdraw_it_reads_the_root(window, qapp, tmp_path,
+                                                                                  monkeypatch):
+    _source(window, tmp_path)
+    root = window.results.outcome.result.root
+    controller = _enable(window, qapp, monkeypatch)
+    rescans = []
+    monkeypatch.setattr(window, "rescan_folder", rescans.append)
+    dialog = QDialog(window)
+    window._path_dialogs.add(dialog)
+    window.pending_source_workers()
+    controller.worker.record(ChangeBatch(full=True, reason="notification_lost"))
+    controller.tick()
+    assert controller._operation_gap and not controller._pending.full
+    window._path_dialogs.remove(dialog)
+    controller._since -= 2
+    controller.tick()
+    assert rescans == [root]
     dialog.deleteLater()
 
 
@@ -141,13 +162,16 @@ def test_a_delete_shown_in_place_does_not_request_the_whole_root(window, qapp, t
     victim = next(child for child in root.children if child.name == "另一個")
 
     window.delete_permanently([victim])
-    assert before.cancel.is_set() and controller._operation_gap
+    assert not before.cancel.is_set() and controller._operating  # the feed keeps reporting
+    before.record(ChangeBatch(full=True, reason="notification_lost"))  # its notifications overflowed meanwhile
+    controller.tick()
+    assert controller._operation_gap
     _wait(qapp, lambda: window._delete_worker is None)
 
     assert not (source / "另一個").exists() and victim not in root.children and (source / "資料" / "file").exists()
-    assert not controller._operation_gap
-    _wait(qapp, lambda: controller.worker is not None and bool(controller.worker.backend))
-    assert controller.worker is not before
+    assert not controller._operation_gap  # the results show the delete: it withdrew that request
+    controller.tick()  # captures again what the delete changed
+    _wait(qapp, lambda: controller.worker is not before and bool(controller.worker and controller.worker.backend))
     controller._since = time.monotonic() - 2
     controller.tick()
     assert calls == ([root] if other_reason else []) and window.results.refresh_notice.isHidden()
@@ -294,7 +318,8 @@ def test_tab_close_joins_only_its_monitor_and_pending_state_is_independent(qapp,
         _wait(qapp, lambda: workspace._close_ready)
 
 
-@pytest.mark.skipif(not (sys.platform == "win32" or sys.platform.startswith("linux")), reason="native feed platform")
+@pytest.mark.skipif(not (sys.platform in ("win32", "darwin") or sys.platform.startswith("linux")),
+                    reason="native feed platform")
 def test_native_event_replaces_one_branch_preserves_other_source_and_joins(window, qapp, tmp_path, monkeypatch):
     if sys.platform == "win32":
         from je_file_tree.core import windows_watch
@@ -397,3 +422,26 @@ def test_a_removed_folder_whose_folder_was_read_too_asks_for_nothing_more(window
     window.refresh_folders([(branch, False), (nested, False)])
     _wait(qapp, lambda: window._worker is None and not window._analysers)
     assert nested not in branch.children and not controller._pending.folders
+
+
+def test_an_inotify_feed_reads_the_folders_it_watches_newly_once_armed(window, qapp, tmp_path, monkeypatch):
+    source, _root = _source(window, tmp_path)
+
+    def watch(_scope, _changed, cancel, *, ready, **_feed):
+        ready("inotify")
+        cancel.wait()
+
+    monkeypatch.setattr(following, "watch_scope", watch)
+    monkeypatch.setattr(following, "supported", lambda: True)
+    window._actions["follow_changes"].setChecked(True)
+    controller = window._follow
+    _wait(qapp, lambda: controller.worker is not None and bool(controller.worker.backend))
+    before = controller.worker
+    (source / "資料" / "新資料夾").mkdir()
+    _dirty(controller, source / "資料")
+    controller.tick()
+    _wait(qapp, lambda: controller.worker is not before and bool(controller.worker.backend)
+          and window._worker is None)
+    controller.tick()  # armed: the old feed is retired
+    # It watched nothing there before it was armed: that folder is read again, in case it changed meanwhile.
+    assert controller._previous is None and controller._pending.folders == (str(source / "資料" / "新資料夾"),)
