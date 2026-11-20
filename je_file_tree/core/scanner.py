@@ -68,6 +68,7 @@ NOT_SCANNED = "not scanned: the scan was stopped first"
 EXCLUDED = "excluded: skipped by the exclusions"
 HIDDEN_OMITTED = "excluded: hidden entries omitted"
 PARTIAL_FOLDER = "incomplete: some entries could not be read"
+KEPT = "kept: read before and not read again"  # a subfolder ``ScanOptions.keep`` names (``core/refresh.py``)
 
 
 class ScanCancelledError(Exception):
@@ -106,6 +107,10 @@ class ScanOptions:
     # Read a whole NTFS drive from its master file table where that is possible (``core/mft_scan.py``);
     # like ``adaptive`` it is this machine's own choice and takes no part in comparisons.
     mft: bool = field(default=False, compare=False)
+    # Direct subfolders of the scanned folder that are listed but not read, as ``(name, device, file
+    # number)``: Follow changes reads one changed folder's own entries again and keeps what it already
+    # holds below them (``core/refresh.py``). A listing of one folder, not a choice: never compared.
+    keep: frozenset[tuple[str, int, int]] = field(default=frozenset(), compare=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -383,14 +388,28 @@ class _Crawler:
             return self._pending.pop()
 
     def _finish(self, folder: Node, path: str, read: _FolderRead) -> None:
+        subfolders = read.subfolders
+        if self._options.keep and folder.parent is None:
+            subfolders = _unkept(subfolders, self._options.keep)
         with self._condition:
-            self._pending.extend(read.subfolders)
-            self.folders.extend(node for node, _ in read.subfolders)
+            self._pending.extend(subfolders)
+            self.folders.extend(node for node, _ in subfolders)
             self.files += read.files
             self.size += read.size
             self.errors.extend(read.errors)
             self._current = path
             _add_to_ancestors(folder, read)
+
+
+def _unkept(subfolders: list[tuple[Node, str]], keep: frozenset[tuple[str, int, int]]) -> list[tuple[Node, str]]:
+    """The subfolders still to read; those ``keep`` names by name and identity are marked ``KEPT`` instead."""
+    unread = []
+    for child, path in subfolders:
+        if child.snapshot is not None and (child.name, *unpack_snapshot(child.snapshot).identity) in keep:
+            child.error = KEPT
+        else:
+            unread.append((child, path))
+    return unread
 
 
 def _add_to_ancestors(folder: Node, read: _FolderRead) -> None:

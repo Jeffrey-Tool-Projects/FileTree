@@ -43,7 +43,7 @@ from je_file_tree.core.protected import protected_places, protection_of
 from je_file_tree.core.scanner import DEFAULT_WORKERS, ScanOptions
 from je_file_tree.core.system_files import system_file
 from je_file_tree.core.trash_size import TrashUsage
-from je_file_tree.gui import elevation, file_actions, shell_integration
+from je_file_tree.gui import elevation, file_actions, folder_refresh, shell_integration
 from je_file_tree.gui.locale_font import apply_language_font
 from je_file_tree.gui.shell_dialog import ShellIntegrationDialog
 from je_file_tree.gui.elevation_dialog import ElevationDialog
@@ -726,12 +726,10 @@ class MainWindow(QMainWindow):
         """Scan one folder again and swap it into the results (the whole scan when it is the root)."""
         if self._worker is not None or self.operation_busy or self.results.outcome is None:
             return
-        # The scan waits for the window's readers. Follow changes is stopped as a re-arm, keeping what it
-        # reported: stopped as for a source operation it read the whole root again after every folder it
-        # refreshed. Its short gap is covered by the periodic reconciliation, like any re-arm.
-        if self._background_pause is not None:
-            self._background_pause(wait=False)
-        self._follow.stop()
+        # The scan waits for the window's readers, except Follow changes: its feed reads nothing of the tree
+        # and keeps reporting while the folder is read, until the feed armed after it takes over.
+        paused = self._background_pause(wait=False) if self._background_pause is not None else ()
+        self._follow.hold()
         self._undo.expire()
         if self.results.outcome.result.root.path is None:
             roots = tuple(child.path for child in self.results.outcome.result.root.children)
@@ -767,7 +765,11 @@ class MainWindow(QMainWindow):
         self.results.scan_bar.start()
         self._update_actions()
         queue_worker(worker, lambda: not self._closing and self._worker is worker and not worker._cancel.is_set(),
-                     self, lambda: self._discard_branch(worker))
+                     self, lambda: self._discard_branch(worker), readers=paused)
+
+    def refresh_folders(self, chosen: list[tuple[Node, bool]]) -> None:
+        """Read again only what Follow changes found changed (``gui/folder_refresh.py``)."""
+        folder_refresh.refresh_folders(self, chosen)
 
     def _discard_branch(self, worker: ScanWorker) -> None:
         if worker is self._worker:
@@ -779,7 +781,6 @@ class MainWindow(QMainWindow):
         self._release_scan(worker)
 
     def _branch_rescanned(self, old: Node, outcome: ScanOutcome, before: int) -> None:
-        self._follow.stop()
         self._scan_ended()
         self.results.scan_bar.hide()
         new = self.results.replace_branch(old, outcome.result)

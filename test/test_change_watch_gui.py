@@ -32,11 +32,11 @@ def _source(window, tmp_path):
 
 
 def _enable(window, qapp, monkeypatch):
-    def watch(_root, _changed, cancel, *, ready):
+    def watch(_scope, _changed, cancel, *, ready, since=None, moved=None):
         ready("directory_changes")
         cancel.wait()
 
-    monkeypatch.setattr(following, "watch", watch)
+    monkeypatch.setattr(following, "watch_scope", watch)
     monkeypatch.setattr(following, "supported", lambda: True)
     window._actions["follow_changes"].setChecked(True)
     _wait(qapp, lambda: window._follow.worker is not None and bool(window._follow.worker.backend))
@@ -61,18 +61,20 @@ def test_default_off_and_opt_out_retires_worker_asynchronously(window, qapp, tmp
     assert not controller.timer.isActive() and not controller.label.isVisible()
 
 
-def test_bounded_coalescing_only_refreshes_outermost_dirty_branch(window, qapp, tmp_path, monkeypatch):
-    source, root = _source(window, tmp_path)
+def test_changed_folders_are_read_again_together_each_keeping_its_subfolders(window, qapp, tmp_path, monkeypatch):
+    source, _root = _source(window, tmp_path)
     controller = _enable(window, qapp, monkeypatch)
     calls = []
-    monkeypatch.setattr(window, "rescan_folder", calls.append)
+    monkeypatch.setattr(window, "refresh_folders", calls.append)
     _dirty(controller, source / "資料", source / "資料" / "nested")
     assert not calls
     controller.tick()
-    assert len(calls) == 1 and calls[0].path == str(source / "資料")
-    assert calls[0].is_in(root) and not controller._pending.folders
-    controller.worker.record(ChangeBatch(tuple(str(number) for number in range(MAX_CHANGED + 1))))
-    assert controller.worker.take().full
+    assert [[(node.path, whole) for node, whole in chosen] for chosen in calls] == [
+        [(str(source / "資料"), False), (str(source / "資料" / "nested"), False)]]
+    assert not controller._pending.folders
+    controller.worker.record(ChangeBatch(tuple(str(source / f"d{number}" / "x") for number in range(MAX_CHANGED + 1))))
+    taken = controller.worker.take()
+    assert not taken.full and taken.trees == (str(source),)  # too many: their folder, read whole, not the root
 
 
 def test_changed_folders_wait_for_a_request_unless_following_is_on(window, qapp, tmp_path, monkeypatch):
@@ -105,24 +107,45 @@ def test_whole_scan_replaces_the_folders_on_offer(window, qapp, tmp_path):
     assert notice.isHidden()
 
 
-def test_busy_review_retains_events_and_joins_before_tree_mutation(window, qapp, tmp_path, monkeypatch):
+def test_a_review_keeps_the_feed_and_reads_only_the_changed_folder_after(window, qapp, tmp_path, monkeypatch):
     source, root = _source(window, tmp_path)
     controller = _enable(window, qapp, monkeypatch)
     _dirty(controller, source / "資料")
     old = controller.worker
-    calls = []
-    monkeypatch.setattr(window, "rescan_folder", calls.append)
+    rescans, refreshed = [], []
+    monkeypatch.setattr(window, "rescan_folder", rescans.append)
+    monkeypatch.setattr(window, "refresh_folders", refreshed.append)
     dialog = QDialog(window)
     window._path_dialogs.add(dialog)
     window._update_actions()
+    window.pending_source_workers()  # what an approved operation asks for before it runs
     controller.tick()
-    assert not calls and controller.worker is None and old.cancel.is_set()
-    _wait(qapp, lambda: not controller._retiring)
-    assert not calls
-    assert controller._operation_gap
+    assert not rescans and not refreshed and controller.worker is old and not old.cancel.is_set()
+    assert controller._operating and not controller._operation_gap
     window._path_dialogs.remove(dialog)
     controller.tick()
-    assert calls == [root]
+    assert not rescans and [[(node.path, whole) for node, whole in chosen] for chosen in refreshed] == [
+        [(str(source / "資料"), False)]]
+    dialog.deleteLater()
+
+
+def test_a_feed_lost_during_an_operation_that_does_not_withdraw_it_reads_the_root(window, qapp, tmp_path,
+                                                                                  monkeypatch):
+    _source(window, tmp_path)
+    root = window.results.outcome.result.root
+    controller = _enable(window, qapp, monkeypatch)
+    rescans = []
+    monkeypatch.setattr(window, "rescan_folder", rescans.append)
+    dialog = QDialog(window)
+    window._path_dialogs.add(dialog)
+    window.pending_source_workers()
+    controller.worker.record(ChangeBatch(full=True, reason="notification_lost"))
+    controller.tick()
+    assert controller._operation_gap and not controller._pending.full
+    window._path_dialogs.remove(dialog)
+    controller._since -= 2
+    controller.tick()
+    assert rescans == [root]
     dialog.deleteLater()
 
 
@@ -139,13 +162,16 @@ def test_a_delete_shown_in_place_does_not_request_the_whole_root(window, qapp, t
     victim = next(child for child in root.children if child.name == "另一個")
 
     window.delete_permanently([victim])
-    assert before.cancel.is_set() and controller._operation_gap
+    assert not before.cancel.is_set() and controller._operating  # the feed keeps reporting
+    before.record(ChangeBatch(full=True, reason="notification_lost"))  # its notifications overflowed meanwhile
+    controller.tick()
+    assert controller._operation_gap
     _wait(qapp, lambda: window._delete_worker is None)
 
     assert not (source / "另一個").exists() and victim not in root.children and (source / "資料" / "file").exists()
-    assert not controller._operation_gap
-    _wait(qapp, lambda: controller.worker is not None and bool(controller.worker.backend))
-    assert controller.worker is not before
+    assert not controller._operation_gap  # the results show the delete: it withdrew that request
+    controller.tick()  # captures again what the delete changed
+    _wait(qapp, lambda: controller.worker is not before and bool(controller.worker and controller.worker.backend))
     controller._since = time.monotonic() - 2
     controller.tick()
     assert calls == ([root] if other_reason else []) and window.results.refresh_notice.isHidden()
@@ -167,25 +193,23 @@ def test_a_followed_folder_refresh_is_not_followed_by_a_whole_root_scan(window, 
     assert scans == [] and window._worker is None  # nothing else changed: nothing more is read
 
 
-def test_scope_loss_accounting_and_periodic_reconciliation_request_full_root(window, qapp, tmp_path, monkeypatch):
+def test_a_new_folder_reads_the_folder_holding_it_and_no_timer_reads_the_whole_root(window, qapp, tmp_path,
+                                                                                    monkeypatch):
     source, root = _source(window, tmp_path)
     controller = _enable(window, qapp, monkeypatch)
-    calls = []
-    monkeypatch.setattr(window, "rescan_folder", calls.append)
-    _dirty(controller, source / "not-captured")
+    refreshed, rescanned = [], []
+    monkeypatch.setattr(window, "refresh_folders", refreshed.append)
+    monkeypatch.setattr(window, "rescan_folder", rescanned.append)
+    _dirty(controller, source / "not-captured" / "deeper")
     controller.tick()
-    assert controller._pending.full and not calls
+    assert refreshed == [[(root, False)]] and not rescanned  # the root's own entries, not the whole scan
+    controller._since -= 600
+    for _ in range(3):
+        controller.tick()
+    assert refreshed == [[(root, False)]] and not rescanned
+    _dirty(controller, full=True)  # a lost feed: only now is all of it read again
     controller.tick()
-    assert calls == [root]
-    controller._reconcile = time.monotonic() - 1
-    controller.tick()
-    controller._since -= 2
-    controller.tick()
-    assert calls == [root, root]
-    controller._reconcile = time.monotonic() + 300
-    deadline = controller._reconcile
-    controller.adopt(root)
-    assert controller._reconcile == deadline
+    assert rescanned == [root]
 
 
 def test_feed_error_is_visible_plain_text_without_automatic_retry(window, qapp, tmp_path, monkeypatch):
@@ -194,10 +218,10 @@ def test_feed_error_is_visible_plain_text_without_automatic_retry(window, qapp, 
     def failed(*_args, **_kwargs):
         raise OSError("owned <unsafe> native limit")
 
-    monkeypatch.setattr(following, "watch", failed)
+    monkeypatch.setattr(following, "watch_scope", failed)
     monkeypatch.setattr(following, "supported", lambda: True)
     window._actions["follow_changes"].setChecked(True)
-    _wait(qapp, lambda: bool(window._follow.worker.error))
+    _wait(qapp, lambda: window._follow.worker is not None and bool(window._follow.worker.error))
     calls = []
     monkeypatch.setattr(window, "rescan_folder", calls.append)
     window._follow._merge(ChangeBatch(full=True))
@@ -211,16 +235,15 @@ def test_feed_error_is_visible_plain_text_without_automatic_retry(window, qapp, 
     assert window._follow.worker is None
 
 
-def test_unrelated_dirty_branches_survive_the_first_refresh(window, qapp, tmp_path, monkeypatch):
+def test_unrelated_changed_folders_are_read_in_one_refresh(window, qapp, tmp_path, monkeypatch):
     source, _root = _source(window, tmp_path)
     controller = _enable(window, qapp, monkeypatch)
     calls = []
-    monkeypatch.setattr(window, "rescan_folder", calls.append)
+    monkeypatch.setattr(window, "refresh_folders", calls.append)
     _dirty(controller, source / "資料", source / "另一個")
     controller.tick()
-    assert len(calls) == 1 and len(controller._pending.folders) == 1
-    controller.tick()
-    assert {node.path for node in calls} == {str(source / "資料"), str(source / "另一個")}
+    assert len(calls) == 1
+    assert {node.path for node, _whole in calls[0]} == {str(source / "資料"), str(source / "另一個")}
     assert not controller._pending.folders
 
 
@@ -235,7 +258,8 @@ def test_partial_or_combined_scan_refuses_following_without_native_setup(window,
     def forbidden(*_args, **_kwargs):
         pytest.fail("partial scan started a native feed")
 
-    monkeypatch.setattr(following, "watch", forbidden)
+    monkeypatch.setattr(following, "watch_scope", forbidden)
+    monkeypatch.setattr(following, "captured_scope", forbidden)
     monkeypatch.setattr(following, "supported", lambda: True)
     window._actions["follow_changes"].setChecked(True)
     assert window._follow.worker is None and window._follow._status == "follow_incomplete"
@@ -294,13 +318,14 @@ def test_tab_close_joins_only_its_monitor_and_pending_state_is_independent(qapp,
         _wait(qapp, lambda: workspace._close_ready)
 
 
-@pytest.mark.skipif(not (sys.platform == "win32" or sys.platform.startswith("linux")), reason="native feed platform")
+@pytest.mark.skipif(not (sys.platform in ("win32", "darwin") or sys.platform.startswith("linux")),
+                    reason="native feed platform")
 def test_native_event_replaces_one_branch_preserves_other_source_and_joins(window, qapp, tmp_path, monkeypatch):
     if sys.platform == "win32":
         from je_file_tree.core import windows_watch
 
         # Volume-wide USN changes can legitimately require a full rescan; this case proves branch notifications.
-        def unavailable(*_args):
+        def unavailable(*_args, **_kwargs):
             raise PermissionError("Native GUI branch test uses recursive directory notifications")
 
         monkeypatch.setattr(windows_watch, "_watch_usn", unavailable)
@@ -309,6 +334,7 @@ def test_native_event_replaces_one_branch_preserves_other_source_and_joins(windo
     file = source / "另一個" / "untouched"
     proof = file.stat().st_ino, hashlib.sha256(file.read_bytes()).hexdigest()
     old_branch = next(child for child in root.children if child.name == "資料")
+    nested = next(child for child in old_branch.children if child.name == "nested")
     assert any(item.node is old_branch for item in window.results.charts.tree.rows())
     window._actions["follow_changes"].setChecked(True)
     _wait(qapp, lambda: window._follow.worker is not None and bool(window._follow.worker.backend))
@@ -321,11 +347,13 @@ def test_native_event_replaces_one_branch_preserves_other_source_and_joins(windo
     _wait(qapp, lambda: root.size == 4 + 9 + 22528 and window._worker is None and not window._analysers)
     assert window.results.outcome.result.root is root and untouched in root.children
     assert (file.stat().st_ino, hashlib.sha256(file.read_bytes()).hexdigest()) == proof
+    # Only that folder was read again, in place: it and the subfolder it kept are the same nodes.
     current_branch = next(child for child in root.children if child.name == "資料")
-    assert current_branch is not old_branch
+    assert current_branch is old_branch and any(child.name == "新增.bin" for child in current_branch.children)
+    assert nested in current_branch.children and nested.parent is current_branch
     assert any(item.node is current_branch for item in window.results.charts.tree.rows())
-    assert not any(item.node is old_branch for item in window.results.charts.tree.rows())
-    assert cancelled.is_set() and finished.count() == 1
+    # The feed kept reporting while the folder was read; no folder changed, so it simply carries on.
+    assert window._follow.worker is worker and not cancelled.is_set() and finished.count() == 0
     active = window._follow.worker
     assert active is not None
     active_cancelled = active.cancel
@@ -334,3 +362,86 @@ def test_native_event_replaces_one_branch_preserves_other_source_and_joins(windo
     _wait(qapp, lambda: window._close_ready)
     assert active_finished.count() == 1
     assert active_cancelled.is_set()
+
+
+def test_a_change_directly_in_the_root_reads_only_its_own_entries(window, qapp, tmp_path, monkeypatch):
+    source, root = _source(window, tmp_path)
+    controller = _enable(window, qapp, monkeypatch)
+    scans = []
+    monkeypatch.setattr(window, "start_scan", lambda path, **_kwargs: scans.append(path))
+    kept = {child.name: child for child in root.children}
+    feed = controller.worker
+    (source / "另一個" / "untouched").write_bytes(b"not read again")  # inside a kept subfolder
+    (source / "新檔案").write_bytes(b"n" * 7)
+    _dirty(controller, source)
+    controller.tick()
+    _wait(qapp, lambda: window._worker is None and not window._analysers and root.size == 4 + 9 + 7)
+    assert scans == [] and window.results.outcome.result.root is root
+    assert controller.worker is feed and not feed.cancel.is_set() and not controller._capture  # no folder changed
+    assert all(next(child for child in root.children if child.name == name) is node for name, node in kept.items())
+    assert next(child for child in kept["另一個"].children).size == 9  # what it holds was kept, not read
+
+
+def test_the_feed_keeps_reporting_while_a_folder_is_read_and_hands_over_after(window, qapp, tmp_path, monkeypatch):
+    source, root = _source(window, tmp_path)
+    controller = _enable(window, qapp, monkeypatch)
+    before = controller.worker
+    (source / "資料" / "新增.bin").write_bytes(b"x" * 3)
+    (source / "資料" / "新資料夾").mkdir()  # a new folder: the scope is captured again and a new feed takes over
+    _dirty(controller, source / "資料")
+    controller.tick()
+    assert window._worker is not None and before.isRunning() and not before.cancel.is_set()
+    before.record(ChangeBatch((str(source / "另一個"),)))  # reported while the folder was being read
+    (source / "另一個" / "later").write_bytes(b"y" * 5)
+    _wait(qapp, lambda: controller.worker is not before and bool(controller.worker.backend))
+    _wait(qapp, lambda: window._worker is None and not window._analysers)
+    controller.tick()
+    assert before.cancel.is_set()
+    controller._since -= 2
+    controller.tick()
+    _wait(qapp, lambda: window._worker is None and not window._analysers and root.size == 4 + 3 + 9 + 5)
+
+
+def test_a_folder_removed_before_it_is_read_reads_the_folder_that_held_it(window, qapp, tmp_path, monkeypatch):
+    source, root = _source(window, tmp_path)
+    controller = _enable(window, qapp, monkeypatch)
+    nested = next(child for child in root.children if child.name == "資料").children
+    nested = next(child for child in nested if child.name == "nested")
+    (source / "資料" / "nested").rmdir()
+    window.refresh_folders([(nested, False)])
+    _wait(qapp, lambda: window._worker is None and not window._analysers)
+    assert controller._pending.folders == (str(source / "資料"),)
+
+
+def test_a_removed_folder_whose_folder_was_read_too_asks_for_nothing_more(window, qapp, tmp_path, monkeypatch):
+    source, root = _source(window, tmp_path)
+    controller = _enable(window, qapp, monkeypatch)
+    branch = next(child for child in root.children if child.name == "資料")
+    nested = next(child for child in branch.children if child.name == "nested")
+    (source / "資料" / "nested").rmdir()
+    window.refresh_folders([(branch, False), (nested, False)])
+    _wait(qapp, lambda: window._worker is None and not window._analysers)
+    assert nested not in branch.children and not controller._pending.folders
+
+
+def test_an_inotify_feed_reads_the_folders_it_watches_newly_once_armed(window, qapp, tmp_path, monkeypatch):
+    source, _root = _source(window, tmp_path)
+
+    def watch(_scope, _changed, cancel, *, ready, **_feed):
+        ready("inotify")
+        cancel.wait()
+
+    monkeypatch.setattr(following, "watch_scope", watch)
+    monkeypatch.setattr(following, "supported", lambda: True)
+    window._actions["follow_changes"].setChecked(True)
+    controller = window._follow
+    _wait(qapp, lambda: controller.worker is not None and bool(controller.worker.backend))
+    before = controller.worker
+    (source / "資料" / "新資料夾").mkdir()
+    _dirty(controller, source / "資料")
+    controller.tick()
+    _wait(qapp, lambda: controller.worker is not before and bool(controller.worker.backend)
+          and window._worker is None)
+    controller.tick()  # armed: the old feed is retired
+    # It watched nothing there before it was armed: that folder is read again, in case it changed meanwhile.
+    assert controller._previous is None and controller._pending.folders == (str(source / "資料" / "新資料夾"),)

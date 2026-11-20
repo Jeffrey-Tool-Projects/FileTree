@@ -196,19 +196,25 @@ def test_slow_folder_check_runs_off_gui_and_can_be_canceled(window, qapp, tmp_pa
 
 
 def _held_follow(window, qapp, monkeypatch):
+    """Follow changes with its capture held: the capture reads the tree, so operations wait for it."""
     release, entered = threading.Event(), threading.Event()
+    real = change_watch.captured_scope
 
-    def watch(_root, _changed, cancel, *, ready):
-        ready("directory_changes")
+    def held(root, cancel):
         entered.set()
-        cancel.wait(5)
-        release.wait(5)
+        release.wait(5)  # busy until released, cancelled or not, like a long walk of the tree
+        return real(root, cancel)
 
-    monkeypatch.setattr(change_watch, "watch", watch)
+    def watch(_scope, _changed, cancel, *, ready, **_feed):
+        ready("directory_changes")
+        cancel.wait()
+
+    monkeypatch.setattr(change_watch, "captured_scope", held)
+    monkeypatch.setattr(change_watch, "watch_scope", watch)
     monkeypatch.setattr(change_watch, "supported", lambda: True)
     window._actions["follow_changes"].setChecked(True)
     _pump(qapp, entered.is_set)
-    return release, window._follow.worker
+    return release, window._follow._capture
 
 
 def test_follow_reconfiguration_queues_only_latest_reader_without_gui_wait(window, qapp, tmp_path, monkeypatch):
@@ -220,13 +226,13 @@ def test_follow_reconfiguration_queues_only_latest_reader_without_gui_wait(windo
     release = threading.Event()
     calls = []
 
-    def watch(_root, _changed, cancel, *, ready):
+    def watch(_scope, _changed, cancel, *, ready, **_feed):
         calls.append(QThread.currentThread())
         ready("directory_changes")
         cancel.wait(5)
         release.wait(5)
 
-    monkeypatch.setattr(change_watch, "watch", watch)
+    monkeypatch.setattr(change_watch, "watch_scope", watch)
     monkeypatch.setattr(change_watch, "supported", lambda: True)
     action = window._actions["follow_changes"]
     try:
@@ -235,12 +241,12 @@ def test_follow_reconfiguration_queues_only_latest_reader_without_gui_wait(windo
         old = window._follow.worker
         for enabled in (False, True, False, True):
             action.setChecked(enabled)
-        newest = window._follow.worker
         assert old.cancel.is_set() and old.isRunning()
-        assert newest is not old and calls == [old]
+        assert window._follow.worker is not old and calls == [old]
         QTimer.singleShot(20, release.set)
-        _pump(qapp, lambda: len(calls) == 2 and bool(newest.backend))
-        assert release.is_set() and calls == [old, newest]
+        _pump(qapp, lambda: len(calls) == 2 and bool(window._follow.worker and window._follow.worker.backend))
+        newest = window._follow.worker
+        assert release.is_set() and newest is not old and calls == [old, newest]
         assert kept.read_bytes() == b"kept"
     finally:
         release.set()
@@ -265,7 +271,7 @@ def test_trash_queues_behind_native_reader_without_gui_wait(
         window.move_to_trash(root.children)
         assert reader.cancel.is_set() and reader.isRunning()
         assert window.operation_busy and not calls
-        assert window._follow._operation_gap
+        assert window._follow._operating and not window._follow._operation_gap
         if cancel:
             window.stop_scan()
         QTimer.singleShot(20, release.set)
@@ -289,20 +295,34 @@ def test_cancel_queued_branch_keeps_previous_result_and_clears_busy_state(window
     window.results.show_outcome(scan_worker.analyse(scan(branch.parent)))
     previous = window.results.outcome
     release, reader = _held_follow(window, qapp, monkeypatch)
+    held = _Held(window, release)  # another of the window's threads, which a folder rescan waits for
+    held.start()
     calls = []
     scanning = scan_worker.scan
     monkeypatch.setattr(scan_worker, "scan", lambda *args, **kwargs: calls.append(args) or scanning(*args, **kwargs))
     try:
         window.rescan_folder(previous.result.root.children[0])
-        assert reader.cancel.is_set() and reader.isRunning()
+        # The feed reads nothing of the tree: it reports on while the folder is read.
+        assert not reader.cancel.is_set() and reader.isRunning()
         assert window._worker is not None and not calls
         window.stop_scan()
         QTimer.singleShot(20, release.set)
         _pump(qapp, lambda: window._worker is None)
         assert release.is_set() and not calls
         assert window.results.outcome is previous and kept.read_bytes() == b"kept"
+        _pump(qapp, lambda: window._follow.worker is not None)  # the capture ran on and armed the feed
     finally:
         release.set()
+        held.wait()
+
+
+class _Held(QThread):
+    def __init__(self, parent, release):
+        super().__init__(parent)
+        self.release = release
+
+    def run(self):
+        self.release.wait(5)
 
 
 def test_replacing_a_scan_retains_only_latest_request_without_gui_wait(window, qapp, tmp_path, monkeypatch):

@@ -50,3 +50,10 @@ def test_sidebar_and_chooser_icons_follow_the_theme(window, qapp, sample_tree):
 def test_tool_bar_actions_show_icons_beside_their_text(window):
     for key in ("open", "rescan", "stop", "help"):
         assert not window._actions[key].icon().isNull(), key
+
+
+def test_an_icon_is_drawn_once_per_colour_pair(qapp):
+    first = icon(NAMES[0], QColor("#102030"), QColor("#405060"))
+    assert icon(NAMES[0], QColor("#102030"), QColor("#405060")).cacheKey() == first.cacheKey()
+    other = icon(NAMES[0], QColor("#a0b0c0"), QColor("#405060"))
+    assert other.cacheKey() != first.cacheKey() and _drawn_in(other, "#a0b0c0")

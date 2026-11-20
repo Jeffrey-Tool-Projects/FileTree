@@ -51,7 +51,7 @@ def test_close_waits_for_launch_and_success_still_closes_the_original(window, qa
     def relaunch(arguments):
         calls.append(list(arguments))
         entered.set()
-        release.wait(3)
+        release.wait(10)
         return started
 
     monkeypatch.setattr(elevation, "relaunch_elevated", relaunch)
@@ -72,7 +72,9 @@ def test_close_waits_for_launch_and_success_still_closes_the_original(window, qa
 
     timer.timeout.connect(close_request)
     timer.start()
-    fallback = threading.Timer(2, release.set)
+    # Only so that nothing hangs if the request never runs. At 2 s it once fired first on a loaded Windows
+    # CI runner (2026-11-19): the launch ended before the request could observe it still running.
+    fallback = threading.Timer(10, release.set)
     fallback.start()
     try:
         window.restart_as_admin()
@@ -119,7 +121,7 @@ def test_parent_close_waits_for_native_call_without_late_status(window, qapp, mo
 
     def relaunch(_arguments):
         entered.set()
-        release.wait(3)
+        release.wait(10)
         return False
 
     monkeypatch.setattr(elevation, "relaunch_elevated", relaunch)
@@ -134,7 +136,9 @@ def test_parent_close_waits_for_native_call_without_late_status(window, qapp, mo
 
     timer.timeout.connect(close_parent)
     timer.start()
-    fallback = threading.Timer(2, release.set)
+    # Only so that nothing hangs if the request never runs. At 2 s it once fired first on a loaded Windows
+    # CI runner (2026-11-19): the launch ended before the request could observe it still running.
+    fallback = threading.Timer(10, release.set)
     fallback.start()
     try:
         window.restart_as_admin()

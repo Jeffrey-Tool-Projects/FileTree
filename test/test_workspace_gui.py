@@ -220,7 +220,7 @@ def test_a_delete_in_one_tab_offers_only_its_folder_in_another(workspace, qapp, 
     second.results.show_outcome(scan_worker.analyse(scan(source)))
     peer_root = second.results.outcome.result.root
     if following:
-        monkeypatch.setattr(change_watch, "watch", lambda _root, _changed, cancel, *, ready: (
+        monkeypatch.setattr(change_watch, "watch_scope", lambda _scope, _changed, cancel, *, ready, **_feed: (
             ready("directory_changes"), cancel.wait()))
         monkeypatch.setattr(change_watch, "supported", lambda: True)
         second._actions["follow_changes"].setChecked(True)

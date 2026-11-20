@@ -154,7 +154,9 @@ def test_whole_source_change_after_queue_skips_all_before_modeled_mover(report, 
     monkeypatch.setattr(trash_worker.TrashWorker, "run", run)
     owner = monitored.add_tab()
     RecurringFlow(monitor, owner, current).start()
-    _wait(qapp, lambda: bool(workers) and owner._trash_worker is None)
+    # A fresh scan, its analysis, clean-up suggestions, the review and the move run one after another:
+    # 0.6 s here, but past 10 s once on a loaded macOS CI runner (2026-11-19), so this waits longer.
+    _wait(qapp, lambda: bool(workers) and owner._trash_worker is None, timeout=30)
     assert reviewed and not moved and workers[0].result.skipped[0][1] == "proposal_changed"
     assert (source / "one.dmp").read_bytes() == b"owned one" and (source / "two.dmp").read_bytes() == b"owned two"
 

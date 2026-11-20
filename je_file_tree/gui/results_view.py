@@ -60,6 +60,7 @@ from je_file_tree.core.capacity import CapacityLedger
 from je_file_tree.core.hard_links import HardLinkPlan
 from je_file_tree.core.node import Node
 from je_file_tree.core.protected import protected_places
+from je_file_tree.core.refresh import refreshed_errors
 from je_file_tree.gui.node_text import node_path
 from je_file_tree.core.compare import SavedScan
 from je_file_tree.core.scanner import ScanProgress, ScanResult
@@ -362,6 +363,40 @@ class ResultsView(QWidget):
         self._update_texts()
         self.selection_changed.emit(self.selected_node())
         return new
+
+    def refill_folders(self, listings: list[tuple[Node, ScanResult]]) -> list[Node]:
+        """Put fresh listings of changed folders in place; returns the folders that could not take theirs.
+
+        Each folder stays the same node with the subfolders it kept (``core/refresh.py``), so the view
+        keeps its place, expanded folders and selection there. The rest follows as after ``replace_branch``.
+        """
+        self._stop_focused()
+        self.capacity.set_ledger(None)
+        self.tree_model.set_drive_total(None)
+        view_root = self.charts.view_root
+        holder = next((node for node, _ in reversed(listings)
+                       if view_root is not None and _is_within(view_root, node)), None)
+        done = self.tree_model.refill(listings)
+        if self._outcome is not None:
+            errors = self._outcome.result.errors
+            for folder, fresh, kept in done:
+                errors[:] = refreshed_errors(errors, folder.path, kept, fresh.errors)
+            self._outcome = dataclasses.replace(self._outcome, capacity=None, top_folders=None)
+            self.problems_model.set_rows(errors)
+        root = self.tree_model.root
+        if view_root is not None and root is not None and not view_root.is_in(root):
+            view_root = holder
+        self.charts.set_view_root(view_root)
+        self.charts.invalidate()
+        self.search.rerun()
+        self.duplicates.prune()
+        self.cleanup.refresh()
+        self.users.refresh()
+        self.changes.refresh()
+        self._update_texts()
+        self.selection_changed.emit(self.selected_node())
+        refilled = {id(folder) for folder, _, _ in done}
+        return [node for node, _ in listings if id(node) not in refilled and root is not None and node.is_in(root)]
 
     def apply_counted(self, plan: HardLinkPlan) -> None:
         """Show counted totals planned for the whole tree after a branch rescan (``plan_hard_links``)."""
