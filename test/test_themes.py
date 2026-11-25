@@ -26,6 +26,8 @@ from je_file_tree.gui.fluent_style import (
 from je_file_tree.gui.themes import NATIVE, theme_controller, theme_palette
 from je_file_tree.gui.chart_palette import CATEGORY_COLOURS
 
+pytestmark = pytest.mark.usefixtures("closed_windows_gone")
+
 
 @pytest.mark.parametrize('theme', ['light', 'dark', 'contrast'])
 def test_primary_and_selected_palette_text_meets_minimum_contrast(theme) -> None:

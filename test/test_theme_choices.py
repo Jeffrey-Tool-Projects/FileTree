@@ -19,6 +19,8 @@ from je_file_tree.gui.fluent_style import CONTRAST_ACCENT, EDGE_CONTRAST, tokens
 from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui.themes import theme_controller, valid_accent
 
+pytestmark = pytest.mark.usefixtures("closed_windows_gone")
+
 
 @pytest.fixture(autouse=True)
 def _defaults_afterwards(qapp):

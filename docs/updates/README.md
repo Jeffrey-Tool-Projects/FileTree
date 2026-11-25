@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-21 | 2026-11-26 | 修正 Windows CI 的時鐘誤差與測試殘留視窗 | #done #fix #test #ci | [2026-11-b](2026-11-b.md) |
 | U-20261126-20 | 2026-11-26 | 依功能拆分 main_window.py | #done #refactor #gui | [2026-11-b](2026-11-b.md) |
 | U-20261126-19 | 2026-11-26 | 新增以 SSH 唯讀掃描遠端資料夾 | #done #decision #feature #gui #security #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-18 | 2026-11-26 | 新增相似影片與音訊的候選搜尋 | #done #decision #feature #gui #i18n | [2026-11-b](2026-11-b.md) |

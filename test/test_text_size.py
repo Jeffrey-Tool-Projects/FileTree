@@ -15,6 +15,8 @@ from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui.text_size import neighbour, saved_text_size, text_size_controller
 from je_file_tree.gui.themes import theme_controller
 
+pytestmark = pytest.mark.usefixtures("closed_windows_gone")
+
 
 @pytest.fixture(autouse=True)
 def _system_size_afterwards(qapp):

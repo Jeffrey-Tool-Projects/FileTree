@@ -13,6 +13,19 @@ from je_file_tree.gui import elevation
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 
+@pytest.fixture(scope="module")
+def closed_windows_gone():
+    """Delete what earlier test files left to ``deleteLater``, which needs an event loop to happen.
+
+    For tests that restyle the whole program: every widget still alive is repolished at each change (16,842 after the
+    workspace tests; one theme test took over a minute on a Windows CI runner, measured 2026-11-26).
+    """
+    from PySide6.QtCore import QCoreApplication, QEvent
+
+    if QCoreApplication.instance() is not None:
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+
+
 @pytest.fixture(autouse=True)
 def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     """Fail any test that reaches the real UAC prompt (it would wait on the desktop of whoever runs the tests).

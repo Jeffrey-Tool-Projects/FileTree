@@ -3,7 +3,7 @@
 import hashlib
 import threading
 
-from PySide6.QtCore import QSettings, QTimer
+from PySide6.QtCore import QCoreApplication, QEvent, QSettings, QTimer
 from PySide6.QtWidgets import QMessageBox
 import pytest
 
@@ -27,6 +27,8 @@ def workspace(qapp, tmp_path):
     window.close()
     _wait(qapp, lambda: window._close_ready)
     window.deleteLater()
+    # Its tabs and menus too, now: without an event loop 13,000 widgets stayed for every later theme change to repolish.
+    QCoreApplication.sendPostedEvents(window, QEvent.Type.DeferredDelete)
     i18n.set_language("en")
     apply_qt_translation("en")
 
