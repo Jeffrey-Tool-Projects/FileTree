@@ -117,6 +117,10 @@ def test_real_symlinks(tmp_path):
     os.symlink("file", tmp_path / "good")
     os.symlink("nowhere", tmp_path / "bad")
     os.symlink("bad", tmp_path / "to-a-link")  # the link it names exists, whatever that points to
+    (tmp_path / "real" / "deep").mkdir(parents=True)
+    (tmp_path / "real" / "there").write_bytes(b"x")
+    os.symlink("real/deep", tmp_path / "inner")
+    os.symlink("inner/../there", tmp_path / "through")  # the system follows "inner" first, so this is real/there
     result = problem_files(scan(tmp_path).root)
     assert [(row.node.name, row.kinds) for row in result.rows if DEAD_LINK in row.kinds] == [("bad", (DEAD_LINK,))]
 
@@ -162,6 +166,18 @@ def test_network_relative_and_absent_targets_stay_unknown(tmp_path, monkeypatch)
     assert target_exists(str(tmp_path / "gone")) is False
     monkeypatch.setattr(os.path, "exists", lambda _path: False)
     assert target_exists("Q:\\anything") is None
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows path limit")
+def test_long_targets_are_found(tmp_path):
+    prefix = "\\\\?\\"
+    folder = os.path.join(str(tmp_path), *["n" * 60] * 5)
+    os.makedirs(prefix + folder)
+    with open(os.path.join(prefix + folder, "there"), "wb"):
+        pass
+    assert target_exists(os.path.join(folder, "there")) is True
+    assert target_exists(prefix + os.path.join(folder, "there")) is True
+    assert target_exists(os.path.join(folder, "gone")) is False
 
 
 def test_denied_targets_stay_unknown(tmp_path, monkeypatch):

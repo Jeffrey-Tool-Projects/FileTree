@@ -34,6 +34,7 @@ _CHUNK = 1 << 20
 _FIRST_YEAR, _LAST_YEAR = 1980, 2107
 _LARGE = 1 << 31
 _DATA_STREAM = "::$DATA"
+_FOLDER_ATTRIBUTES = 0o40755 << 16 | 0x10  # without a mode, unzip on POSIX makes folders nobody can open
 
 Progress = Callable[[str, int, int], None]
 
@@ -185,7 +186,7 @@ def _write(plan: ArchivePlan, stream, progress: Progress | None, cancel: threadi
             give_way()
             info = zipfile.ZipInfo(name, _date(entry.modified))
             if entry.is_dir:
-                info.external_attr = 0x10
+                info.external_attr = _FOLDER_ATTRIBUTES
                 archive.writestr(info, b"")
                 continue
             info.compress_type = zipfile.ZIP_DEFLATED

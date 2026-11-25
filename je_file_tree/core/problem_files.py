@@ -144,7 +144,9 @@ def _target(node: Node) -> str | None:
     try:
         if node.is_link:
             text = os.readlink(path)
-            return os.path.normpath(os.path.join(os.path.dirname(path), text))
+            target = os.path.join(os.path.dirname(path), text)
+            # POSIX resolves ".." after following a linked folder, so shortening the text could name another place.
+            return os.path.normpath(target) if sys.platform == "win32" else target
         return _shortcut_target(path)
     except (OSError, ValueError):
         return None
@@ -170,6 +172,8 @@ def target_exists(target: str) -> bool | None:
             return None  # network places and volume names: asking could wait for a server
         if not os.path.exists(drive + "\\"):
             return None  # an absent drive says nothing about the file
+        if len(target) >= WINDOWS_PATH_LIMIT:  # without the prefix Windows finds no such path, existing or not
+            target = "\\\\?\\" + ntpath.normpath(target)
     try:
         os.lstat(target)
     except FileNotFoundError:

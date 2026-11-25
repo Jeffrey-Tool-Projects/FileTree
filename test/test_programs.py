@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from je_file_tree.core import programs
+from je_file_tree.core.multi_scan import scan_roots
 from je_file_tree.core.programs import Program, Programs, installed_programs
 from je_file_tree.core.scanner import scan
 from je_file_tree.core.snapshot import pack_snapshot, unpack_snapshot
@@ -45,6 +46,17 @@ def test_registry_reports_match_exact_folders_without_extra_filesystem_reads(tmp
     assert known.node.size == 4096 and known.reported == 999999 and known.complete
     assert next(row for row in result.rows if row.name == "Missing").node is None
     assert not installed_programs(root, partial=True).rows[0].complete
+
+
+def test_a_combined_scan_matches_folders_of_every_source(tmp_path, monkeypatch):
+    sources = [tmp_path / "one", tmp_path / "two"]
+    for source in sources:
+        (source / "app").mkdir(parents=True)
+        (source / "app" / "data").write_bytes(b"x" * 4096)
+    _providers(monkeypatch, [Program(source.name, "", "", "registry", str(source / "app"), None)
+                             for source in sources])
+    result = installed_programs(scan_roots([str(source) for source in sources]).root)
+    assert {row.name: row.node.size for row in result.rows} == {"one": 4096, "two": 4096}
 
 
 def test_steam_and_epic_names_use_snapshot_guarded_manifests_and_exact_install_locations(tmp_path, monkeypatch):

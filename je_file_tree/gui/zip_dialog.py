@@ -31,6 +31,7 @@ from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.window_fit import fit_window
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 
+_SAME = {"directory_streams": "streams"}  # reasons explained in the same words
 _REASONS = ("target", "exists", "inside", "name", "streams", "copy_unsupported", "folder_required", "verify")
 _STEPS = 1000
 _INTERVAL = .1  # seconds between two progress signals
@@ -157,6 +158,7 @@ class ZipDialog(WorkerDialog):
                                archive=format_size(proof.size, self.unit)))
 
     def _refused(self, reason: str, path: str) -> None:
+        reason = _SAME.get(reason, reason)
         self._ended(tr("zip_reason_" + (reason if reason in _REASONS else "changed"), path=path))
 
     def _ended(self, text: str) -> None:

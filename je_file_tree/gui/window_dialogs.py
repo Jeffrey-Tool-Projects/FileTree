@@ -278,10 +278,12 @@ class DialogActions:
         dialog = RemoteScanDialog(self.settings, self._unit, self)
         chosen: list[str] = []
         dialog.compare_requested.connect(chosen.append)
+        self._settings_dialogs.add(dialog)  # quitting from the tray ends the connection instead of waiting for it
         try:
             dialog.exec()
         finally:
             dialog.shutdown()
+            self._settings_dialogs.discard(dialog)
             dialog.deleteLater()
         if chosen and not self._closing:
             self.show_scan_overview(chosen)

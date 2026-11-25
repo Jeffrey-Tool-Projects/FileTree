@@ -18,6 +18,7 @@ _TAIL = 64 << 10
 _MAX_BOXES = 20_000
 _MAX_TEXT = 300
 _MAX_SECONDS = 30 * 86400.0
+_MAX_SIDE = 1 << 20  # pixels
 
 
 class MediaError(ValueError):
@@ -47,6 +48,8 @@ def read_media(stream: BinaryIO, size: int, suffix: str) -> MediaInfo:
         raise MediaError("damaged headers") from error
     if not 0 < info.duration <= _MAX_SECONDS:
         raise MediaError("no duration")
+    if max(info.width, info.height) > _MAX_SIDE:
+        raise MediaError("no picture size")
     return info
 
 
@@ -240,11 +243,16 @@ def _wav(stream: BinaryIO, size: int) -> MediaInfo:
 
 
 def _comments(data: bytes) -> dict[str, str]:
+    """The comments that were read whole: cover art among them can reach past what is read of an Ogg file."""
     offset = 4 + struct.unpack_from("<I", data)[0]
+    if offset + 4 > len(data):
+        return {}
     count = struct.unpack_from("<I", data, offset)[0]
     offset += 4
     tags: dict[str, str] = {}
     for _ in range(min(count, 200)):
+        if offset + 4 > len(data):
+            break
         length = struct.unpack_from("<I", data, offset)[0]
         name, _separator, value = data[offset + 4:offset + 4 + length].partition(b"=")
         tags.setdefault(_text(name).lower(), _text(value))

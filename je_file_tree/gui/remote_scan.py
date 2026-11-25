@@ -34,7 +34,7 @@ from je_file_tree.core.remote_scan import (
 )
 from je_file_tree.gui.i18n import format_duration, tr
 from je_file_tree.gui.list_transfer import install_copy
-from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.scan_worker import ExportWorker, wait_for
 from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.window_fit import fit_window
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
@@ -78,6 +78,7 @@ class RemoteScanDialog(WorkerDialog):
         fit_window(self, 860, 600)
         self.settings, self.unit, self._closed = settings, unit, False
         self.worker: RemoteScanWorker | None = None
+        self.writer: ExportWorker | None = None
         self.result_: RemoteResult | None = None
         self.saved = ""
         self.host, self.user, self.path = QLineEdit(), QLineEdit(), QLineEdit(".")
@@ -147,9 +148,14 @@ class RemoteScanDialog(WorkerDialog):
         """Whether a connection is being made or used."""
         return self.worker is not None
 
+    @property
+    def saving(self) -> bool:
+        """Whether the result is being written."""
+        return self.writer is not None
+
     def begin(self) -> None:
         """Connect to what the form names; an unusable form is explained and changes nothing."""
-        if self.running:
+        if self.running or self.saving:
             return
         try:
             target = RemoteTarget(self.host.text().strip(), self.path.text().strip() or ".", self.user.text().strip(),
@@ -205,26 +211,45 @@ class RemoteScanDialog(WorkerDialog):
     def _update(self) -> None:
         for field in (self.host, self.user, self.port, self.path):
             field.setEnabled(not self.running)
-        self.start.setEnabled(not self.running)
+        self.start.setEnabled(not self.running and not self.saving)
         self.stop.setEnabled(self.running)
-        self.save.setEnabled(self.result_ is not None)
+        self.save.setEnabled(self.result_ is not None and not self.saving)
         self.compare.setEnabled(bool(self.saved))
 
     def _save(self) -> None:
-        if self.result_ is None:
+        result = self.result_
+        if result is None or self.saving:
             return
         target, _ = QFileDialog.getSaveFileName(self, tr("remote_save"), f"{self.host.text().strip()}.json",
                                                 tr("json_filter"))
         if not target:
             return
-        try:
-            self.result_.save(target)
-        except OSError as error:
-            QMessageBox.warning(self, tr("export_title"), tr("export_failed", reason=str(error)))
-            return
-        self.saved = target
-        self.status.setText(tr("remote_saved", path=os.path.normpath(target)))
+
+        def write() -> int:
+            result.save(target)
+            return result.progress.folders
+
+        writer = ExportWorker(write, self)
+        writer.done.connect(lambda _count: self._written(target))
+        writer.failed.connect(lambda reason: self._written(target, reason))
+        self.writer = writer
+        self.status.setText(tr("export_running", path=os.path.normpath(target)))
         self._update()
+        writer.start()
+
+    def _written(self, target: str, reason: str | None = None) -> None:
+        writer, self.writer = self.writer, None
+        if writer is not None:
+            wait_for(writer)
+            writer.deleteLater()
+        if reason is None:
+            self.saved = target
+            self.status.setText(tr("remote_saved", path=os.path.normpath(target)))
+        else:
+            self.status.setText(tr("export_failed", reason=reason))
+        self._update()
+        if reason is not None and not self._closed:
+            QMessageBox.warning(self, tr("export_title"), tr("export_failed", reason=reason))
 
     def _compare(self) -> None:
         if self.saved:
@@ -232,12 +257,14 @@ class RemoteScanDialog(WorkerDialog):
             self.accept()
 
     def shutdown(self, *, wait: bool = True) -> None:
-        """End the connection and join the worker."""
+        """End the connection and join the workers; a file being written is finished."""
         self._closed = True
         if self.worker is not None:
             self.worker.scan.stop()
-            if wait:
-                wait_for(self.worker)
+        if wait:
+            for worker in (self.worker, self.writer):
+                if worker is not None:
+                    wait_for(worker)
 
     def done(self, result: int) -> None:
         """Join the worker before closing."""

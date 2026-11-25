@@ -64,10 +64,7 @@ def import_scan(file: str | os.PathLike[str]) -> ImportedScan:
     path = Path(file)
     if path.stat().st_size > MAX_BYTES:
         raise SavedScanError("the file is too large")
-    try:
-        return ImportedScan(path.stem[:MAX_LABEL] or "scan", load_saved(path))
-    except RecursionError as error:
-        raise SavedScanError("the folders are nested too deeply") from error
+    return ImportedScan(path.stem[:MAX_LABEL] or "scan", load_saved(path))
 
 
 def unique_label(label: str, taken: Sequence[str]) -> str:
@@ -88,8 +85,8 @@ def overview(scans: Sequence[ImportedScan], *, depth: int = DEFAULT_DEPTH, limit
         raise ValueError("unusable overview")
     names: dict[str, str] = {}
     for item in scans:
-        give_way()
         for key, folder in item.scan.folders.items():
+            give_way()
             if cancel is not None and cancel.is_set():
                 return None
             if (key.count("/") + 1 if key else 0) <= depth:

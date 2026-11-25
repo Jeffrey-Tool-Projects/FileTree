@@ -306,6 +306,8 @@ def test_the_dialog_connects_only_on_request_and_saves(window, qapp, monkeypatch
     target = tmp_path / "saved.json"
     monkeypatch.setattr(gui_module.QFileDialog, "getSaveFileName", lambda *_args: (str(target), ""))
     dialog.save.click()
+    assert dialog.saving and not dialog.start.isEnabled()  # a large tree takes seconds: never on the GUI thread
+    _wait(qapp, lambda: not dialog.saving)
     asked = []
     dialog.compare_requested.connect(asked.append)
     assert target.exists() and dialog.compare.isEnabled()
@@ -314,6 +316,22 @@ def test_the_dialog_connects_only_on_request_and_saves(window, qapp, monkeypatch
     again = RemoteScanDialog(window.settings, "auto", window)
     assert again.host.text() == "host.example" and again.path.text() == "/data"
     again.shutdown()
+
+
+def test_a_failed_save_says_so_and_can_be_repeated(window, qapp, monkeypatch, tmp_path):
+    result, _server = _scan()
+    dialog = _dialog(window, monkeypatch, lambda self, progress=None: result)
+    dialog.host.setText("host.example")
+    dialog.begin()
+    _wait(qapp, lambda: not dialog.running)
+    told = []
+    monkeypatch.setattr(gui_module.QMessageBox, "warning", lambda *args: told.append(args[2]))
+    monkeypatch.setattr(gui_module.QFileDialog, "getSaveFileName",
+                        lambda *_args: (str(tmp_path / "missing" / "x.json"), ""))
+    dialog.save.click()
+    _wait(qapp, lambda: not dialog.saving)
+    assert len(told) == 1 and dialog.save.isEnabled() and not dialog.compare.isEnabled()
+    dialog.shutdown()
 
 
 def test_failures_and_stopping_are_shown(window, qapp, monkeypatch):
@@ -351,7 +369,11 @@ def test_damaged_settings_are_ignored(window, saved):
 
 def test_the_window_passes_a_saved_scan_on_to_the_comparison(window, monkeypatch):
     seen = []
-    monkeypatch.setattr(RemoteScanDialog, "exec", lambda self: self.compare_requested.emit("saved.json"))
+    def choose(dialog):
+        assert dialog in window._settings_dialogs  # closing the window ends the connection
+        dialog.compare_requested.emit("saved.json")
+
+    monkeypatch.setattr(RemoteScanDialog, "exec", choose)
     monkeypatch.setattr(window, "show_scan_overview", lambda files=(): seen.append(files))
     window._actions["remote_scan"].trigger()
-    assert seen == [["saved.json"]]
+    assert seen == [["saved.json"]] and not window._settings_dialogs

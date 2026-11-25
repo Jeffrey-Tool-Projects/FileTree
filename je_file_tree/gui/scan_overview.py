@@ -156,7 +156,8 @@ class ScanOverviewDialog(WorkerDialog):
 
     def add_files(self, files: Sequence[str]) -> None:
         """Read more saved scans on a worker, up to the limit."""
-        room = MAX_SCANS - len(self._scans)
+        waiting = self._current.files if self._current is not None else []  # these are read again with the new ones
+        room = max(0, MAX_SCANS - len(self._scans) - len(waiting))
         if files:
             self._refresh(list(files[:room]), dropped=len(files) - room)
 

@@ -279,10 +279,12 @@ def _total(root: Node) -> None:
     """Add every folder's own files up to its ancestors, deepest first."""
     order, stack = [], [root]
     while stack:
+        give_way()
         node = stack.pop()
         order.append(node)
         stack.extend(node.children)
     for node in reversed(order):
+        give_way()
         for child in node.children:
             node.size += child.size
             node.allocated += child.allocated

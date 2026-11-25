@@ -119,6 +119,18 @@ def test_headers(data, suffix, expected):
         expected.kind, expected.width, expected.height, expected.title, expected.artist)
 
 
+def test_cover_art_past_what_is_read_keeps_the_rest():
+    info = _read(opus(75, title="O", METADATA_BLOCK_PICTURE="A" * 200_000, artist="late"), ".opus")
+    assert info.duration == pytest.approx(75, abs=.05) and (info.title, info.artist) == ("O", "")
+
+
+def test_impossible_picture_sizes_are_refused():
+    info = ebml(0x1549A966, ebml(0x4489, struct.pack(">d", 90_000)))
+    video = ebml(0xE0, ebml(0xB0, bytes([255]) * 400) + ebml(0xBA, bytes([1])))
+    with pytest.raises(MediaError):
+        _read(ebml(0x1A45DFA3, b"") + ebml(0x18538067, info + ebml(0x1654AE6B, ebml(0xAE, video))), ".mkv")
+
+
 def test_mp3_frame_counts():
     assert _read(mp3(180, "x"), ".mp3").duration == pytest.approx(180, abs=.1)
 

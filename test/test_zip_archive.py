@@ -1,6 +1,7 @@
 """Archives hold exactly the scanned folder, verified before they appear; nothing is overwritten, moved or lost."""
 
 import os
+import stat
 import sys
 import threading
 import zipfile
@@ -55,6 +56,8 @@ def test_a_verified_archive_holds_everything_and_leaves_the_original(source, tmp
         names = archive.namelist()
         assert {name: archive.read(name) for name in names if not name.endswith("/")} == before
         assert "資料 2019/sub/empty/" in names and names[0] == "資料 2019/"
+        modes = {info.external_attr >> 16 for info in archive.infolist() if info.is_dir()}
+        assert modes == {stat.S_IFDIR | 0o755}  # without one, unzip on POSIX makes folders nobody can open
     assert proof.plan.files == 3 and proof.plan.bytes == 5 + (3 << 20) and proof.size == target.stat().st_size
     assert {phase for phase, _done, _total in phases} == {"pack", "verify"}
     assert all(0 < done <= total for _phase, done, total in phases)

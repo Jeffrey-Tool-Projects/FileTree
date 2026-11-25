@@ -353,12 +353,15 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
             self._path_dialogs.discard(dialog)
             self._update_actions()
             dialog.deleteLater()
-        if self._closing or not dialog.move_requested or self.results.outcome is not outcome:
+        if self._closing or self.results.outcome is not outcome:
             return
-        if dialog.proof is None or not dialog.proof.unchanged():
+        if dialog.move_requested and (dialog.proof is None or not dialog.proof.unchanged()):
             QMessageBox.warning(self, tr("zip_title"), tr("zip_lost"))
-            return
-        self.move_to_trash([node])
+        elif dialog.move_requested:
+            self.move_to_trash([node])
+        holder = folder_holding(outcome.result.root, target) if dialog.proof is not None else None
+        if holder is not None:  # last: with Follow changes on, this reads the folder again
+            self._mark_changed([holder])
 
     def show_copy(self, nodes: Sequence[Node]) -> None:
         """Review copied folders, join the copy worker, then use ordinary protected-folder Trash approval."""

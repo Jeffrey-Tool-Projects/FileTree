@@ -50,6 +50,7 @@ def test_refusals_failures_and_stops_are_explained_and_can_be_retried(qapp, fold
     _wait(qapp, dialog.start.isEnabled)
     assert dialog.status.text() == i18n.tr("zip_reason_exists", path=str(target)) and not dialog.move.isEnabled()
     for emit, text in ((lambda: dialog._refused("missing", "p"), i18n.tr("zip_reason_changed", path="p")),
+                       (lambda: dialog._refused("directory_streams", "p"), i18n.tr("zip_reason_streams", path="p")),
                        (lambda: dialog.worker.failed.emit("disk full"), i18n.tr("zip_failed", reason="disk full")),
                        (dialog.worker.stopped.emit, i18n.tr("zip_stopped"))):
         emit()
@@ -94,11 +95,26 @@ def test_the_original_is_moved_only_when_asked_and_through_move_to_trash(opened,
         return 1
     monkeypatch.setattr(main_window.ZipDialog, "exec", lambda dialog: archive(dialog, move=False))
     window.show_zip(node)
-    assert target.exists() and moved == []
+    assert target.exists() and moved == [] and not window._trash_rescans  # outside the scan
     target.unlink()
     monkeypatch.setattr(main_window.ZipDialog, "exec", lambda dialog: archive(dialog, move=True))
     window.show_zip(node)
     assert moved == [[node]] and not window._path_dialogs
+
+
+def test_an_archive_inside_the_scan_offers_its_folder_for_a_rescan(opened, qapp, folder, monkeypatch):
+    window, node, _target, _moved = opened
+    root = window.results.tree_model.root
+    monkeypatch.setattr(QFileDialog, "getSaveFileName",
+                        lambda *_args, **_kwargs: (str(folder.parent / "inside.zip"), ""))
+
+    def archive(dialog):
+        dialog.begin()
+        _wait(qapp, lambda: dialog.proof is not None)
+        return 0
+    monkeypatch.setattr(main_window.ZipDialog, "exec", archive)
+    window.show_zip(node)
+    assert window._trash_rescans == [root]
 
 
 def test_a_lost_archive_never_moves_the_original(opened, qapp, monkeypatch):

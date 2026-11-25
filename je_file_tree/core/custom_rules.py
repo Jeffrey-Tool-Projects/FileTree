@@ -11,6 +11,7 @@ from __future__ import annotations
 import ntpath
 import os
 import posixpath
+import re
 import sys
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -25,11 +26,12 @@ MAX_NAME, MAX_PATTERN = 80, 200
 MIN_LITERALS = 3
 MAX_AGE = 36500
 _WILDCARDS = frozenset("*?[]")
+_CLASS = re.compile(r"\[!?\]?[^\]]*\]")  # one character out of a set: says as little as "?"
 _FORBIDDEN = frozenset('<>"|\0\r\n\t')
 
 
 def _literals(text: str) -> int:
-    return sum(character.isalnum() for character in text if character not in _WILDCARDS)
+    return sum(character.isalnum() for character in _CLASS.sub("", text))
 
 
 def _usable_text(text: object, limit: int) -> bool:

@@ -114,8 +114,15 @@ class WindowShortcuts(QObject):
         return self.defaults[key][0].toString(QKeySequence.SequenceFormat.PortableText) if self.defaults[key] else ""
 
     def choose(self, shown: Mapping[str, str]) -> None:
-        """Remember the shortcuts that differ from the defaults, and use them in every window."""
-        chosen = {key: text for key, text in shown.items() if key not in FIXED and text != self.default(key)}
+        """Remember the shortcuts that differ from the defaults, and use them in every window.
+
+        Commands not in ``shown`` (hidden ones, such as restarting as administrator in an elevated window) keep
+        their choices, unless their key was given away.
+        """
+        given = set(filter(None, shown.values()))
+        chosen = {key: text for key, text in self.controller.chosen.items()
+                  if key in self.actions and key not in shown and text not in given}
+        chosen |= {key: text for key, text in shown.items() if key not in FIXED and text != self.default(key)}
         self.settings.setValue(SHORTCUTS_KEY, json.dumps(chosen))
         self.controller.apply(chosen)
 

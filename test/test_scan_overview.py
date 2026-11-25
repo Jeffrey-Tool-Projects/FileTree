@@ -125,6 +125,14 @@ def test_at_most_sixteen_scans(dialog, qapp, files):
     assert i18n.tr("overview_scans_limit", limit=str(MAX_SCANS)) in dialog.status.text()
 
 
+def test_quick_additions_past_the_limit_end(dialog, qapp, files):
+    dialog.add_files([str(files[0])] * MAX_SCANS)
+    dialog.add_files([str(files[1])] * 4)  # before the first ones are read
+    _wait(qapp, lambda: dialog._current is None)
+    assert len(dialog._scans) == MAX_SCANS
+    assert i18n.tr("overview_scans_limit", limit=str(MAX_SCANS)) in dialog.status.text()
+
+
 def test_reports_hold_exact_bytes_and_escape_names(dialog, qapp, tmp_path, monkeypatch):
     hostile = _save(tmp_path / "=cmd<script>.json".replace("<script>", "x"), {"=SUM(A1)": 5, "<b>bold</b>": 7})
     dialog.add_files([str(hostile)])

@@ -61,6 +61,18 @@ def test_choices_apply_in_every_window_and_are_remembered(window):
     third.deleteLater()
 
 
+def test_hidden_commands_keep_their_keys_until_they_are_given_away(window):
+    shortcut_controller().apply({"elevate": "Ctrl+G", "programs": "Ctrl+J"})
+    window._actions["elevate"].setVisible(False)
+    dialog = ShortcutsDialog(window._shortcuts)
+    assert "elevate" not in dialog.edits
+    dialog.accept()
+    assert shortcut_controller().chosen == {"elevate": "Ctrl+G", "programs": "Ctrl+J"}
+    dialog.deleteLater()
+    window._shortcuts.choose({"programs": "Ctrl+G"})
+    assert shortcut_controller().chosen == {"programs": "Ctrl+G"}
+
+
 def test_a_chosen_key_takes_over_another_commands_default(window):
     default = window._shortcuts.default("open")
     shortcut_controller().apply({"programs": default})

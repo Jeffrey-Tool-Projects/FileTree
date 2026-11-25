@@ -45,7 +45,9 @@ def _paths(groups, rule):
 
 @pytest.mark.parametrize("fields", [
     {"name": ""}, {"name": " x"}, {"name": "a:b"}, {"name": "x" * 81}, {"name": "line\nbreak"}, {"name": 5},
-    {"folders": (), "files": ()}, {"files": ("*",)}, {"files": ("*.*",)}, {"files": ("*.b",)}, {"files": ("a/b.bak",)},
+    {"folders": (), "files": ()}, {"files": ("*",)}, {"files": ("*.*",)}, {"files": ("*.b",)},
+    {"files": ("[a-z0-9]*",)}, {"files": ("[!abc]*",)},
+    {"folders": ("[abcd]*/x",)}, {"files": ("a/b.bak",)},
     {"files": ("C:x.bak",)}, {"files": ("..",)}, {"folders": ("*",)}, {"folders": ("/",)}, {"folders": ("/data",)},
     {"folders": ("a/../b",)}, {"folders": ("Users/*",)}, {"folders": ("C:/Windows",)}, {"folders": ("a\\b",)},
     {"folders": ("x" * 201,)}, {"folders": ("aaa",) * (MAX_PATTERNS + 1)}, {"folders": ["aaa"]}, {"files": (3,)},
