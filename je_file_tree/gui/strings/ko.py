@@ -2146,4 +2146,31 @@ KO: dict[str, str] = {
     "overview_scans_item": "{label} — {size}({saved})",
     "overview_scans_csv": "CSV로 저장…",
     "overview_scans_html": "HTML로 저장…",
+    "menu_zip": "ZIP으로 보관…",
+    "zip_title": "폴더 보관",
+    "zip_filter": "ZIP 압축 파일 (*.zip)",
+    "zip_facts": "폴더: {path}\n보관 파일: {target}\n파일 {files}개, {size}",
+    "zip_hint": (
+        "모든 파일을 보관 파일에서 다시 읽어 비교한 뒤에야 보관 파일이 나타납니다. ZIP은 이름, 내"
+        "용, 수정 시간을 유지하지만 소유자, 권한, 확장 속성은 유지하지 않습니다. 폴더는 그대로 남"
+        "습니다."
+    ),
+    "zip_start": "보관 파일 만들기",
+    "zip_move": "원본 폴더를 휴지통으로 이동…",
+    "zip_checking": "폴더 확인 중…",
+    "zip_pack": "압축 중…",
+    "zip_verify": "다시 읽어 비교 중…",
+    "zip_stopped": "중지했습니다. 보관 파일은 남지 않았습니다.",
+    "zip_failed": "보관 파일을 만들지 못했으며 남은 파일도 없습니다.\n{reason}",
+    "zip_done": "완료: 파일 {files}개, {size}, 검증됨. 보관 파일은 {archive}입니다. 원본은 그대로입니다.",
+    "zip_lost": "보관 파일이 검증한 파일이 아닙니다. 원본을 옮기지 않았습니다.",
+    "zip_reason_target": "기존 폴더의 .zip 파일을 선택하세요.\n{path}",
+    "zip_reason_exists": "이미 있는 파일입니다. 덮어쓰지 않습니다.\n{path}",
+    "zip_reason_inside": "보관 파일을 보관할 폴더 안에 둘 수 없습니다.\n{path}",
+    "zip_reason_name": "이 이름은 ZIP에 정확히 보존할 수 없습니다.\n{path}",
+    "zip_reason_streams": "이 파일에는 다른 데이터 스트림이 있어 ZIP에서 사라집니다.\n{path}",
+    "zip_reason_copy_unsupported": "링크, 온라인에만 있는 파일, 특수 파일이 있거나 마운트 지점입니다.\n{path}",
+    "zip_reason_folder_required": "일반 폴더만 보관할 수 있습니다.\n{path}",
+    "zip_reason_verify": "보관 파일을 올바르게 다시 읽지 못해 제거했습니다.\n{path}",
+    "zip_reason_changed": "폴더가 스캔할 때와 다릅니다. 먼저 다시 스캔하세요.\n{path}",
 }

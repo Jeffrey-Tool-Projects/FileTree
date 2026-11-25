@@ -2292,4 +2292,37 @@ JA: dict[str, str] = {
     "overview_scans_item": "{label} — {size}（{saved}）",
     "overview_scans_csv": "CSV で保存…",
     "overview_scans_html": "HTML で保存…",
+    "menu_zip": "ZIP にアーカイブ…",
+    "zip_title": "フォルダーをアーカイブ",
+    "zip_filter": "ZIP アーカイブ (*.zip)",
+    "zip_facts": "フォルダー: {path}\nアーカイブ: {target}\n{files} 個のファイル、{size}",
+    "zip_hint": (
+        "すべてのファイルをアーカイブから読み戻して比較し、終わってからアーカイブが現れます。ZIP "
+        "は名前、内容、更新日時を保ちますが、所有者、アクセス許可、拡張属性は保ちません。フォルダ"
+        "ーはそのまま残ります。"
+    ),
+    "zip_start": "アーカイブを作成",
+    "zip_move": "元のフォルダーをごみ箱に移動…",
+    "zip_checking": "フォルダーを確認中…",
+    "zip_pack": "圧縮中…",
+    "zip_verify": "読み戻して比較中…",
+    "zip_stopped": "停止しました。アーカイブは残っていません。",
+    "zip_failed": "アーカイブを作成できませんでした。ファイルは残っていません。\n{reason}",
+    "zip_done": (
+        "完了: {files} 個のファイル、{size} を検証しました。アーカイブは {archive} です。元のフォ"
+        "ルダーは変わっていません。"
+    ),
+    "zip_lost": "アーカイブが検証したファイルではなくなっています。元のフォルダーは移動していません。",
+    "zip_reason_target": "既存のフォルダーの .zip ファイルを選んでください。\n{path}",
+    "zip_reason_exists": "そのファイルは既にあります。上書きはしません。\n{path}",
+    "zip_reason_inside": "アーカイブを対象のフォルダーの中に置くことはできません。\n{path}",
+    "zip_reason_name": "この名前は ZIP で正確に保てません。\n{path}",
+    "zip_reason_streams": "このファイルにはほかのデータ ストリームがあり、ZIP では失われます。\n{path}",
+    "zip_reason_copy_unsupported": (
+        "リンク、オンラインにしかないファイル、特殊ファイルが含まれているか、マ"
+        "ウント ポイントです。\n{path}"
+    ),
+    "zip_reason_folder_required": "アーカイブできるのは通常のフォルダーだけです。\n{path}",
+    "zip_reason_verify": "アーカイブを正しく読み戻せなかったため削除しました。\n{path}",
+    "zip_reason_changed": "フォルダーがスキャン時と異なります。先に再スキャンしてください。\n{path}",
 }

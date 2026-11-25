@@ -2056,4 +2056,34 @@ EN: dict[str, str] = {
     "overview_scans_item": "{label} — {size} ({saved})",
     "overview_scans_csv": "Save as CSV…",
     "overview_scans_html": "Save as HTML…",
+    "menu_zip": "Archive to ZIP…",
+    "zip_title": "Archive a folder",
+    "zip_filter": "ZIP archives (*.zip)",
+    "zip_facts": "Folder: {path}\nArchive: {target}\n{files} files, {size}",
+    "zip_hint": (
+        "Every file is read back from the archive and compared before it appears. A ZIP keeps names,"
+        " contents and modification times, but not owners, permissions or extended attributes. The"
+        " folder stays where it is."
+    ),
+    "zip_start": "Create archive",
+    "zip_move": "Move the original to the Recycle Bin…",
+    "zip_checking": "Checking the folder…",
+    "zip_pack": "Packing…",
+    "zip_verify": "Reading back and comparing…",
+    "zip_stopped": "Stopped. No archive was left.",
+    "zip_failed": "The archive could not be created; none was left.\n{reason}",
+    "zip_done": "Done: {files} files, {size}, verified. The archive takes {archive}. The original is untouched.",
+    "zip_lost": "The archive is no longer the file that was verified. The original was not moved.",
+    "zip_reason_target": "Choose a .zip file in an existing folder.\n{path}",
+    "zip_reason_exists": "That file already exists; nothing is overwritten.\n{path}",
+    "zip_reason_inside": "The archive cannot be inside the folder it holds.\n{path}",
+    "zip_reason_name": "This name cannot be kept exactly in a ZIP.\n{path}",
+    "zip_reason_streams": "This file has more data streams, which a ZIP would lose.\n{path}",
+    "zip_reason_copy_unsupported": (
+        "The folder holds a link, a file kept only online or a special file, or"
+        " is a mount point.\n{path}"
+    ),
+    "zip_reason_folder_required": "Only an ordinary folder can be archived.\n{path}",
+    "zip_reason_verify": "The archive did not read back correctly and was removed.\n{path}",
+    "zip_reason_changed": "The folder is not as it was scanned: rescan it first.\n{path}",
 }

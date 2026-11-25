@@ -105,6 +105,7 @@ from je_file_tree.gui.permanent_delete import (
 from je_file_tree.gui.trash_undo import TrashUndo
 from je_file_tree.gui.recent_actions import RecentActions, journal_folder
 from je_file_tree.gui.welcome import WelcomePage
+from je_file_tree.gui.zip_dialog import ZipDialog
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue_worker
 from je_file_tree.gui.multi_scan import MultiScanDialog
 from je_file_tree.gui.folder_validation import FolderDrops
@@ -601,10 +602,7 @@ class MainWindow(QMainWindow):
         if movable:
             menu.addSeparator()
             if self._worker is None and not self.operation_busy:
-                menu.addAction(tr("menu_move_folder")).triggered.connect(lambda: self.show_namespace(picked))
-                menu.addAction(tr("menu_rename")).triggered.connect(lambda: self.show_namespace(picked, rename=True))
-                if any(entry.is_dir and not entry.is_link for entry in movable):
-                    menu.addAction(tr("menu_move_drive")).triggered.connect(lambda: self.show_copy(picked))
+                self._add_move_entries(menu, picked, movable)
             text = tr("action_trash") if len(movable) == 1 else tr("action_trash_many",
                                                                     count=format_count(len(movable)))
             menu.addAction(text).triggered.connect(lambda: self.move_to_trash(movable))
@@ -617,6 +615,14 @@ class MainWindow(QMainWindow):
             for key in ("export_chart_png", "export_chart_svg"):
                 menu.addAction(self._actions[key])
         menu.exec(point)
+
+    def _add_move_entries(self, menu: QMenu, picked: Sequence[Node], movable: Sequence[Node]) -> None:
+        menu.addAction(tr("menu_move_folder")).triggered.connect(lambda: self.show_namespace(picked))
+        menu.addAction(tr("menu_rename")).triggered.connect(lambda: self.show_namespace(picked, rename=True))
+        if any(entry.is_dir and not entry.is_link for entry in movable):
+            menu.addAction(tr("menu_move_drive")).triggered.connect(lambda: self.show_copy(picked))
+        if len(movable) == 1 and movable[0].is_dir and not movable[0].is_link:
+            menu.addAction(tr("menu_zip")).triggered.connect(lambda: self.show_zip(movable[0]))
 
     def show_properties(self, node: Node) -> None:
         """Open the selected entry's Windows Properties, reporting shell failures."""
@@ -650,6 +656,33 @@ class MainWindow(QMainWindow):
             self.results.clear_capacity()
             self._bin_labels.refresh()
             self._mark_changed([root])
+
+    def show_zip(self, node: Node) -> None:
+        """Archive one folder; moving the original goes through the ordinary Recycle Bin questions."""
+        outcome = self.results.outcome
+        if (outcome is None or self._path_dialogs or self._worker is not None or self.operation_busy
+                or node.parent is None or not node.is_in(outcome.result.root) or outcome.result.root.path is None):
+            return
+        target, _ = QFileDialog.getSaveFileName(self, tr("zip_title"), f"{node.path}.zip", tr("zip_filter"),
+                                                options=QFileDialog.Option.DontConfirmOverwrite)
+        if not target:
+            return
+        dialog = ZipDialog(outcome.result.root, node, target, self._unit, self)
+        self._path_dialogs.add(dialog)
+        self._update_actions()
+        try:
+            dialog.exec()
+        finally:
+            dialog.shutdown()
+            self._path_dialogs.discard(dialog)
+            self._update_actions()
+            dialog.deleteLater()
+        if self._closing or not dialog.move_requested or self.results.outcome is not outcome:
+            return
+        if dialog.proof is None or not dialog.proof.unchanged():
+            QMessageBox.warning(self, tr("zip_title"), tr("zip_lost"))
+            return
+        self.move_to_trash([node])
 
     def show_copy(self, nodes: Sequence[Node]) -> None:
         """Review copied folders, join the copy worker, then use ordinary protected-folder Trash approval."""
