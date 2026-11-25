@@ -1800,4 +1800,21 @@ ZH_CN: dict[str, str] = {
     "shortcuts_keys": "快捷键",
     "shortcuts_reset": "恢复默认",
     "shortcuts_conflict": "这些快捷键无法使用，或重复使用：{names}",
+    "action_dev_tools": "开发工具…",
+    "action_dev_tools_tip": "Docker、pip、npm、Cargo 等工具占用的空间，以及它们自己的清理命令",
+    "dev_tools_tool": "工具",
+    "dev_tools_stores": "文件夹",
+    "dev_tools_inspect": "查看内容",
+    "dev_tools_clean": "清理",
+    "dev_tools_automatic": "会自动过期",
+    "dev_tools_hint": (
+        "大小来自界面上的扫描。FileTree 不会执行这些命令：请复制后自行在终端执行。工具自己的"
+        "命令会跳过使用中的数据并保持记录正确，直接删除文件夹则不会。"
+    ),
+    "dev_tools_reading": "查找中…",
+    "dev_tools_none": "这次扫描中没有已知的开发工具数据。",
+    "dev_tools_summary": "{count} 个工具在磁盘上占用 {size}。双击可选中工具最大的文件夹。",
+    "dev_tools_copy_inspect": "复制查看命令",
+    "dev_tools_copy_clean": "复制清理命令",
+    "dev_tools_copied": "已复制：{command}",
 }

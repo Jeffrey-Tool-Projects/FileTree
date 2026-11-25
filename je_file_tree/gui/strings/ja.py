@@ -2245,4 +2245,25 @@ JA: dict[str, str] = {
     "shortcuts_keys": "ショートカット",
     "shortcuts_reset": "既定に戻す",
     "shortcuts_conflict": "使えない、または重複しているショートカットがあります: {names}",
+    "action_dev_tools": "開発ツール…",
+    "action_dev_tools_tip": "Docker、pip、npm、Cargo などが使う容量と、それぞれのクリーンアップ コマンド",
+    "dev_tools_tool": "ツール",
+    "dev_tools_stores": "フォルダー",
+    "dev_tools_inspect": "内容を見る",
+    "dev_tools_clean": "クリーンアップ",
+    "dev_tools_automatic": "自動で期限切れ",
+    "dev_tools_hint": (
+        "サイズは表示中のスキャンのものです。FileTree がこれらのコマンドを実行することはあり"
+        "ません。コピーして自分で端末で実行してください。ツール自身のコマンドは使用中のデー"
+        "タを避け、記録を正しく保ちますが、フォルダーを直接削除するとそうはなりません。"
+    ),
+    "dev_tools_reading": "探しています…",
+    "dev_tools_none": "このスキャンに既知の開発ツールのデータはありません。",
+    "dev_tools_summary": (
+        "{count} 個のツールがディスクで {size} を使っています。ダブルクリックすると最大の"
+        "フォルダーを選択します。"
+    ),
+    "dev_tools_copy_inspect": "内容を見るコマンドをコピー",
+    "dev_tools_copy_clean": "クリーンアップのコマンドをコピー",
+    "dev_tools_copied": "コピーしました: {command}",
 }

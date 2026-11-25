@@ -2099,4 +2099,25 @@ KO: dict[str, str] = {
     "shortcuts_keys": "단축키",
     "shortcuts_reset": "기본값 복원",
     "shortcuts_conflict": "사용할 수 없거나 겹치는 단축키가 있습니다: {names}",
+    "action_dev_tools": "개발 도구…",
+    "action_dev_tools_tip": "Docker, pip, npm, Cargo 등이 차지하는 공간과 각 도구의 정리 명령",
+    "dev_tools_tool": "도구",
+    "dev_tools_stores": "폴더",
+    "dev_tools_inspect": "내용 보기",
+    "dev_tools_clean": "정리",
+    "dev_tools_automatic": "자동으로 만료",
+    "dev_tools_hint": (
+        "크기는 화면의 스캔에서 가져옵니다. FileTree는 이 명령을 실행하지 않습니다. 복사해서"
+        " 터미널에서 직접 실행하세요. 도구의 명령은 사용 중인 데이터를 건너뛰고 기록을 올바"
+        "르게 유지하지만, 폴더를 직접 지우면 그렇지 않습니다."
+    ),
+    "dev_tools_reading": "찾는 중…",
+    "dev_tools_none": "이 스캔에는 알려진 개발 도구의 데이터가 없습니다.",
+    "dev_tools_summary": (
+        "도구 {count}개가 디스크에서 {size}를 차지합니다. 두 번 클릭하면 가장 큰 폴더를 "
+        "선택합니다."
+    ),
+    "dev_tools_copy_inspect": "내용 보기 명령 복사",
+    "dev_tools_copy_clean": "정리 명령 복사",
+    "dev_tools_copied": "복사함: {command}",
 }

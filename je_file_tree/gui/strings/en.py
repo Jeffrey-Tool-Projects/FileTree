@@ -2009,4 +2009,25 @@ EN: dict[str, str] = {
     "shortcuts_keys": "Shortcut",
     "shortcuts_reset": "Restore defaults",
     "shortcuts_conflict": "These shortcuts cannot be used, or are used twice: {names}",
+    "action_dev_tools": "Development tools…",
+    "action_dev_tools_tip": "What Docker, pip, npm, Cargo and others keep, with their own clean-up commands",
+    "dev_tools_tool": "Tool",
+    "dev_tools_stores": "Folders",
+    "dev_tools_inspect": "See what it holds",
+    "dev_tools_clean": "Clean up",
+    "dev_tools_automatic": "expires by itself",
+    "dev_tools_hint": (
+        "Sizes are from the scan on screen. FileTree never runs these commands: copy one and"
+        " run it in a terminal yourself. A tool's own command skips what is in use and keeps"
+        " its records right, which deleting its folders does not."
+    ),
+    "dev_tools_reading": "Looking…",
+    "dev_tools_none": "No known development tool keeps data in this scan.",
+    "dev_tools_summary": (
+        "{count} tools take {size} on disk. Double-click selects the largest folder of a"
+        " tool."
+    ),
+    "dev_tools_copy_inspect": "Copy the command to look",
+    "dev_tools_copy_clean": "Copy the command to clean up",
+    "dev_tools_copied": "Copied: {command}",
 }

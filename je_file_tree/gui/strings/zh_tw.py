@@ -1799,4 +1799,21 @@ ZH_TW: dict[str, str] = {
     "shortcuts_keys": "快速鍵",
     "shortcuts_reset": "恢復預設",
     "shortcuts_conflict": "這些快速鍵無法使用，或重複使用：{names}",
+    "action_dev_tools": "開發工具…",
+    "action_dev_tools_tip": "Docker、pip、npm、Cargo 等工具佔用的空間，以及它們自己的清理指令",
+    "dev_tools_tool": "工具",
+    "dev_tools_stores": "資料夾",
+    "dev_tools_inspect": "查看內容",
+    "dev_tools_clean": "清理",
+    "dev_tools_automatic": "會自動過期",
+    "dev_tools_hint": (
+        "大小來自畫面上的掃描。FileTree 不會執行這些指令：請複製後自行在終端機執行。工具自己"
+        "的指令會略過使用中的資料並維持紀錄正確，直接刪除資料夾則不會。"
+    ),
+    "dev_tools_reading": "尋找中…",
+    "dev_tools_none": "這次掃描中沒有已知的開發工具資料。",
+    "dev_tools_summary": "{count} 個工具在磁碟上佔用 {size}。按兩下可選取工具最大的資料夾。",
+    "dev_tools_copy_inspect": "複製查看指令",
+    "dev_tools_copy_clean": "複製清理指令",
+    "dev_tools_copied": "已複製：{command}",
 }
