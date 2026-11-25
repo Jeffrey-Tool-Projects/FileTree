@@ -223,3 +223,23 @@ def test_a_compiled_program_without_source_files_still_calibrates(native, tmp_pa
     monkeypatch.setattr(native_scan.sys, "executable", str(tmp_path / "gone" / "program.exe"))
     assert native_scan.reader() is None  # nothing left to compare with: read in Python
     native_scan.reset()
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="junctions")
+def test_a_junction_whose_target_is_gone_is_no_folder_either_way(tmp_path, monkeypatch):
+    import _winapi
+
+    (tmp_path / "scan").mkdir()
+    (tmp_path / "target").mkdir()
+    _winapi.CreateJunction(str(tmp_path / "target"), str(tmp_path / "scan" / "link"))
+    for gone in (False, True):
+        if gone:
+            (tmp_path / "target").rmdir()
+        kinds = []
+        for native in (True, False):
+            with monkeypatch.context() as patch:
+                if not native:
+                    patch.setattr(native_scan, "reader", lambda: None)
+                node = scan(tmp_path / "scan").root.children[0]
+            kinds.append((node.is_link, node.is_dir))
+        assert kinds == [(True, not gone)] * 2

@@ -221,7 +221,8 @@ class FollowChanges(QObject):
         """Start a feed over ``scope``: beside the running one, which it then replaces, else after the old ones join."""
         if self._previous is not None:
             self._retire(self._previous)
-        feed = ChangeWorker(scope, self._handoff)
+        # Without an agreed place to read on from, take the running feed's: what it has not polled yet is not lost.
+        feed = ChangeWorker(scope, self._handoff or self._position())
         self._previous, self.worker = self.worker, feed
         self._handoff = None
         if self._previous is not None:

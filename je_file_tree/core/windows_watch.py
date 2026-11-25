@@ -67,7 +67,7 @@ def parse_notifications(payload: bytes, root: str, scopes: set[str]) -> ChangeBa
         end = offset + _NOTIFY.size + length
         if action not in (1, 2, 3, 4, 5) or length % 2 or not length or end > len(payload):
             raise ValueError("Invalid Windows notification record")
-        name = payload[offset + _NOTIFY.size:end].decode("utf-16-le")
+        name = payload[offset + _NOTIFY.size:end].decode("utf-16-le", "surrogatepass")
         parent = _parent(root, name)
         named = ntpath.normpath(ntpath.join(root, name))
         paths.add(named if action == _ACTION_MODIFIED and named in scopes else parent)
@@ -114,7 +114,7 @@ def parse_usn(payload: bytes, scopes: dict[int, str], root: str, start: int,  # 
                 or not start <= usn < next_usn or length % 2 or not length or name_at < _USN.size
                 or name_at + length > size):
             raise ValueError("Unsupported or corrupt USN record")
-        name = payload[offset + name_at:offset + name_at + length].decode("utf-16-le")
+        name = payload[offset + name_at:offset + name_at + length].decode("utf-16-le", "surrogatepass")
         if "\0" in name or "/" in name or "\\" in name or name in (".", ".."):
             raise ValueError("Invalid USN filename")
         if reason & _HARD_LINK_CHANGE and _relinked(inode, parent, scopes, shared, linked):

@@ -302,7 +302,8 @@ PyObject* row_of(const Entry& entry) {
         return nullptr;
     }
     if (entry.kind == KIND_ASK_PYTHON) {
-        PyObject* row = Py_BuildValue("(NiLdOI)", name, entry.kind, 0LL, 0.0, Py_None, 0U);
+        PyObject* row = Py_BuildValue("(NiLdOI)", name, entry.kind, 0LL, 0.0, Py_None,
+                                      static_cast<unsigned int>(entry.attributes));
         return row;
     }
     // No "#" format: built with the headers of Python 3.13 or later it calls a function that
@@ -697,8 +698,12 @@ void read_pieces(const std::wstring& volume_path, const std::vector<MftPiece>& p
             break;
         }
         unsigned char* data = static_cast<unsigned char*>(buffer);
-        for (std::size_t at = 0; at + record_size <= got; at += record_size) {
-            parse_record(data + at, record_size, piece.first_record + at / record_size, index, found);
+        try {
+            for (std::size_t at = 0; at + record_size <= got; at += record_size) {
+                parse_record(data + at, record_size, piece.first_record + at / record_size, index, found);
+            }
+        } catch (const std::bad_alloc&) {  // leaving a thread with an exception would end the program
+            found.error = ERROR_NOT_ENOUGH_MEMORY;
         }
     }
     if (buffer != nullptr) {
@@ -787,9 +792,16 @@ DWORD read_table(const std::wstring& drive, MftIndex& index) {
     LONG volatile next = 0;
     {
         std::vector<std::thread> readers;
-        for (MftFound& part : found) {
-            readers.emplace_back(read_pieces, std::cref(volume_path), std::cref(pieces),
-                                 static_cast<std::size_t>(record_size), &next, std::ref(index), std::ref(part));
+        readers.reserve(found.size());
+        try {
+            for (MftFound& part : found) {
+                readers.emplace_back(read_pieces, std::cref(volume_path), std::cref(pieces),
+                                     static_cast<std::size_t>(record_size), &next, std::ref(index), std::ref(part));
+            }
+        } catch (const std::exception&) {  // the threads that did start read every piece, and must be joined
+            if (readers.empty()) {
+                throw;
+            }
         }
         for (std::thread& reader : readers) {
             reader.join();
