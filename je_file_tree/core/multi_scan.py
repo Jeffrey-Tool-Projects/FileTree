@@ -3,26 +3,30 @@
 from collections.abc import Sequence
 from dataclasses import replace
 import os
+import stat
 import threading
 import time
 
+from je_file_tree.core.exclusions import exclusion_test
 from je_file_tree.core.hard_links import account_hard_links
 from je_file_tree.core.mounts import mount_points
 from je_file_tree.core.node import Node
 from je_file_tree.core.scanner import (NOT_SCANNED, ProgressCallback, RootCallback, ScanCancelledError,
                                       ScanOptions, ScanProgress, ScanResult, scan)
+from je_file_tree.core.snapshot import pack_snapshot, unpack_snapshot
 
 MAX_ROOTS = 256
 
 
-def _roots(paths: Sequence[str | os.PathLike[str]]) -> tuple[str, ...]:
+def _roots(paths: Sequence[str | os.PathLike[str]], options: ScanOptions | None = None) -> tuple[str, ...]:
     if isinstance(paths, (str, bytes)) or not 1 <= len(paths) <= MAX_ROOTS:
         raise ValueError("a multi-scan requires between 1 and 256 explicit roots")
     unique = {os.path.normcase(os.path.abspath(os.fspath(path))): os.path.abspath(os.fspath(path)) for path in paths}
     points = mount_points()
     kept: list[str] = []
     for path in sorted(unique.values(), key=lambda value: (len(value), os.path.normcase(value))):
-        if not any(_overlaps(parent, path, points) for parent in kept):
+        if not any(_overlaps(parent, path, points) and _reached(parent, path, options or ScanOptions())
+                   for parent in kept):
             kept.append(path)
     return tuple(kept)
 
@@ -45,6 +49,23 @@ def _overlaps(parent: str, path: str, points: frozenset[str]) -> bool:
                    and os.path.commonpath((point, path)) == point for point in boundaries)
 
 
+def _reached(parent: str, path: str, options: ScanOptions) -> bool:
+    """Whether scanning ``parent`` reads ``path``: no link, excluded or omitted hidden folder lies on the way."""
+    excluded = exclusion_test(options.exclude)
+    while path != parent:
+        name = os.path.basename(path)
+        try:
+            info = os.lstat(path)
+        except OSError:
+            return False
+        hidden = name.startswith(".") or getattr(info, "st_file_attributes", 0) & stat.FILE_ATTRIBUTE_HIDDEN
+        if (unpack_snapshot(pack_snapshot(info)).is_link or hidden and not options.include_hidden
+                or excluded is not None and excluded(name, path)):
+            return False
+        path = os.path.dirname(path)
+    return True
+
+
 def _aggregate(result: ScanResult, started: float, options: ScanOptions, *, ordered: bool = True) -> ScanResult:
     root = result.root
     root.size = sum(child.size for child in root.children)
@@ -65,15 +86,16 @@ def scan_roots(paths: Sequence[str | os.PathLike[str]], *, options: ScanOptions 
                on_root: RootCallback | None = None, pause: threading.Event | None = None) -> ScanResult:
     """Scan explicit roots sequentially under one pathless node, with bounded ordinary worker pools.
 
-    Exact duplicate and overlapping ordinary paths are collapsed; explicit mounted scopes remain
+    Exact duplicate and overlapping ordinary paths are collapsed, unless a link or a skipped folder lies
+    between them, so the outer scan would not read the inner one; explicit mounted scopes remain
     independent because the normal scanner never traverses those boundaries. A failed root remains
     an error-bearing child, rather than an empty successful folder. Cancellation preserves scanned,
     active partial and still-pending roots. Callbacks run on the calling thread; active crawlers join.
     Hard-link accounting is applied once over all observed roots, never independently per folder.
     The virtual root grants no filesystem operation authority or aggregate OS capacity.
     """
-    normalized = _roots(paths)
     options = options or ScanOptions()
+    normalized = _roots(paths, options)
     started = time.monotonic()
     virtual = Node("", True, children=[])
     virtual.children = [Node(path, True, parent=virtual, error=NOT_SCANNED, children=[]) for path in normalized]

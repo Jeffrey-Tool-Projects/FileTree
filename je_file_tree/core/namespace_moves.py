@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 import os
 from pathlib import Path
 import re
@@ -15,7 +15,7 @@ from je_file_tree.core.no_replace import DirectoryStamp, anchored_directory, dir
 from je_file_tree.core.operations import revalidate
 from je_file_tree.core.pacing import give_way
 from je_file_tree.core.protected import Protection, protected_places, protection_of
-from je_file_tree.core.snapshot import stable_snapshot, stat_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import renamed, stable_snapshot, stat_snapshot, unpack_snapshot
 from je_file_tree.core.system_files import system_file
 
 MAX_ITEMS = 1000
@@ -124,6 +124,8 @@ def _source_reason(node: Node, root: Node, places: Sequence[Protection], cancel:
     for entry in node.iter_nodes():
         if cancel is not None and cancel.is_set():
             return "cancelled"
+        if entry.is_dir:
+            give_way()
         if entry.snapshot is not None and unpack_snapshot(entry.snapshot).attributes & _UNAVAILABLE:
             return "unavailable"
     return revalidate(node, root, places=places, cancel=cancel, snapshot_overrides=overrides) or ""
@@ -219,7 +221,7 @@ def _receipt(item: NamespaceItem, expected: bytes, overrides: dict[tuple[int, in
     try:
         current = stat_snapshot(item.destination)
         before, after = unpack_snapshot(expected), unpack_snapshot(current)
-        if replace(after, changed_ns=before.changed_ns) != before:
+        if not renamed(before, after):
             raise ValueError("Renamed entry changed during the operation")
     except (OSError, ValueError) as exc:
         try:

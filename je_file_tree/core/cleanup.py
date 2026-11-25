@@ -145,7 +145,7 @@ def find_cleanup(root: Node, *, rules: tuple[Rule, ...] = RULES, now: float | No
     empty_age = empty_setting.minimum_age if empty_setting else DETAILS[EMPTY_FOLDERS].minimum_age
     empty = [] if empty_setting is not None and not empty_setting.enabled else [
         folder for folder in empty_folders(root) if folder not in blocked and folder not in omitted
-        and not _inside(folder, claimed) and matcher.old_enough(folder, empty_age)]
+        and id(folder) not in claimed and not _inside(folder, claimed) and matcher.old_enough(folder, empty_age)]
     if cancel is not None and cancel.is_set():
         return None
     if empty:

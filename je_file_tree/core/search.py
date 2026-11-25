@@ -143,10 +143,11 @@ def _collect(root: Node, test: Callable[..., object], cancel: threading.Event | 
         if bounds.stops(above):
             continue
         counts = bounds.deep_enough(depth)
+        sources = folder.path is None  # a combined scan's own folders: what the search is in, not what it finds
         for child in folder.children:
-            if excluded is not None and excluded(child.name) is not None:
+            if not sources and excluded is not None and excluded(child.name) is not None:
                 continue
-            matched = counts and bool(test(child.name if by_name else child))
+            matched = counts and not sources and bool(test(child.name if by_name else child))
             if matched:
                 found.append(child)
                 if not counted:

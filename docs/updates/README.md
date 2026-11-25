@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-24 | 2026-11-26 | 全專案審查第三輪：核心模組 | #done #fix #review | [2026-11-b](2026-11-b.md) |
 | U-20261126-23 | 2026-11-26 | 全專案審查第二輪：測試防護、工具與發行流程 | #done #fix #review #test #ci #security | [2026-11-b](2026-11-b.md) |
 | U-20261126-22 | 2026-11-26 | 全專案審查第一輪：未發行的程式 | #done #fix #review | [2026-11-b](2026-11-b.md) |
 | U-20261126-21 | 2026-11-26 | 修正 Windows CI 的時鐘誤差與測試殘留視窗 | #done #fix #test #ci | [2026-11-b](2026-11-b.md) |

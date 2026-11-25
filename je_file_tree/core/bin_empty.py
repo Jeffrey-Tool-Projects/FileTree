@@ -191,7 +191,10 @@ def _receipt(fd: int, name: str) -> BinEntry:
         if pack_snapshot(os.fstat(stream.fileno())) != pack_snapshot(info):
             raise OSError("Trash receipt changed before reading")
         parser = configparser.ConfigParser(interpolation=None)
-        parser.read_string(stream.read(MAX_RECEIPT_BYTES + 1))
+        try:
+            parser.read_string(stream.read(MAX_RECEIPT_BYTES + 1))
+        except configparser.Error as error:
+            raise OSError("Unrecognized Trash receipt contents") from error
         if not parser.has_section("Trash Info") or not parser.get("Trash Info", "Path", fallback=""):
             raise OSError("Unrecognized Trash receipt contents")
         if pack_snapshot(os.fstat(stream.fileno())) != pack_snapshot(info):

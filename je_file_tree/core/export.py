@@ -194,12 +194,15 @@ def _write_csv(target: str | os.PathLike[str], header: tuple[str, ...],
 
 @contextmanager
 def _atomic_file(target: str | os.PathLike[str], *, encoding: str) -> Iterator[TextIO]:
-    """Write to a temporary sibling, replacing the destination only after a successful close."""
+    """Write to a temporary sibling, replacing the destination only after a successful close.
+
+    A lone surrogate in a file name (Windows and Linux allow them) is written as ``\\udXXX``, which JSON reads back.
+    """
     target = os.fspath(target)
     folder = os.path.dirname(os.path.abspath(target))
     handle, temporary = tempfile.mkstemp(prefix=".file-tree-", suffix=".tmp", dir=folder)
     try:
-        with os.fdopen(handle, "w", encoding=encoding, newline="") as stream:
+        with os.fdopen(handle, "w", encoding=encoding, errors="backslashreplace", newline="") as stream:
             yield stream
         os.replace(temporary, target)
     except BaseException:

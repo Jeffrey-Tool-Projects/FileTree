@@ -53,6 +53,7 @@ samples each forecast in 0.48 s in total with this cap; without it (79,800 pairs
 10.4 s. A typical store has a few volumes of a few dozen samples.
 """
 _SAMPLE_FIELDS = 3
+_MAX_WHEN = 1 << 53
 
 
 class ForecastState(Enum):
@@ -187,7 +188,9 @@ def _sample(value: Any) -> Sample | None:
         return None
     when, used, total = value
     numbers = all(isinstance(item, (int, float)) and not isinstance(item, bool) for item in value)
-    if not numbers or not isinstance(used, int) or not isinstance(total, int) or not math.isfinite(when):
+    if not numbers or not isinstance(used, int) or not isinstance(total, int):
+        return None
+    if isinstance(when, int) and when > _MAX_WHEN or not math.isfinite(when):  # a huge int overflows a float
         return None
     if when <= 0 or total <= 0 or not 0 <= used <= total:
         return None

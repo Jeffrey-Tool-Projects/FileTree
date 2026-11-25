@@ -7,7 +7,7 @@ import math
 import stat
 import struct
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import SimpleNamespace
 from typing import cast
 
@@ -23,6 +23,7 @@ RECALL_ON_OPEN = 0x40000
 # scanned just before as changed. They never describe the entry and are cleared from every record.
 INDEX_FLAGS = 0x10000000 | 0x20000000
 _NORMAL = 0x80
+_ARCHIVE = 0x20
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,6 +82,17 @@ def unpack_snapshot(data: bytes) -> Snapshot:
     return Snapshot(device, int.from_bytes(inode, "little"), size,
                     int.from_bytes(modified, "little", signed=True), int.from_bytes(changed, "little", signed=True),
                     mode, attributes, links)
+
+
+def renamed(before: Snapshot, after: Snapshot) -> bool:
+    """Whether ``after`` is ``before`` with no more than the system's own rename (or new name) changed.
+
+    That is the change time and, on Windows, the archive attribute: NTFS sets it on every renamed or linked file, and
+    ``FILE_ATTRIBUTE_NORMAL`` goes with it (measured 2026-11-26: 0x80 became 0x20).
+    """
+    ignored = _ARCHIVE | _NORMAL
+    return replace(after, changed_ns=before.changed_ns, attributes=after.attributes & ~ignored) == replace(
+        before, attributes=before.attributes & ~ignored)
 
 
 def link_identity(data: bytes) -> tuple[int, bytes, int]:
