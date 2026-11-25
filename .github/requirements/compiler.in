@@ -1,0 +1,9 @@
+# Everything tools/install_compiler.py installs besides Nuitka itself: wheels only, at locked hashes, including the
+# backend Nuitka's sdist is built with (so pip never fetches the newest one into the signing job). Generated with:
+# uv pip compile .github/requirements/compiler.in --generate-hashes --universal --python-version 3.12 --no-annotate -o .github/requirements/compiler.txt
+pip==26.1.2
+setuptools==84.0.0
+wheel==0.47.0
+PySide6==6.11.2
+ordered-set==4.1.0
+zstandard==0.25.0

@@ -216,6 +216,7 @@ def main() -> None:
             settings = QSettings(str(root / f'{language}.ini'), QSettings.Format.IniFormat)
             settings.setValue('language', language)
             settings.setValue('check_updates', False)
+            settings.setValue('history_enabled', False)
             workspace = create_workspace(settings)
             prepare_hidden(workspace)
             workspace.show()

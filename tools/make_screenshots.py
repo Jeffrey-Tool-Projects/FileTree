@@ -88,9 +88,13 @@ def main() -> None:
         while window.current.results.cleanup.proposal_summary is None and time.monotonic() < deadline:
             app.processEvents()
             time.sleep(.01)
+        if window.current.results.cleanup.proposal_summary is None:
+            raise RuntimeError("The clean-up analysis did not finish in time")
         for _ in range(10):
             app.processEvents()
-        window.grab().save(str(OUTPUT / f"main_window_{language}.png"))
+        picture = OUTPUT / f"main_window_{language}.png"
+        if not window.grab().save(str(picture)):
+            raise RuntimeError(f"{picture} could not be written")
         window.close()
         deadline = time.monotonic() + 30
         while not window._close_ready:

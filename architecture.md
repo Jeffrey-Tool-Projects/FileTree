@@ -1868,7 +1868,8 @@ non-yanked wheel SHA-256 values. `tools/lock_compiler_wheels.py` regenerates onl
 fixed runtime locks from bounded PyPI metadata with four read-only request workers; unsupported
 pins/releases, changed lock inputs and missing/invalid hashes fail before writes. It downloads or
 executes no packages and leaves the isolated PyPI publishing lock unchanged. Native pip still requires
-hashes and wheels only; only the separately pinned Nuitka compiler may be an sdist.
+hashes and wheels only; only Nuitka may be an sdist, at a locked hash (`nuitka.txt`) and built without isolation
+by the setuptools and wheel of `compiler.txt`.
 Release and Desktop builds share this installer. The latter keeps unsigned compiled ZIP/MSI and owned installation
 evidence without a release token. `validate_msi.ps1 -DisposableRunner -CompiledPayload` accepts only
 the fixed hosted workspace's sole standalone output, copies no-follow contents into fresh runner

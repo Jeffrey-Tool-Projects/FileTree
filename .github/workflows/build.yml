@@ -18,6 +18,8 @@ on:
       - .github/requirements/photos.txt
       - .github/requirements/reports.txt
       - .github/requirements/native.txt
+      - .github/requirements/compiler.txt
+      - .github/requirements/nuitka.txt
       - setup.py
       - je_file_tree/_native.cpp
       - je_file_tree/core/native_scan.py
