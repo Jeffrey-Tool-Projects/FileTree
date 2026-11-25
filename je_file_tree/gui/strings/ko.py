@@ -2074,4 +2074,15 @@ KO: dict[str, str] = {
     "theme_accent": "강조 색…",
     "theme_accent_platform": "시스템 강조 색 사용",
     "theme_colour_blind": "색각 이상을 배려한 차트 색",
+    "preview_show": "내용 미리 보기",
+    "preview_show_tip": "선택한 파일의 앞부분을 읽습니다. 온라인에만 있는 파일은 절대 내려받지 않습니다.",
+    "preview_none": "파일을 선택하면 미리 볼 수 있습니다.",
+    "preview_reading": "읽는 중…",
+    "preview_failed": (
+        "미리 볼 수 없습니다. 읽을 수 없거나, 스캔 이후 바뀌었거나, 온라인에만 있거나, 지원"
+        "하지 않는 파일입니다."
+    ),
+    "preview_binary": "미리 볼 수 있는 텍스트, 그림, 압축 파일이 아닙니다.",
+    "preview_more": "앞부분만 표시했으며 내용이 더 있습니다.",
+    "preview_whole": "모두 표시했습니다.",
 }

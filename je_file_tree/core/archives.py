@@ -108,7 +108,8 @@ def zip_members(stream: MetadataReader) -> Iterable[ArchiveMember]:
 
 
 @contextmanager
-def _opened(node: Node) -> Iterator[BinaryIO]:
+def opened(node: Node) -> Iterator[BinaryIO]:
+    """Open a recorded regular file that is unchanged since its scan; refuses links and files kept online."""
     current = stat_snapshot(node.path)
     _check_snapshot(node, current)
     if not stat.S_ISREG(unpack_snapshot(current).mode):
@@ -134,7 +135,7 @@ def read_archive(node: Node, *, reader: ArchiveReader = zip_members,
     a parser's current header decoding call must finish before its thread can be joined.
     """
     _check_cancel(cancel)
-    with _opened(node) as stream:
+    with opened(node) as stream:
         result = _inventory(node, reader(MetadataReader(stream, cancel)), cancel)
     _check_cancel(cancel)
     return result

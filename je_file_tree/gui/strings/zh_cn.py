@@ -1781,4 +1781,12 @@ ZH_CN: dict[str, str] = {
     "theme_accent": "强调色…",
     "theme_accent_platform": "使用系统的强调色",
     "theme_colour_blind": "色盲友好的图表配色",
+    "preview_show": "预览内容",
+    "preview_show_tip": "读取所选文件的开头。仅存在云端的文件绝不会下载。",
+    "preview_none": "选择文件即可预览。",
+    "preview_reading": "读取中…",
+    "preview_failed": "没有预览：文件无法读取、扫描后有变动、仅存在云端，或不支持。",
+    "preview_binary": "这个文件不是可以预览的文本、图片或压缩包。",
+    "preview_more": "只显示开头，后面还有内容。",
+    "preview_whole": "已显示全部内容。",
 }

@@ -1780,4 +1780,12 @@ ZH_TW: dict[str, str] = {
     "theme_accent": "強調色…",
     "theme_accent_platform": "使用系統的強調色",
     "theme_colour_blind": "色盲友善的圖表配色",
+    "preview_show": "預覽內容",
+    "preview_show_tip": "讀取選取檔案的開頭。只存在雲端的檔案絕不會下載。",
+    "preview_none": "選取檔案即可預覽。",
+    "preview_reading": "讀取中…",
+    "preview_failed": "沒有預覽：檔案無法讀取、掃描後有變動、只存在雲端，或不支援。",
+    "preview_binary": "這個檔案不是可以預覽的文字、圖片或壓縮檔。",
+    "preview_more": "只顯示開頭，後面還有內容。",
+    "preview_whole": "已顯示全部內容。",
 }

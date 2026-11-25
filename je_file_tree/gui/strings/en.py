@@ -1984,4 +1984,15 @@ EN: dict[str, str] = {
     "theme_accent": "Accent colour…",
     "theme_accent_platform": "Use the system's accent colour",
     "theme_colour_blind": "Chart colours for colour-blind viewers",
+    "preview_show": "Preview contents",
+    "preview_show_tip": "Reads the beginning of the selected file. Files kept only online are never downloaded.",
+    "preview_none": "Select a file to preview it.",
+    "preview_reading": "Reading…",
+    "preview_failed": (
+        "There is no preview: the file cannot be read, has changed since the scan, is kept only"
+        " online or is not supported."
+    ),
+    "preview_binary": "This file is not text, a picture or an archive that can be previewed.",
+    "preview_more": "The beginning is shown; there is more.",
+    "preview_whole": "Everything is shown.",
 }

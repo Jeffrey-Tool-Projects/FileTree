@@ -19,8 +19,12 @@ from je_file_tree.gui.node_text import node_path
 from je_file_tree.gui import advice_text
 from je_file_tree.gui.elided_label import ElidedLabel
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.preview_pane import PreviewPane
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.system_files import SystemFileInfo
+
+
+_FACTS_HEIGHT, _PREVIEW_HEIGHT = 235, 420
 
 
 class DetailsWorker(QThread):
@@ -76,11 +80,14 @@ class DetailsPanel(QWidget):
         for widget in (self.path_label, self.facts, self.distribution):
             widget.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
             body_layout.addWidget(widget)
+        self.preview = PreviewPane(settings)
+        body_layout.addWidget(self.preview)
         self._build_context(body_layout)
         self.body = QScrollArea()
         self.body.setWidgetResizable(True)
         self.body.setWidget(body)
-        self.body.setMaximumHeight(235)
+        self.preview.enabled.toggled.connect(self._fit_preview)
+        self._fit_preview(self.preview.enabled.isChecked())
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.toggle)
@@ -145,6 +152,7 @@ class DetailsPanel(QWidget):
         self.node, self.live, self.now = node, live, time.time() if now is None else now
         self._result = None
         self.retranslate()
+        self.preview.set_node(node, active=self.toggle.isChecked() and not live)
         if self.toggle.isChecked() and node is not None and not live:
             self._timer.start()
 
@@ -155,6 +163,7 @@ class DetailsPanel(QWidget):
 
     def stop(self, *, wait: bool = False) -> None:
         """Cancel all obsolete requests; the window joins their owned threads on close."""
+        self.preview.stop(wait=wait)
         self._timer.stop()
         self._current = None
         for worker in list(self._running):
@@ -165,6 +174,8 @@ class DetailsPanel(QWidget):
     def retranslate(self) -> None:
         """Refresh labels, dates and units without repeating the traversal."""
         self.toggle.setText(tr('details_title'))
+        self.preview.unit = self.unit
+        self.preview.retranslate()
         node = self.node
         self.system_info.set_node(node)
         self.path_label.setText(node_path(node) if node is not None else tr('details_empty'))
@@ -180,6 +191,10 @@ class DetailsPanel(QWidget):
         self.distribution.setText(self._distribution_text())
         self._translate_context()
         QTimer.singleShot(0, self, self._reveal_focus)
+
+    def _fit_preview(self, shown: bool) -> None:
+        """A preview needs more room than the facts alone."""
+        self.body.setMaximumHeight(_PREVIEW_HEIGHT if shown else _FACTS_HEIGHT)
 
     def _fold(self, expanded: bool) -> None:
         self.body.setVisible(expanded)
