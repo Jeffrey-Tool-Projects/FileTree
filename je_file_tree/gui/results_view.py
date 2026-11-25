@@ -14,7 +14,7 @@ import dataclasses
 import html
 import os
 import time
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 from PySide6.QtCore import (
     QByteArray, QEvent, QItemSelectionModel, QModelIndex, QObject, QPoint, QSettings, QSortFilterProxyModel, Qt,
@@ -55,13 +55,13 @@ from je_file_tree.core.analysis import (
     subtract_ages,
     subtract_stats,
 )
-from je_file_tree.core.formatting import format_count, format_size
+from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_size
 from je_file_tree.core.capacity import CapacityLedger
 from je_file_tree.core.hard_links import HardLinkPlan
 from je_file_tree.core.node import Node
 from je_file_tree.core.protected import protected_places
 from je_file_tree.core.refresh import refreshed_errors
-from je_file_tree.gui.node_text import node_path
+from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.compare import SavedScan
 from je_file_tree.core.scanner import ScanProgress, ScanResult
 from je_file_tree.core.type_locations import TypeMatches
@@ -167,6 +167,7 @@ class ResultsView(QWidget):
     selection_changed = Signal(object)
     elevate_requested = Signal()
     compare_failed = Signal(str)
+    _unit = AUTO_UNIT
     chart_setting_changed = Signal(str, object)  # a setting key and its new value
     menu_source: QAbstractItemView | None = None  # the list whose context menu is open, while it is
 
@@ -453,6 +454,8 @@ class ResultsView(QWidget):
 
     def set_unit(self, unit: str) -> None:
         """Show sizes in ``unit``."""
+        self._unit = self.scan_bar.unit = unit
+        self.scan_bar.retranslate()
         self.overview.unit = unit
         self.highlights.unit = unit
         self.completion.unit = unit
@@ -475,6 +478,7 @@ class ResultsView(QWidget):
         self.type_locations_model.refresh()
         self.changes.retranslate()
         self.breadcrumbs.retranslate()
+        self._update_texts()
 
     def selected_node(self) -> Node | None:
         """The entry the tree's cursor is on."""
@@ -608,7 +612,11 @@ class ResultsView(QWidget):
         self.cleanup.refresh()
         self.users.refresh()
         self.changes.refresh()
+        if self._focus is not None:
+            self._read_focused(self._focus)
         self._update_texts()
+        self.charts.set_selected(self.selected_node())
+        self.selection_changed.emit(self.selected_node())  # Qt says nothing when the selected row itself goes
 
     def retranslate(self) -> None:
         """Re-read every translated text."""
@@ -875,7 +883,7 @@ class ResultsView(QWidget):
         self._assemble_scope_switch()
         self.tabs.setTabVisible(CHANGES_TAB, False)  # until a saved scan is opened
         self.changes.shown.connect(self._changes_shown)
-        self.changes.failed.connect(self.compare_failed)
+        self.changes.failed.connect(self._compare_failed)
         self._problems_bar = _row(self._problems_hint, self._elevate_button)
         self.tabs.addTab(_column(self._problems_bar, self.problems_table), "")
         self._empty_hints = (EmptyHint(self.problems_table, self._problems_empty_text),
@@ -1060,6 +1068,10 @@ class ResultsView(QWidget):
         self._legend.setVisible(not by_folder)
         self._legend.set_items(self._legend_items())
 
+    def _compare_failed(self, reason: str) -> None:
+        self._reveal_changes = False  # nothing new is coming to be revealed
+        self.compare_failed.emit(reason)
+
     def _changes_shown(self, shown: bool) -> None:
         self.charts.set_changes(self.changes.changes)
         self._legend.set_items(self._legend_items())
@@ -1192,17 +1204,16 @@ class ResultsView(QWidget):
         self._scope_button.setVisible(self._outcome is not None and tab in (LARGEST_TAB, TYPES_TAB, AGE_TAB))
         scope = self._scope
         on = self._scope_button.isChecked() and scope is not None
-        self._scope_button.setText(tr("scope_folder_named", name=scope.name) if on else tr("scope_folder"))
-        self._scope_button.setToolTip(scope.path if on else tr("scope_folder_tip"))
+        self._scope_button.setText(tr("scope_folder_named", name=node_name(scope)) if on else tr("scope_folder"))
+        self._scope_button.setToolTip(node_path(scope) if on else tr("scope_folder_tip"))
 
     def show_largest_of_type(self, extension: str) -> None:
         """List the largest files with this extension (an empty one: files without) on Largest files."""
-        self._show_focused(("type", extension), lambda node: extension_of(node.name) == extension)
+        self._show_focused(("type", extension))
 
     def show_largest_of_age(self, age: str) -> None:
         """List the largest files last changed within this age group on the Largest files tab."""
-        now = self._outcome.now if self._outcome else 0.0
-        self._show_focused(("age", age), lambda node: age_of(node.modified, now) == age)
+        self._show_focused(("age", age))
 
     def show_all_largest(self) -> None:
         """Go back to the largest files of all types and ages (in the scope the lists cover)."""
@@ -1211,13 +1222,28 @@ class ResultsView(QWidget):
         self._focus_bar.hide()
         self.largest_model.set_rows(self._largest_all)
 
-    def _show_focused(self, focus: tuple[str, str], keep: Callable[[Node], bool]) -> None:
+    def _show_focused(self, focus: tuple[str, str]) -> None:
+        if self._lists_root() is None:
+            return
+        self._focus = focus
+        self.largest_model.set_rows([])
+        self._read_focused(focus)
+        self._largest_filter.clear()
+        self._focus_bar.show()
+        self._update_texts()
+        self.tabs.setCurrentIndex(LARGEST_TAB)
+
+    def _read_focused(self, focus: tuple[str, str]) -> None:
         root = self._lists_root()
         if root is None:
             return
         self._stop_focused()
-        self._focus = focus
-        self.largest_model.set_rows([])
+        kind, value = focus
+        now = self._outcome.now if self._outcome else 0.0
+
+        def keep(node: Node) -> bool:
+            return extension_of(node.name) == value if kind == "type" else age_of(node.modified, now) == value
+
         self._type_locations_pane.setVisible(focus[0] == 'type')
         worker = TypeLocationsWorker(root, keep, self)
         worker.done.connect(lambda matches: self._focused_ready(worker, matches))
@@ -1226,10 +1252,6 @@ class ResultsView(QWidget):
         self._focus_worker = worker
         self._list_workers.add(worker)
         worker.start()
-        self._largest_filter.clear()
-        self._focus_bar.show()
-        self._update_texts()
-        self.tabs.setCurrentIndex(LARGEST_TAB)
 
     def _stop_focused(self) -> None:
         if self._focus_worker is not None:
@@ -1316,8 +1338,9 @@ class ResultsView(QWidget):
         if root is None:
             return ""
         self.summary.setToolTip(node_path(root))
-        values = {"path": html.escape(self._fitting_path(node_path(root))), "size": format_size(root.size),
-                  "allocated": format_size(root.allocated), "files": format_count(root.file_count),
+        values = {"path": html.escape(self._fitting_path(node_path(root))),
+                  "size": format_size(root.size, self._unit),
+                  "allocated": format_size(root.allocated, self._unit), "files": format_count(root.file_count),
                   "folders": format_count(root.dir_count)}
         if outcome is None:
             return tr("summary_live", **values)
@@ -1327,8 +1350,9 @@ class ResultsView(QWidget):
             text += "<br>" + html.escape(tr("multi_hint"))
         if outcome.result.hard_links is not None:
             info = outcome.result.hard_links
-            text += "<br>" + tr("hard_links_summary", size=format_size(root.accounted_size),
-                                allocated=format_size(root.accounted_allocated), aliases=format_count(info.aliases),
+            text += "<br>" + tr("hard_links_summary", size=format_size(root.accounted_size, self._unit),
+                                allocated=format_size(root.accounted_allocated, self._unit),
+                                aliases=format_count(info.aliases),
                                 unknown=format_count(info.unknown))
         return text
 
@@ -1376,7 +1400,7 @@ class ResultsView(QWidget):
             if size is None:
                 continue
             colour = CATEGORY_COLOURS[category]
-            label = f"{tr(f'category_{category}')} ({format_size(size)})"
+            label = f"{tr(f'category_{category}')} ({format_size(size, self._unit)})"
             parts.append((colour, label))
         return parts
 

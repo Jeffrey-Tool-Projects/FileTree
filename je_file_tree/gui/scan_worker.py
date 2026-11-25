@@ -244,15 +244,22 @@ class CompareWorker(QThread):
             except SavedScanError as error:
                 self.failed.emit(str(error))
                 return
-        self.done.emit(saved, compare(self._root, saved))
+        try:
+            changes = compare(self._root, saved)
+        except Exception as error:  # noqa: BLE001 - terminal GUI boundary; the panel must not stay busy
+            _LOG.exception("Unexpected comparison failure")
+            self.failed.emit(str(error) or type(error).__name__)
+            return
+        self.done.emit(saved, changes)
 
 
 class DuplicatesWorker(QThread):
-    """Looks for duplicate files off the GUI thread: ``progressed``, then ``succeeded`` or ``cancelled``."""
+    """Looks for duplicate files off the GUI thread: ``progressed``, then ``succeeded``, ``cancelled`` or ``failed``."""
 
     progressed = Signal(object)
     succeeded = Signal(object)
     cancelled = Signal()
+    failed = Signal(str)
 
     PROGRESS_INTERVAL = 0.1  # seconds between two progress signals
 
@@ -284,6 +291,10 @@ class DuplicatesWorker(QThread):
                                          progress=self._report, cancel=self._cancel)
         except (DuplicateSearchCancelledError, PhotoSearchCancelledError):
             self.cancelled.emit()
+            return
+        except Exception as error:  # noqa: BLE001 - terminal GUI boundary; the panel must not stay busy
+            _LOG.exception("Unexpected duplicate search failure")
+            self.failed.emit(str(error) or type(error).__name__)
             return
         self.succeeded.emit(result)
 

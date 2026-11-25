@@ -88,16 +88,17 @@ def refresh_folders(window: MainWindow, chosen: list[tuple[Node, bool]]) -> None
     before = [_subfolders(node) for node, _whole in chosen]
     worker.succeeded.connect(lambda results: window._is_current(worker) and _refreshed(
         window, chosen, results, before=before, linked=worker.linked))
-    worker.failed.connect(lambda reason: window._is_current(worker) and _ended(window, tr("follow_refresh_failed",
-                                                                                        reason=reason)))
-    worker.cancelled.connect(lambda _outcome: window._is_current(worker) and _ended(window, tr("scan_cancelled")))
+    worker.failed.connect(lambda reason: window._is_current(worker) and _ended(
+        window, tr("follow_refresh_failed", reason=reason), chosen))
+    worker.cancelled.connect(
+        lambda _outcome: window._is_current(worker) and _ended(window, tr("scan_cancelled"), chosen))
     worker.finished.connect(lambda: after_threads((worker,), lambda: window._release_scan(worker), window))
     window._worker = worker
     window.scan_activity_changed.emit()
     window._scan_workers.add(worker)
     window._update_actions()
     queue_worker(worker, lambda: not window._closing and window._worker is worker and not worker._cancel.is_set(),
-                 window, lambda: _discarded(window, worker), readers=paused)
+                 window, lambda: _discarded(window, worker, chosen), readers=paused)
 
 
 def _refreshed(window: MainWindow, chosen: list[tuple[Node, bool]], results: tuple[ScanResult | None, ...], *,
@@ -124,17 +125,18 @@ def _refreshed(window: MainWindow, chosen: list[tuple[Node, bool]], results: tup
     window.statusBar().showMessage(tr("follow_refreshed", count=format_count(len(listings))), STATUS_TIMEOUT_MS)
 
 
-def _ended(window: MainWindow, message: str) -> None:
+def _ended(window: MainWindow, message: str, chosen: list[tuple[Node, bool]]) -> None:
+    window._follow.retry(chosen)  # nothing was read of them
     window._scan_ended()
     window._update_actions()
     window.statusBar().showMessage(message, STATUS_TIMEOUT_MS)
 
 
-def _discarded(window: MainWindow, worker: ListingWorker) -> None:
+def _discarded(window: MainWindow, worker: ListingWorker, chosen: list[tuple[Node, bool]]) -> None:
     if worker is window._worker:
         if window._closing:
             window._worker = None
             window.scan_activity_changed.emit()
         else:
-            _ended(window, tr("scan_cancelled"))
+            _ended(window, tr("scan_cancelled"), chosen)
     window._release_scan(worker)

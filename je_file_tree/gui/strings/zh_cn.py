@@ -1903,4 +1903,5 @@ ZH_CN: dict[str, str] = {
     "namespace_reason_folder_required": "只能将普通文件夹移到其他磁盘",
     "namespace_reason_copy_unsupported": "含有链接、仅存在云端的文件或特殊文件，或是挂载点",
     "namespace_reason_directory_streams": "有文件夹带有其他数据流，复制会丢失",
+    "duplicates_failed": "无法完成搜索：{reason}",
 }

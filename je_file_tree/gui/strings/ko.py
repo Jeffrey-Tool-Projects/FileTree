@@ -2216,4 +2216,5 @@ KO: dict[str, str] = {
     "namespace_reason_folder_required": "다른 드라이브로 옮길 수 있는 것은 일반 폴더뿐입니다",
     "namespace_reason_copy_unsupported": "링크, 온라인에만 있는 파일, 특수 파일이 있거나 마운트 지점입니다",
     "namespace_reason_directory_streams": "추가 데이터 스트림이 있는 폴더가 있어 복사하면 사라집니다",
+    "duplicates_failed": "검색을 완료하지 못했습니다: {reason}",
 }

@@ -176,6 +176,7 @@ class DuplicatesPanel(QWidget):
         worker.progressed.connect(lambda progress: worker is self._worker and self._show_progress(progress))
         worker.succeeded.connect(lambda result: worker is self._worker and self._show_result(result))
         worker.cancelled.connect(lambda: worker is self._worker and self._finish(stopped=True))
+        worker.failed.connect(lambda reason: worker is self._worker and self._search_failed(reason))
         worker.finished.connect(worker.deleteLater)
         worker.finished.connect(lambda: self._search_workers.discard(worker))
         self._worker = worker
@@ -195,7 +196,8 @@ class DuplicatesPanel(QWidget):
             for pending in self._search_workers.copy() | self._estimate_workers.copy():
                 wait_for(pending)
         self._worker = None
-        self._stopped = True
+        if worker is not None:  # the results of a finished search stay
+            self._stopped = True
         self._update()
 
     def prune(self) -> None:
@@ -421,6 +423,10 @@ class DuplicatesPanel(QWidget):
         self._worker = None
         self._stopped = stopped
         self._update()
+
+    def _search_failed(self, reason: str) -> None:
+        self._finish(stopped=False)
+        self.status.setText(tr("duplicates_failed", reason=reason))
 
     def _update(self) -> None:
         running = self._worker is not None

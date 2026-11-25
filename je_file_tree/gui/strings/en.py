@@ -2126,4 +2126,5 @@ EN: dict[str, str] = {
     "namespace_reason_folder_required": "Only an ordinary folder can be moved to another drive",
     "namespace_reason_copy_unsupported": "Holds a link, an online-only or a special file, or is a mount point",
     "namespace_reason_directory_streams": "A folder has extra data streams, which the copy would lose",
+    "duplicates_failed": "The search could not be finished: {reason}",
 }

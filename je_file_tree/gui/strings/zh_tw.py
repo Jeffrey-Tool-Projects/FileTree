@@ -1902,4 +1902,5 @@ ZH_TW: dict[str, str] = {
     "namespace_reason_folder_required": "只能將一般資料夾移到其他磁碟",
     "namespace_reason_copy_unsupported": "含有連結、只存在雲端的檔案或特殊檔案，或是掛載點",
     "namespace_reason_directory_streams": "有資料夾帶有其他資料串流，複製會遺失",
+    "duplicates_failed": "無法完成搜尋：{reason}",
 }

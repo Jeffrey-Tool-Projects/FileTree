@@ -42,6 +42,7 @@ from je_file_tree.gui.lazy_details import set_lazy_details
 from je_file_tree.gui.live_refresh import LiveRefresh
 from je_file_tree.gui.locale_font import apply_language_font
 from je_file_tree.gui.namespace_dialog import NamespaceDialog
+from je_file_tree.gui.node_text import node_name
 from je_file_tree.gui.operation_group import OperationGroup
 from je_file_tree.gui.permanent_delete import (
     PermanentDeleteWorker,
@@ -191,6 +192,7 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         # Folders whose files an operation changed after they were scanned. They are read again when the
         # user asks (the notice above the results), or by themselves only while Follow changes is on.
         self._trash_rescans: list[Node] = []
+        self._rescanning: tuple[Node, bool] | None = None  # the changed folder a refresh reads now; exact allocation
         self._exact_rescans: set[Node] = set()  # of those, the ones to read with per-file allocation
         self._refreshing = False  # the user asked for the changed folders: go through all of them
 
@@ -256,20 +258,21 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
             self._show_in_chart(node)
             return
         menu = QMenu(self)
+        path = node.path  # as it is now: a refresh while the menu is open can detach the node, and its path with it
         entries: list[tuple[str, Callable[[], object]]] = [
-            ("menu_open_item", lambda: file_actions.open_path(node.path)),
-            ("menu_reveal", lambda: file_actions.reveal_in_file_manager(node.path)),
-            ("menu_copy_path", lambda: file_actions.copy_path(node.path)),
+            ("menu_open_item", lambda: file_actions.open_path(path)),
+            ("menu_reveal", lambda: file_actions.reveal_in_file_manager(path)),
+            ("menu_copy_path", lambda: file_actions.copy_path(path)),
         ]
         if shell_integration.supported():
-            entries.append(("menu_properties", lambda: self.show_properties(node)))
+            entries.append(("menu_properties", lambda: self.show_properties(path)))
         if self.results.archives.busy(node):
             entries.append(("archive_stop", lambda: self.results.archives.stop(node)))
         if node.is_dir and not node.is_link:
             entries.append(("menu_show_chart", lambda: self._show_in_chart(node)))
             entries.append(("menu_rescan_here", lambda: self._explain_busy(tr("menu_rescan_here"))
                             or self.rescan_folder(node)))
-            entries.append(("menu_scan_here", lambda: self.start_scan(node.path)))
+            entries.append(("menu_scan_here", lambda: self.start_scan(path)))
             if (elevation.supported() and self._worker is None and not self.operation_busy
                     and self.results.outcome is not None and self.results.outcome.result.root.path is not None):
                 entries.append(("menu_compression", lambda: self.show_compression(node)))
@@ -302,10 +305,10 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         if len(movable) == 1 and movable[0].is_dir and not movable[0].is_link:
             menu.addAction(tr("menu_zip")).triggered.connect(lambda: self.show_zip(movable[0]))
 
-    def show_properties(self, node: Node) -> None:
+    def show_properties(self, path: str) -> None:
         """Open the selected entry's Windows Properties, reporting shell failures."""
-        if not shell_integration.show_properties(node.path, int(self.winId())):
-            QMessageBox.warning(self, tr("menu_properties"), tr("properties_failed", path=node.path))
+        if not shell_integration.show_properties(path, int(self.winId())):
+            QMessageBox.warning(self, tr("menu_properties"), tr("properties_failed", path=path))
 
     def show_namespace(self, nodes: Sequence[Node], *, rename: bool = False) -> None:
         """Review real selected entries; join operations and refresh the current affected scan scope."""
@@ -822,10 +825,13 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         self._exact_rescans.discard(node)
         root = self.results.tree_model.root
         if root is not None and node.is_in(root):
+            self._rescanning = node, exact
             if exact:
                 self.rescan_folder(node, exact_allocation=True)
             else:
                 self.rescan_folder(node)
+        if self._worker is None:
+            self._rescanning = None
         if self._worker is None:
             if self._trash_rescans:
                 QTimer.singleShot(0, self._rescan_after_trash)
@@ -908,9 +914,9 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
             return
         size = format_size(node.size, self._unit)
         if node.parent is None:
-            self.statusBar().showMessage(tr("status_selected_root", name=node.name, size=size))
+            self.statusBar().showMessage(tr("status_selected_root", name=node_name(node), size=size))
             return
-        self.statusBar().showMessage(tr("status_selected", name=node.name, size=size,
+        self.statusBar().showMessage(tr("status_selected", name=node_name(node), size=size,
                                         share=format_share(node.share_of_parent())))
 
     # --- export -----------------------------------------------------------

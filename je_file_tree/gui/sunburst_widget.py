@@ -7,6 +7,7 @@ cached pixmap; the mouse only adds the highlight.
 
 from __future__ import annotations
 
+import html
 import math
 import time
 
@@ -305,5 +306,6 @@ class SunburstWidget(QWidget):
     def _describe(self, node: Node) -> str:
         root = self._view_root
         share = node.accounted_size / root.accounted_size if root is not None and root.accounted_size else 0.0
-        return tr("treemap_tooltip", name=node.name, size=format_size(node.accounted_size, self.unit),
-                  share=format_share(share), path=node_path(node))
+        return tr("treemap_tooltip", name=html.escape(node_name(node)),
+                  size=format_size(node.accounted_size, self.unit), share=format_share(share),
+                  path=html.escape(node_path(node)))

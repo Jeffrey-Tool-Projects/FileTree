@@ -261,10 +261,10 @@ class ScanControls:
                 problem_text(reason) for reason in outcome.result.warnings)))
         self._follow.adopt(root)
 
-    def _scan_failed(self, reason: str) -> None:
+    def _scan_failed(self, reason: str, path: str | None = None) -> None:
         self._scan_ended()
         self._back_from_scan()
-        path = tr("multi_roots") if self._last_roots else self._last_path
+        path = path or (tr("multi_roots") if self._last_roots else self._last_path)
         QMessageBox.warning(self, tr("scan_failed_title"), tr("scan_failed", path=path, reason=reason))
 
     def _scan_cancelled(self, outcome: ScanOutcome | None) -> None:
@@ -297,7 +297,8 @@ class ScanControls:
 
     def rescan_folder(self, node: Node, *, exact_allocation: bool = False) -> None:
         """Scan one folder again and swap it into the results (the whole scan when it is the root)."""
-        if self._worker is not None or self.operation_busy or self.results.outcome is None:
+        if (self._worker is not None or self.operation_busy or self.results.outcome is None
+                or not node.is_in(self.results.outcome.result.root)):
             return
         # The scan waits for the window's readers, except Follow changes: its feed reads nothing of the tree
         # and keeps reporting while the folder is read, until the feed armed after it takes over.
@@ -328,7 +329,7 @@ class ScanControls:
             lambda progress: self._is_current(worker) and self.results.scan_bar.show_progress(progress))
         worker.succeeded.connect(
             lambda outcome: self._is_current(worker) and self._branch_rescanned(node, outcome, before))
-        worker.failed.connect(lambda reason: self._is_current(worker) and self._branch_failed(reason))
+        worker.failed.connect(lambda reason: self._is_current(worker) and self._branch_failed(reason, node))
         worker.cancelled.connect(lambda _outcome: self._is_current(worker) and self._branch_cancelled())
         worker.analysing.connect(lambda: self._is_current(worker) and self.results.scan_bar.analysing())
         worker.finished.connect(lambda: after_threads((worker,), lambda: self._release_scan(worker), self))
@@ -354,6 +355,7 @@ class ScanControls:
         self._release_scan(worker)
 
     def _branch_rescanned(self, old: Node, outcome: ScanOutcome, before: int) -> None:
+        self._rescanning = None
         self._scan_ended()
         self.results.scan_bar.hide()
         new = self.results.replace_branch(old, outcome.result)
@@ -383,11 +385,18 @@ class ScanControls:
                                           and self._analyser is worker and self.results.set_capacity(ledger))
             worker.done.connect(lambda summary: not self._closing and self._analyser is worker
                                 and self._summary_ready(summary))
-        worker.finished.connect(lambda: self._analysers.discard(worker))
+        worker.finished.connect(lambda: self._analysis_ended(worker))
         worker.finished.connect(worker.deleteLater)
         self._analyser = worker
         self._analysers.add(worker)
         worker.start()
+        self._update_actions()
+
+    def _analysis_ended(self, worker: AnalyseWorker | CountWorker) -> None:
+        """Reports wait for the analysis: their actions follow it."""
+        self._analysers.discard(worker)
+        if not self._closing:
+            self._update_actions()
 
     def _counted(self, root: Node, plan: HardLinkPlan, with_capacity: bool) -> None:
         self.results.apply_counted(plan)
@@ -399,14 +408,40 @@ class ScanControls:
     def _branch_cancelled(self) -> None:
         self._refreshing = False  # stopping one folder stops the rest of a requested refresh: they stay on offer
         self._scan_ended()
+        self._put_back()
         self.results.scan_bar.hide()
         self._update_actions()
         self.statusBar().showMessage(tr("scan_cancelled"), STATUS_TIMEOUT_MS)
         self._follow.resume()  # the results did not change: follow them on
 
-    def _branch_failed(self, reason: str) -> None:
-        self._scan_failed(reason)
+    def _branch_failed(self, reason: str, node: Node) -> None:
+        self._refreshing = False
+        refreshed, self._rescanning = self._rescanning, None
+        self._scan_failed(reason, node.path)
+        if refreshed is not None and self._follow.enabled and node.parent is not None:
+            self._follow.retry([(node.parent, False)])  # its folder shows whether it is still there
+        elif refreshed is not None:
+            self._offer_again(*refreshed)
         self._follow.resume()
+
+    def _put_back(self) -> None:
+        """A changed folder whose refresh was stopped was not read: it is still to be refreshed."""
+        refreshed, self._rescanning = self._rescanning, None
+        if refreshed is None:
+            return
+        if self._follow.enabled:
+            self._follow.retry([(refreshed[0], True)])
+        else:
+            self._offer_again(*refreshed)
+
+    def _offer_again(self, node: Node, exact: bool) -> None:
+        root = self.results.tree_model.root
+        if root is None or not node.is_in(root):
+            return
+        self._trash_rescans = outermost((node, *self._trash_rescans))
+        if exact:
+            self._exact_rescans.add(node)
+        self._update_refresh_notice()
 
     def _mark_changed(self, nodes: Sequence[Node], *, exact: bool = False) -> None:
         """Remember that an operation changed files in ``nodes``: offered for a rescan, never scanned unasked."""
@@ -423,6 +458,7 @@ class ScanControls:
         """Drop the changed folders on offer: a whole scan replaces them, or the window is closing."""
         self._trash_rescans.clear()
         self._exact_rescans.clear()
+        self._rescanning = None
         self._refreshing = False
         self._update_refresh_notice()
 
