@@ -22,6 +22,7 @@ from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, 
 from je_file_tree.core.node import Node
 from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.treemap_widget import CATEGORY_COLOURS
 
 MAX_BARS = 100
@@ -218,7 +219,7 @@ class BarChartWidget(QWidget):
                    fraction: float, size: int, total: int) -> None:
         line = self._line_rect(index)
         height = line.height()
-        name_width = min(self.width() * _NAME_SHARE, _NAME_MAX)
+        name_width = min(self.width() * _NAME_SHARE, text_scaled(_NAME_MAX))
         icon_size = self.fontMetrics().height()
         text_colour = self.palette().text().color()
         if node is not None and node.is_dir:
@@ -232,13 +233,14 @@ class BarChartWidget(QWidget):
         painter.drawText(name_rect, align | Qt.AlignmentFlag.AlignLeft,
                          self.fontMetrics().elidedText(label, Qt.TextElideMode.ElideMiddle, int(name_rect.width())))
         bar_left = name_width + _GAP
-        bar_space = max(self.width() - bar_left - _VALUE_WIDTH - _GAP, 0)
+        value_width = text_scaled(_VALUE_WIDTH)
+        bar_space = max(self.width() - bar_left - value_width - _GAP, 0)
         bar = QRectF(bar_left, line.y() + height * 0.2, max(bar_space * fraction, 1.0), height * 0.6)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(bar_colour(node) if node is not None else QColor(_REST_COLOUR))
         painter.drawRoundedRect(bar, 2, 2)
         share = format_share(size / total) if total else ""
-        value = QRectF(self.width() - _VALUE_WIDTH, line.y(), _VALUE_WIDTH - 6, height)
+        value = QRectF(self.width() - value_width, line.y(), value_width - 6, height)
         painter.setPen(text_colour)
         painter.drawText(value, align | Qt.AlignmentFlag.AlignRight, f"{format_size(size, self.unit)}   {share}")
 

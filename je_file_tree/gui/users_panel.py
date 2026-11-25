@@ -17,6 +17,7 @@ from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
+from je_file_tree.gui.text_scale import text_scaled
 
 
 class UsersModel(_TableModel[OwnerStat]):
@@ -71,7 +72,7 @@ class UsersPanel(QWidget):
         self.view.setSortingEnabled(True)
         self.view.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.view.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.view.setColumnWidth(1, 250)
+        self.view.setColumnWidth(1, text_scaled(250))
         self.view.sortByColumn(2, Qt.SortOrder.DescendingOrder)
         install_copy(self.view)
         self.status, self.hint = QLabel(), QLabel()

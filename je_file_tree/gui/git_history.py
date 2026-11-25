@@ -14,6 +14,7 @@ from je_file_tree.core.git_history import GitHistory, GitHistoryCancelledError, 
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.window_fit import fit_window
@@ -72,7 +73,7 @@ class GitHistoryDialog(WorkerDialog):
         self.view.setSortingEnabled(True)
         self.view.sortByColumn(2, Qt.SortOrder.DescendingOrder)
         for column, width in enumerate((520, 230, 160)):
-            self.view.setColumnWidth(column, width)
+            self.view.setColumnWidth(column, text_scaled(width))
         install_copy(self.view)
         location = QLabel(path)
         location.setTextFormat(Qt.TextFormat.PlainText)

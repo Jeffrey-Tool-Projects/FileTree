@@ -19,6 +19,7 @@ from je_file_tree.gui.folder_budget_store import (
 )
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.search_ranges import UNITS, editable_size, exact_bytes
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.window_fit import fit_window
 
 BudgetFilter = Literal["all", "over", "unknown"]
@@ -119,7 +120,7 @@ class FolderBudgetDialog(QDialog):
         for before, after in zip(fields, fields[1:], strict=False):
             QWidget.setTabOrder(before, after)
         for column, width in enumerate((95, 135, 110, 110, 135, 100, 220)):
-            self.table.setColumnWidth(column, width)
+            self.table.setColumnWidth(column, text_scaled(width))
 
     def retranslate(self) -> None:
         """Translate controls and observations without replacing the edited input."""

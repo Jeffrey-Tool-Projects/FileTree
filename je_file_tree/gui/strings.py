@@ -1166,6 +1166,12 @@ EN: dict[str, str] = {
     "theme_system": "System",
     "theme_light": "Light",
     "theme_dark": "Dark",
+    "menu_text_size": "&Text size",
+    "text_size_larger": "&Larger",
+    "text_size_smaller": "&Smaller",
+    "text_size_reset": "S&ystem size",
+    "text_size_percent": "{percent}%",
+    "text_size_default": "{percent}% (system size)",
 
     "chart_access_keys": ("Arrow keys select rendered entries. Enter opens a folder; Backspace goes up. "
                           "Use the folder tree for grouped or hidden entries."),
@@ -1897,6 +1903,8 @@ appeared or disappeared). It keeps comparing after each rescan until you press <
 <tr><td><b>Esc</b></td><td>Stop the scan</td></tr>
 <tr><td><b>Ctrl+F</b></td><td>Search by name</td></tr>
 <tr><td><b>Delete</b></td><td>Move the selected entries to the Recycle Bin</td></tr>
+<tr><td><b>Ctrl++ / Ctrl+−</b></td><td>Larger / smaller text</td></tr>
+<tr><td><b>Ctrl+0</b></td><td>Text at the system size</td></tr>
 <tr><td><b>F1</b></td><td>This guide</td></tr>
 <tr><td><b>Ctrl+Q</b></td><td>Quit</td></tr>
 </table>
@@ -1905,6 +1913,7 @@ appeared or disappeared). It keeps comparing after each rescan until you press <
 <ul>
 <li>Sizes are the real file sizes in binary units (1 KB = 1,024 bytes), the same as Windows Explorer.
 Choose a fixed unit under <i>View → Size unit</i>.</li>
+<li>Text too small or too large? <i>View → Text size</i> changes every text in FileTree and is remembered.</li>
 <li>Shortcuts and links (symbolic links, junctions) are listed but never followed, so nothing is
 counted twice.</li>
 <li>On Windows, FileTree asks for administrator rights when it starts, like TreeSize, so it can read
@@ -2948,6 +2957,12 @@ ZH_TW: dict[str, str] = {
     "theme_system": "系統",
     "theme_light": "淺色",
     "theme_dark": "深色",
+    "menu_text_size": "文字大小(&T)",
+    "text_size_larger": "放大(&L)",
+    "text_size_smaller": "縮小(&S)",
+    "text_size_reset": "恢復系統大小(&R)",
+    "text_size_percent": "{percent}%",
+    "text_size_default": "{percent}%（系統大小）",
 
     "chart_access_keys": ("方向鍵選取已繪製項目；Enter 開啟資料夾，Backspace 返回上層。"
                           "合併或未顯示的項目可使用資料夾樹查看。"),
@@ -3607,6 +3622,8 @@ FileTree 不會永久刪除任何東西：每次都會先詢問，
 <tr><td><b>Esc</b></td><td>停止掃描</td></tr>
 <tr><td><b>Ctrl+F</b></td><td>依名稱搜尋</td></tr>
 <tr><td><b>Delete</b></td><td>把選取的項目（可以好幾個）移到資源回收筒</td></tr>
+<tr><td><b>Ctrl++／Ctrl+−</b></td><td>放大／縮小文字</td></tr>
+<tr><td><b>Ctrl+0</b></td><td>文字恢復系統大小</td></tr>
 <tr><td><b>F1</b></td><td>這份說明</td></tr>
 <tr><td><b>Ctrl+Q</b></td><td>結束</td></tr>
 </table>
@@ -3615,6 +3632,7 @@ FileTree 不會永久刪除任何東西：每次都會先詢問，
 <ul>
 <li>大小是檔案的實際大小，以二進位單位計算（1 KB = 1,024 位元組），和 Windows 檔案總管相同；
 可以在<i>檢視 → 大小單位</i>改用固定的單位。</li>
+<li>文字太小或太大？用<i>檢視 → 文字大小</i>調整整個程式的文字，FileTree 會記住這個選擇。</li>
 <li>捷徑與連結（符號連結、目錄連接）會列出來，但不會跟進去計算，所以不會重複計算。</li>
 <li>在 Windows 上，FileTree 啟動時會像 TreeSize 一樣要求系統管理員權限，受保護的資料夾也能讀取。
 拒絕的話它照常以一般權限執行，讀不到的資料夾列在<i>無法讀取</i>分頁，那裡有<i>以系統管理員身分重新啟動</i>按鈕。
@@ -4656,6 +4674,12 @@ ZH_CN: dict[str, str] = {
     "theme_system": "系统",
     "theme_light": "浅色",
     "theme_dark": "深色",
+    "menu_text_size": "文字大小(&T)",
+    "text_size_larger": "放大(&L)",
+    "text_size_smaller": "缩小(&S)",
+    "text_size_reset": "恢复系统大小(&R)",
+    "text_size_percent": "{percent}%",
+    "text_size_default": "{percent}%（系统大小）",
 
     "chart_access_keys": ("方向键选择已绘制条目；Enter 打开文件夹，Backspace 返回上级。"
                           "合并或未显示的条目可使用文件夹树查看。"),
@@ -5314,6 +5338,8 @@ FileTree 不会永久删除任何东西：每次都会先询问，
 <tr><td><b>Esc</b></td><td>停止扫描</td></tr>
 <tr><td><b>Ctrl+F</b></td><td>按名称搜索</td></tr>
 <tr><td><b>Delete</b></td><td>把选中的项目（可以好几个）移到回收站</td></tr>
+<tr><td><b>Ctrl++／Ctrl+−</b></td><td>放大／缩小文字</td></tr>
+<tr><td><b>Ctrl+0</b></td><td>文字恢复系统大小</td></tr>
 <tr><td><b>F1</b></td><td>这份说明</td></tr>
 <tr><td><b>Ctrl+Q</b></td><td>退出</td></tr>
 </table>
@@ -5322,6 +5348,7 @@ FileTree 不会永久删除任何东西：每次都会先询问，
 <ul>
 <li>大小是文件的实际大小，按二进制单位计算（1 KB = 1,024 字节），和 Windows 资源管理器相同；
 可以在<i>视图 → 大小单位</i>改用固定的单位。</li>
+<li>文字太小或太大？用<i>视图 → 文字大小</i>调整整个程序的文字，FileTree 会记住这个选择。</li>
 <li>快捷方式与链接（符号链接、目录联接）会列出来，但不会进入计算，所以不会重复计算。</li>
 <li>在 Windows 上，FileTree 启动时会像 TreeSize 一样请求管理员权限，受保护的文件夹也能读取。
 拒绝的话它照常以普通权限运行，读不到的文件夹列在<i>无法读取</i>标签页，那里有<i>以管理员身份重新启动</i>按钮。
@@ -6579,6 +6606,12 @@ JA: dict[str, str] = {
     'theme_system': 'システム',
     'theme_light': 'ライト',
     'theme_dark': '暗い',
+    'menu_text_size': '文字サイズ',
+    'text_size_larger': '大きく',
+    'text_size_smaller': '小さく',
+    'text_size_reset': 'システムのサイズに戻す',
+    'text_size_percent': '{percent}%',
+    'text_size_default': '{percent}%（システムのサイズ）',
     'chart_access_keys': (
         '矢印キーでレンダリングされたエントリを選択します。 Enter を押すとフォルダーが開きます。バックスペー'
         'スが上がります。グループ化されたエントリまたは非表示のエントリにはフォルダ ツリーを使用します。'
@@ -7450,9 +7483,13 @@ JA: dict[str, str] = {
         'ートカット</h2>\n<table cellpadding="3">\n<tr><td><b>Ctrl+O</b></td><td>フォルダーを選択</td></tr>\n'
         '<tr><td><b>F5</b></td><td>再スキャン</td></tr>\n<tr><td><b>Esc</b></td><td>スキャンを停止</td></tr>'
         '\n<tr><td><b>Ctrl+F</b></td><td>名前で検索</td></tr>\n<tr><td><b>削除</b></td><td>選択したエントリを'
-        'ごみ箱に移動</td></tr>\n<tr><td><b>F1</b></td><td>このガイド</td></tr>\n<tr><td><b>Ctrl+Q</b></td><t'
+        'ごみ箱に移動</td></tr>\n<tr><td><b>Ctrl++ / Ctrl+−</b></td><td>文字を大きく / 小さく</td></tr>\n'
+        '<tr><td><b>Ctrl+0</b></td><td>文字をシステムのサイズに戻す</td></tr>\n'
+        '<tr><td><b>F1</b></td><td>このガイド</td></tr>\n<tr><td><b>Ctrl+Q</b></td><t'
         'd>終了</td></tr>\n</table>\n<p>macOS では、Ctrl の代わりに ⌘ を使用します (再スキャンするには ⌘R)。<'
-        '/p>\n<h2>知っておきたい</h2>\n<ul>\n<li>サイズはバイナリ単位の実際のファイル サイズ (1 KB = 1,024 バ'
+        '/p>\n<h2>知っておきたい</h2>\n<ul>\n<li>文字が小さすぎる、または大きすぎる場合は、<i>表示 → 文字サイズ</i> '
+        'で FileTree 全体の文字を変更できます。選択は記憶されます。</li>\n'
+        '<li>サイズはバイナリ単位の実際のファイル サイズ (1 KB = 1,024 バ'
         'イト) であり、Windows Explorer と同じです。\n<i>View → サイズ単位</i>.</li>\n で固定単位を選択します'
         '。<li>ショートカットとリンク (シンボリック リンク、ジャンクション) はリストされていますが、たどられ'
         'ることはないため、何もありません\n2 回カウントされました。</li>\n<li>Windows では、FileTree は起動時'
@@ -8638,6 +8675,12 @@ KO: dict[str, str] = {
     'theme_system': '시스템',
     'theme_light': '빛',
     'theme_dark': '어둠',
+    'menu_text_size': '글자 크기',
+    'text_size_larger': '크게',
+    'text_size_smaller': '작게',
+    'text_size_reset': '시스템 크기로 되돌리기',
+    'text_size_percent': '{percent}%',
+    'text_size_default': '{percent}%(시스템 크기)',
     'chart_access_keys': (
         '화살표 키는 렌더링된 항목을 선택합니다. Enter를 누르면 폴더가 열립니다. 백스페이스가 올라갑니다. 그'
         '룹화된 항목이나 숨겨진 항목에는 폴더 트리를 사용하세요.'
@@ -9427,9 +9470,13 @@ KO: dict[str, str] = {
         '비교합니다.\n<h2>키보드 단축키</h2>\n<table cellpadding="3">\n<tr><td><b>Ctrl+O</b></td><td>폴더 선'
         '택</td></tr>\n<tr><td><b>F5</b></td><td>재검색</td></tr>\n<tr><td><b>Esc</b></td><td>스캔 중지</td><'
         '/tr>\n<tr><td><b>Ctrl+F</b></td><td>이름으로 검색</td></tr>\n<tr><td><b>삭제</b></td><td>선택한 항목'
-        '을 휴지통으로 이동</td></tr>\n<tr><td><b>F1</b></td><td>이 가이드</td></tr>\n<tr><td><b>Ctrl+Q</b></'
+        '을 휴지통으로 이동</td></tr>\n<tr><td><b>Ctrl++ / Ctrl+−</b></td><td>글자 크게 / 작게</td></tr>\n'
+        '<tr><td><b>Ctrl+0</b></td><td>글자를 시스템 크기로 되돌리기</td></tr>\n'
+        '<tr><td><b>F1</b></td><td>이 가이드</td></tr>\n<tr><td><b>Ctrl+Q</b></'
         'td><td>종료</td></tr>\n</table>\n<p>On macOS에서는 Ctrl 대신 ⌘를 사용합니다(다시 스캔하려면 ⌘R).</p>'
-        '\n<h2>알아두면 좋은 정보</h2>\n<ul>\n<li>Sizes는 Windows Explorer와 동일하게 바이너리 단위(1KB = 1,0'
+        '\n<h2>알아두면 좋은 정보</h2>\n<ul>\n<li>글자가 너무 작거나 크면 <i>보기 → 글자 크기</i>에서 '
+        'FileTree 전체의 글자를 바꿀 수 있으며 선택은 기억됩니다.</li>\n'
+        '<li>Sizes는 Windows Explorer와 동일하게 바이너리 단위(1KB = 1,0'
         '24바이트)의 실제 파일 크기입니다.\n<i>보기 → 크기 단위</i>.</li>에서 고정 단위를 선택합니다.\n<li>바'
         '로가기 및 링크(기호 링크, 교차점)가 나열되지만 따라갈 수 없으므로 아무것도 없습니다.\n두 번 계산되었'
         '습니다.</li>\n<li>On Windows, FileTree는 시작할 때 TreeSize와 같이 읽을 수 있도록 관리자 권한을 요청'

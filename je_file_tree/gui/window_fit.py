@@ -3,12 +3,15 @@
 Every window names the size it was laid out for on a full-HD desktop. On a smaller screen that size
 is cut back so the window, its title bar and its buttons stay on screen; on a larger one it grows
 in proportion, so lists and charts use the room instead of sitting in a corner. A size the user
-chose themselves (a restored geometry, a drag) is applied after this and wins.
+chose themselves (a restored geometry, a drag) is applied after this and wins. Larger interface text
+asks for a larger window, within the same limits.
 """
 
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QWidget
+
+from je_file_tree.gui.text_scale import text_scale
 
 DESIGN = QSize(1920, 1040)  # the available desktop area the preferred sizes were chosen on
 _SHARE = 0.92  # at most this part of the available area, so the frame and task bar stay reachable
@@ -31,7 +34,8 @@ def fitted_size(width: int, height: int, available: QSize | None) -> QSize:
 
 def fit_window(window: QWidget, width: int, height: int) -> None:
     """Resize ``window`` to its preferred size adapted to the screen of its parent (or the primary one)."""
-    window.resize(fitted_size(width, height, _available(window)))
+    growth = max(1.0, text_scale())
+    window.resize(fitted_size(round(width * growth), round(height * growth), _available(window)))
 
 
 def _bounded(wanted: float, room: int, smallest: int) -> int:

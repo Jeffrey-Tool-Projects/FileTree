@@ -23,6 +23,7 @@ from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.tree_layout import MAX_VISIBLE, PAGE_SIZE, DiagramItem, layout
 from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.text_scale import text_scale
 
 
 HORIZONTAL, VERTICAL = "horizontal", "vertical"
@@ -110,12 +111,17 @@ class TreeDiagramWidget(QWidget):
                                 visible_counts=self._counts, page_offsets=self._offsets)
         return self._rows
 
+    @property
+    def _scale(self) -> float:
+        """Cards and spacing grow with the zoom and with the interface text inside them."""
+        return self._zoom * text_scale()
+
     def card_rect(self, item: DiagramItem) -> QRectF:
         """Card position in widget coordinates."""
         x = item.depth * _LEVEL_GAP if self.orientation == HORIZONTAL else item.row * _LEVEL_GAP
         y = item.row * _ROW_GAP if self.orientation == HORIZONTAL else item.depth * _ROW_GAP
-        return QRectF((_MARGIN + x) * self._zoom, (_MARGIN + y) * self._zoom,
-                      _NODE_WIDTH * self._zoom, _NODE_HEIGHT * self._zoom)
+        return QRectF((_MARGIN + x) * self._scale, (_MARGIN + y) * self._scale,
+                      _NODE_WIDTH * self._scale, _NODE_HEIGHT * self._scale)
 
     def item_at(self, x: float, y: float) -> DiagramItem | None:
         """Return the card under a point, if any."""
@@ -128,8 +134,8 @@ class TreeDiagramWidget(QWidget):
         last = max(len(rows) - 1, 0)
         width = depth * _LEVEL_GAP if self.orientation == HORIZONTAL else last * _LEVEL_GAP
         height = last * _ROW_GAP if self.orientation == HORIZONTAL else depth * _ROW_GAP
-        return QSize(max(400, round((_MARGIN * 2 + width + _NODE_WIDTH) * self._zoom)),
-                     max(260, round((_MARGIN * 2 + height + _NODE_HEIGHT) * self._zoom)))
+        return QSize(max(400, round((_MARGIN * 2 + width + _NODE_WIDTH) * self._scale)),
+                     max(260, round((_MARGIN * 2 + height + _NODE_HEIGHT) * self._scale)))
 
     def paintEvent(self, event: QPaintEvent) -> None:
         """Paint only the cached, bounded layout; Qt clips to the scrolled viewport."""
@@ -139,7 +145,7 @@ class TreeDiagramWidget(QWidget):
             painter.drawText(event.rect(), Qt.AlignmentFlag.AlignCenter, tr("treemap_empty"))
             return
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setPen(QPen(self.palette().mid().color(), max(1, round(self._zoom))))
+        painter.setPen(QPen(self.palette().mid().color(), max(1, round(self._scale))))
         for item in self.rows()[1:]:
             if item.parent is not None:
                 self._draw_branch(painter, self.rows()[item.parent], item)
@@ -156,7 +162,7 @@ class TreeDiagramWidget(QWidget):
                 if item.node is None:
                     self._reveal_more(item)
                 elif (item.node is not self._view_root and item.node.is_dir and item.node.error is None
-                      and event.position().x() < self.card_rect(item).left() + 26 * self._zoom):
+                      and event.position().x() < self.card_rect(item).left() + 26 * self._scale):
                     self._toggle(item.node)
                 else:
                     self.node_clicked.emit(item.node)
@@ -253,7 +259,7 @@ class TreeDiagramWidget(QWidget):
         painter.setPen(QPen(self.palette().highlight().color() if selected else self.palette().mid().color(),
                             2 if selected else 1))
         painter.setBrush(self.palette().highlight() if selected else self.palette().window())
-        painter.drawRoundedRect(rect, 5 * self._zoom, 5 * self._zoom)
+        painter.drawRoundedRect(rect, 5 * self._scale, 5 * self._scale)
         painter.setPen(self.palette().highlightedText().color() if selected else self.palette().text().color())
         if node is None:
             label = tr("tree_more", count=format_count(item.hidden_count),
@@ -263,9 +269,9 @@ class TreeDiagramWidget(QWidget):
             label = node_name(node)
             symbol = "!" if node.error is not None else (
                 "−" if node is self._view_root or id(node) in self._expanded else "+")
-        line = rect.adjusted(8 * self._zoom, 2 * self._zoom, -8 * self._zoom, -2 * self._zoom)
+        line = rect.adjusted(8 * self._scale, 2 * self._scale, -8 * self._scale, -2 * self._scale)
         painter.drawText(line, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft, symbol)
-        left = line.adjusted(17 * self._zoom, 0, 0, 0)
+        left = line.adjusted(17 * self._scale, 0, 0, 0)
         name = painter.fontMetrics().elidedText(label, Qt.TextElideMode.ElideMiddle, round(left.width()))
         painter.drawText(left, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft, name)
         if node is not None:

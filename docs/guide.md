@@ -191,6 +191,8 @@ The four charts expose accessible names, keyboard instructions and the current f
 
 **View → Theme → System / Light / Dark** switches immediately and remembers the choice. Every theme uses the same Fluent (Windows 11) look: rounded controls, quiet surfaces and the platform's accent colour, adjusted so controls keep 3:1 and text 4.5:1 contrast. System follows the platform's light or dark setting and switches with it; under a high-contrast setting it keeps the native platform style and palette. Palette/style changes invalidate chart images. Treemap tiles are flat, separated by thin gaps, and folders are shaded from the theme's own surfaces; Treemap and Sunburst choose black/white labels by actual fill contrast. Bar names and values use the active palette, outside their coloured bars.
 
+**View → Text size** sets every text in FileTree to 90, 100, 110, 125, 150, 175 or 200% of the system's own size, at once and in every tab, and remembers the choice; **Ctrl++**, **Ctrl+-** and **Ctrl+0** step through it. List columns and rows, Tree diagram cards, Bars values and the space for labels follow, newly opened dialogs open larger (never larger than the screen), and scan results, selections and the Tree diagram's own zoom stay as they are. Columns you widened keep their proportion. The help window shows its text 1.3 times as large as labels and has the same three commands. When the results page needs more height or width than the window has, it scrolls instead of stretching the window beyond the screen.
+
 
 The new `multi_scan.scan_roots(paths, ...)` core API scans up to 256 explicit roots under one virtual root. Duplicate/overlapping ordinary paths are collapsed; separately selected mount scopes stay independent. Each child keeps its actual absolute source path, while the virtual `Node.path` is `None` and grants no filesystem operation or OS-capacity authority. Failed/pending roots retain incomplete coverage; cancellation joins active crawlers and preserves partial data. Optional hard-link counting is applied once across all observed roots. JSON marks the virtual root explicitly, saved comparisons preserve it, and CSV/report root paths stay blank. History requires individual source roots. Use **File → Scan several folders…** to capture a folder list, or **Scan all drives** on the welcome page to capture currently ready drives. Combined results support charts, search, comparison and exports; source-changing actions are disabled. Rescan reuses the captured source list, and history stores each actual source separately. CLI `scan ROOT --also ROOT` accepts repeated `--also` arguments; its scan record has `root: null`, actual `roots`, and unknown combined OS capacity. Single-root scans keep their normal behavior.
 
@@ -508,6 +510,8 @@ scan can also be compared with a copy of the same tree elsewhere, such as a back
 | Esc | Stop the scan |
 | Ctrl+F | Search by name |
 | Delete | Move the selected entries to the Recycle Bin |
+| Ctrl++ / Ctrl+- | Larger / smaller text |
+| Ctrl+0 | Text at the system size |
 | F1 | How to use |
 | Ctrl+Q | Quit |
 

@@ -98,6 +98,8 @@ from je_file_tree.gui.tables import (
     ProblemsModel,
     TableProxy,
 )
+from je_file_tree.gui.text_scale import compact_rows, text_scaled
+from je_file_tree.gui.text_size import text_size_controller
 from je_file_tree.gui.tree_model import (
     ALLOCATED,
     DRIVE_SHARE,
@@ -209,7 +211,7 @@ class ResultsView(QWidget):
         problems_header = self.problems_table.horizontalHeader()
         problems_header.setStretchLastSection(False)
         problems_header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.problems_table.setColumnWidth(1, _PROBLEM_COLUMN_WIDTH)
+        self.problems_table.setColumnWidth(1, text_scaled(_PROBLEM_COLUMN_WIDTH))
         self.problems_table.setTextElideMode(Qt.TextElideMode.ElideMiddle)
         self._problems_hint = QLabel()
         self._elevate_button = QPushButton()
@@ -718,9 +720,9 @@ class ResultsView(QWidget):
         header.setStretchLastSection(False)
         header.setMinimumSectionSize(40)
         for column, width in _TREE_COLUMN_WIDTHS.items():
-            tree.setColumnWidth(column, width)
+            tree.setColumnWidth(column, text_scaled(width))
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
-        tree.setColumnWidth(0, 250)
+        tree.setColumnWidth(0, text_scaled(250))
         self.tree_columns = TreeColumns(tree, settings)
         tree.selectionModel().currentChanged.connect(self._tree_current_changed)
         tree.selectionModel().selectionChanged.connect(lambda *_: self.selection_changed.emit(self.selected_node()))
@@ -760,7 +762,7 @@ class ResultsView(QWidget):
         header = table.horizontalHeader()
         header.setStretchLastSection(False)
         for column, width in _LARGEST_COLUMN_WIDTHS.items():
-            table.setColumnWidth(column, width)
+            table.setColumnWidth(column, text_scaled(width))
         header.setSectionResizeMode(_LARGEST_FOLDER_COLUMN, QHeaderView.ResizeMode.Stretch)
         table.setTextElideMode(Qt.TextElideMode.ElideMiddle)  # names keep their extension
         table.setItemDelegateForColumn(_LARGEST_FOLDER_COLUMN, PathTailDelegate(table))  # the nearest folders
@@ -927,9 +929,10 @@ class ResultsView(QWidget):
         layout.addWidget(body, 1)
         self.overview.problems_requested.connect(lambda: self.tabs.setCurrentIndex(PROBLEMS_TAB))
         self._responsive_layout()
+        text_size_controller().changed.connect(self._responsive_layout)
 
-    def _responsive_layout(self) -> None:
-        compact = self.width() < _COMPACT_NAVIGATION_WIDTH
+    def _responsive_layout(self, _percent: int = 0) -> None:
+        compact = self.width() < text_scaled(_COMPACT_NAVIGATION_WIDTH)
         self.navigation.set_compact(compact)
         direction = QBoxLayout.Direction.TopToBottom if compact else QBoxLayout.Direction.LeftToRight
         self._body_layout.setDirection(direction)
@@ -989,7 +992,7 @@ class ResultsView(QWidget):
         header.setStretchLastSection(False)
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         for column, width in ((1, 95), (2, 60), (3, 80)):
-            self.type_locations_table.setColumnWidth(column, width)
+            self.type_locations_table.setColumnWidth(column, text_scaled(width))
         self.type_locations_table.setItemDelegateForColumn(0, PathTailDelegate(self.type_locations_table))
         self._type_locations_label = QLabel()
         self._type_locations_pane = _column(self._type_locations_label, self.type_locations_table)
@@ -1382,7 +1385,7 @@ def _table(model: QSortFilterProxyModel) -> QTableView:
     table.setAlternatingRowColors(True)
     table.setWordWrap(False)
     table.verticalHeader().setVisible(False)
-    table.verticalHeader().setDefaultSectionSize(table.fontMetrics().height() + 6)
+    compact_rows(table)
     table.horizontalHeader().setStretchLastSection(True)
     table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
     return table

@@ -19,6 +19,7 @@ from je_file_tree.core.node import Node
 from je_file_tree.gui.cleanup_text import explanation
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.window_fit import fit_window
 
@@ -66,9 +67,9 @@ class CleanupPolicyDialog(WorkerDialog):
         self._previewed: CleanupPolicy | None = None
         self.table = QTableWidget(len(DETAILS), 3)
         self.table.setHorizontalHeaderLabels([tr("policy_enabled"), tr("review_rule"), tr("policy_age")])
-        self.table.setColumnWidth(0, 80)
-        self.table.setColumnWidth(1, 470)
-        self.table.setColumnWidth(2, 150)
+        self.table.setColumnWidth(0, text_scaled(80))
+        self.table.setColumnWidth(1, text_scaled(470))
+        self.table.setColumnWidth(2, text_scaled(150))
         self._controls: dict[str, tuple[QCheckBox, QSpinBox]] = {}
         self.exclusions = QPlainTextEdit()
         self.exclusions.setMaximumHeight(100)

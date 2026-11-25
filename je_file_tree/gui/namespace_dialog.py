@@ -17,6 +17,7 @@ from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.namespace_worker import NamespaceOperationWorker, NamespacePreviewWorker, NamespaceRequest
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.lazy_details import set_lazy_details
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker, retire_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.window_fit import fit_window
@@ -119,7 +120,7 @@ class NamespaceDialog(WorkerDialog):
         self.view.setTextElideMode(Qt.TextElideMode.ElideMiddle)
         self.view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         for column, width in enumerate((150, 330, 150, 330, 170)):
-            self.view.setColumnWidth(column, width)
+            self.view.setColumnWidth(column, text_scaled(width))
         install_copy(self.view)
 
     def _browse(self) -> None:

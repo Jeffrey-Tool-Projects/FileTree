@@ -15,6 +15,7 @@ from je_file_tree.gui import elevation
 from je_file_tree.gui.main_window import ASK_ADMIN_KEY, MainWindow, read_flag
 from je_file_tree.gui.qt_translation import apply_qt_translation
 from je_file_tree.gui.scan_worker import pace_workers
+from je_file_tree.gui.text_size import saved_text_size, text_size_controller
 from je_file_tree.gui.themes import theme_controller
 from je_file_tree.gui.workspace import ScanWorkspace
 from je_file_tree.gui.startup_state import workspace_state
@@ -30,6 +31,7 @@ def _configure_interface(settings: QSettings) -> None:
         language = match_language(QLocale.system().name())
     set_language(language)
     theme_controller().apply(str(settings.value('theme', 'system')))
+    text_size_controller().apply(saved_text_size(settings))
     apply_language_font(language)
     apply_qt_translation(language)
 

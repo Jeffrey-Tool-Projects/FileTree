@@ -18,6 +18,7 @@ from je_file_tree.core.programs import Program, Programs, installed_programs
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.tree_model import NODE_ROLE
@@ -99,7 +100,7 @@ class ProgramsDialog(WorkerDialog):
         self.view.sortByColumn(3, Qt.SortOrder.DescendingOrder)
         self.view.doubleClicked.connect(self._select)
         for column, width in enumerate((240, 150, 150, 150, 160, 240, 160, 190, 440)):
-            self.view.setColumnWidth(column, width)
+            self.view.setColumnWidth(column, text_scaled(width))
         install_copy(self.view)
         hint = QLabel(tr("program_hint"))
         hint.setWordWrap(True)

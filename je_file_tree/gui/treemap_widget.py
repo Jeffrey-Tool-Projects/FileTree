@@ -40,6 +40,7 @@ from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.treemap import Rect, Tile, layout
 from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.age_colours import age_colour
 from je_file_tree.gui.colours import blend, readable_ink
 
@@ -279,7 +280,7 @@ class TreemapWidget(QWidget):
         colour = self._colour(node, tile.depth)
         ink = self._ink(colour)
         _fill(painter, rect, colour)
-        if rect.width() < _LABEL_MIN_WIDTH or rect.height() < _LABEL_MIN_HEIGHT:
+        if rect.width() < text_scaled(_LABEL_MIN_WIDTH) or rect.height() < text_scaled(_LABEL_MIN_HEIGHT):
             return
         size = format_size(node.accounted_size, self.unit)
         painter.setPen(ink)
@@ -302,7 +303,7 @@ class TreemapWidget(QWidget):
         hatch = QColor(ink)
         hatch.setAlpha(_GROUP_HATCH_ALPHA)
         _fill(painter, rect, QBrush(hatch, Qt.BrushStyle.BDiagPattern))
-        if rect.width() < _LABEL_MIN_WIDTH or rect.height() < _LABEL_MIN_HEIGHT:
+        if rect.width() < text_scaled(_LABEL_MIN_WIDTH) or rect.height() < text_scaled(_LABEL_MIN_HEIGHT):
             return
         painter.setPen(ink)
         label = rect.adjusted(3, 1, -3, -1)

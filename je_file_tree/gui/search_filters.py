@@ -13,6 +13,8 @@ from je_file_tree.core.formatting import format_size
 from je_file_tree.core.search import ANY, KINDS
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.search_ranges import MAX_BYTES, SearchRangeDialog, calendar_bounds, validate_sizes
+from je_file_tree.gui.text_scale import text_scaled
+from je_file_tree.gui.text_size import text_size_controller
 
 FILTER_PAIR_WIDTH = 250
 MAX_FILTER_PAIRS = 3
@@ -60,12 +62,16 @@ class SearchFilters(QWidget):
             combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             combo.currentIndexChanged.connect(lambda _index: self.changed.emit())
         self._arrange(MAX_FILTER_PAIRS)
+        text_size_controller().changed.connect(self._fit_columns)
         self.retranslate()
 
     def resizeEvent(self, event) -> None:
         """Keep filter inputs reachable as the result pane narrows."""
         super().resizeEvent(event)
-        self._arrange(max(1, min(MAX_FILTER_PAIRS, self.width() // FILTER_PAIR_WIDTH)))
+        self._fit_columns()
+
+    def _fit_columns(self, _percent: int = 0) -> None:
+        self._arrange(max(1, min(MAX_FILTER_PAIRS, self.width() // text_scaled(FILTER_PAIR_WIDTH))))
 
     def _arrange(self, columns: int) -> None:
         if columns == self._columns:

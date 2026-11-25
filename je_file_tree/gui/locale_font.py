@@ -1,4 +1,4 @@
-"""Prefer installed Japanese/Korean UI fonts while preserving the user's base size and style."""
+"""Prefer installed Japanese/Korean UI fonts, at the chosen text size, preserving the user's base style."""
 
 from __future__ import annotations
 
@@ -6,6 +6,8 @@ import sys
 
 from PySide6.QtGui import QFont, QFontDatabase
 from PySide6.QtWidgets import QApplication, QWidget
+
+from je_file_tree.gui.text_scale import scaled_font, text_scale
 
 _FAMILIES = {
     "ja": {"win32": ("Yu Gothic UI", "Yu Gothic", "Meiryo"),
@@ -46,14 +48,15 @@ def emphasise(widget: QWidget, scale: float = 1.0) -> None:
 
 
 def _emphasis_font(scale: float) -> QFont:
-    font = QFont(QApplication.font())
-    font.setPointSizeF(font.pointSizeF() * scale)
+    font = scaled_font(QApplication.font(), scale)
     font.setBold(True)
     return font
 
 
 def apply_language_font(language: str) -> QFont:
-    """Make the language's font the application font, from the base font captured on first use.
+    """Make the language's font, at the chosen text size, the application font.
+
+    Both start from the base font captured on first use, so sizes never multiply up.
 
     Application-wide, so every widget gets it, including ones created later (legend labels, dialogs):
     once a style sheet is active Qt no longer passes a window's font on to children created after it.
@@ -65,7 +68,7 @@ def apply_language_font(language: str) -> QFont:
     if base is None:
         base = QFont(app.font())
         app._filetree_base_font = base
-    font = language_font(language, base)
+    font = scaled_font(language_font(language, base), text_scale())
     if font != app.font():
         app.setFont(font)
         for widget in QApplication.allWidgets():

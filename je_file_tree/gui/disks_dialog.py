@@ -20,6 +20,7 @@ from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.system_files import open_system_tool
 from je_file_tree.gui.tables import Column, _TableModel
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker, retire_worker
 from je_file_tree.gui.window_fit import fit_window
 
@@ -182,7 +183,7 @@ def _table(model: _TableModel, widths: Sequence[int]) -> QTableView:
     view.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
     view.verticalHeader().hide()
     for column, width in enumerate(widths):
-        view.setColumnWidth(column, width)
+        view.setColumnWidth(column, text_scaled(width))
     install_copy(view)
     return view
 

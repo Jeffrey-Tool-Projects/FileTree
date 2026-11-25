@@ -107,6 +107,8 @@ from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue
 from je_file_tree.gui.multi_scan import MultiScanDialog
 from je_file_tree.gui.folder_validation import FolderDrops
 from je_file_tree.gui.folder_budget_store import display_error
+from je_file_tree.gui.scrolling_page import ScrollingPage
+from je_file_tree.gui.text_size import TextSizeMenu
 from je_file_tree.gui.themes import ThemeMenu
 from je_file_tree.gui.updates import UpdateNotice
 from je_file_tree.gui.operation_group import OperationGroup
@@ -205,7 +207,7 @@ class MainWindow(QMainWindow):
         self._bin_labels.ready.connect(self._bin_metadata_ready)
         self._bin_labels.busy_changed.connect(lambda _busy: self._update_bin_buttons())
         self.pages = QStackedWidget()
-        for page in (self.welcome, self.results):
+        for page in (self.welcome, ScrollingPage(self.results)):
             self.pages.addWidget(page)
         self._live_timer = LiveRefresh(self.results.refresh_live, self)  # spaced by its cost (U-20261118-01)
         self.setCentralWidget(self.pages)
@@ -1531,6 +1533,7 @@ class MainWindow(QMainWindow):
         self.welcome.retranslate()
         self.results.retranslate()
         self.theme_menu.retranslate()
+        self.text_size_menu.retranslate()
         self._undo.retranslate()
         self._updates.retranslate()
         self._follow.retranslate()
@@ -1821,7 +1824,8 @@ class MainWindow(QMainWindow):
             action.triggered.connect(lambda _checked=False, chosen=code: self.change_language(chosen))
             self._language_actions[code] = action
         view_menu.addSeparator()
-        self.theme_menu = ThemeMenu(view_menu, self.settings)
+        self.theme_menu, self.text_size_menu = (ThemeMenu(view_menu, self.settings),
+                                                TextSizeMenu(view_menu, self.settings))
         view_menu.addAction(self._actions["hidden"])
         view_menu.addAction(self._actions["exclusions"])
         view_menu.addAction(self._actions["ask_admin"])
@@ -2359,7 +2363,7 @@ class MainWindow(QMainWindow):
 
     def show_help(self) -> None:
         """Open the how-to-use window."""
-        HelpDialog(self).exec()
+        HelpDialog(self, self.text_size_menu).exec()
 
     def show_recent_actions(self) -> None:
         """Open the retained metadata trail, without proposing or restoring any entry."""

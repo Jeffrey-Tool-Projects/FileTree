@@ -734,6 +734,14 @@ and one application style sheet; widgets opt in through `role` properties or obj
 no style sheet of their own. System under high contrast keeps the native style and an empty palette.
 Explicit themes also request the matching platform colour scheme (Qt 6.8+) for the title bar.
 ThemeMenu persists the choice and startup restores it before constructing windows. Palette/style events discard chart caches.
+`text_scale` holds the chosen interface text size (no dependencies, so layout code can ask it);
+`text_size` owns the one QApplication controller, View → Text size (`text_size` setting, restored by
+`app._configure_interface` before any window) and its Ctrl++/Ctrl+-/Ctrl+0 commands, shared with the
+modal help window. `TextSizeController.apply` sets the application font through `apply_language_font`
+(always from the captured base font), delivers Qt's posted font change, scales the columns and rows of
+open lists by the ratio, then emits `changed` for geometry derived from text. New pixel sizes chosen for
+text (column widths above all) go through `text_scaled`; `fit_window` grows dialogs within the screen.
+`ScrollingPage` holds the results page, so its minimum size never becomes the window's.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,
 rounded corners from 8 px) and folder fills blend the palette's text over its base by depth. Sunburst/age labels share this logic; bars use palette text roles.
 
@@ -1629,7 +1637,7 @@ contract. ja/ko system locales select their language on first use. Native Qt ja/
 standard buttons/dialogs and all four non-English catalogues are required in runtime/package checks.
 README/Nuitka parity and generated screenshots cover all five languages; OS fonts provide glyphs.
 locale_font chooses installed Japanese/Korean UI families on each retranslation while preserving
-the captured system size/style, restoring that base for other languages. `apply_language_font` sets
+the captured system style, at the chosen text size, restoring that base for other languages. `apply_language_font` sets
 it as the application font, so widgets created later and dialogs get it too: under an application
 style sheet Qt no longer passes a window's font on to children created after it. Bold, scaled
 labels use `emphasise`, which marks them so `apply_language_font` re-applies their font: on macOS a

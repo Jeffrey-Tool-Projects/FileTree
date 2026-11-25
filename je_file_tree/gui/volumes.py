@@ -20,6 +20,7 @@ from je_file_tree.gui import forecast as forecast_view
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker, retire_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.window_fit import fit_window
@@ -221,7 +222,7 @@ class VolumesDialog(WorkerDialog):
         self.view.setSortingEnabled(True)
         self.view.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         for column, width in enumerate((140, 140, 90, 100, 100, 190, 115, 130, 110, 400)):
-            self.view.setColumnWidth(column, width)
+            self.view.setColumnWidth(column, text_scaled(width))
         self.view.setItemDelegateForColumn(_FREE_COLUMN, FreeSpaceDelegate(self.view))
         self.view.setItemDelegateForColumn(_FORECAST_COLUMN, forecast_view.SparklineDelegate(self.view))
         self.view.doubleClicked.connect(self._scan)

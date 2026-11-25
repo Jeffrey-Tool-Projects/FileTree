@@ -11,6 +11,8 @@ from je_file_tree.core.node import Node
 from je_file_tree.gui.fluent_style import set_style_property
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.locale_font import emphasise
+from je_file_tree.gui.text_scale import text_scaled
+from je_file_tree.gui.text_size import text_size_controller
 
 _METRICS = ("size", "allocated", "files", "folders")
 _COMPACT_WIDTH = 680
@@ -50,6 +52,7 @@ class ResultOverview(QWidget):
         layout.addLayout(row)
         layout.addLayout(self._grid)
         self._arrange()
+        text_size_controller().changed.connect(self._arrange)
         self.retranslate()
 
     def _add_card(self) -> None:
@@ -93,8 +96,8 @@ class ResultOverview(QWidget):
             value.setAccessibleDescription(amount)
         self.cards[1].setToolTip(tr("overview_allocation_hint"))
 
-    def _arrange(self) -> None:
-        columns = 2 if self.width() < _COMPACT_WIDTH else 4
+    def _arrange(self, _percent: int = 0) -> None:
+        columns = 2 if self.width() < text_scaled(_COMPACT_WIDTH) else 4
         if columns == self._columns:
             return
         self._columns = columns

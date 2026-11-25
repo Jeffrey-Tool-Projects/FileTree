@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from je_file_tree.core.operation_journal import JournalRead, OperationJournal, OperationRecord, export_journal
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import ExportWorker, wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.window_fit import fit_window
 
@@ -92,9 +93,9 @@ class RecentActions(WorkerDialog):
                 item.setToolTip(value)
                 items.append(item)
             self.model.appendRow(items)
-        self.view.setColumnWidth(0, 210)
-        self.view.setColumnWidth(1, 270)
-        self.view.setColumnWidth(4, 180)
+        self.view.setColumnWidth(0, text_scaled(210))
+        self.view.setColumnWidth(1, text_scaled(270))
+        self.view.setColumnWidth(4, text_scaled(180))
         self.export_button.setEnabled(bool(result.records))
         self.status.setText(tr("journal_summary", count=str(len(result.records)), invalid=str(result.invalid),
                                unavailable=str(result.unavailable)))
