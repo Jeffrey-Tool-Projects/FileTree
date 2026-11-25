@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-28 | 2026-11-26 | 全專案審查第七輪：日文與韓文 | #done #fix #review #i18n #docs | [2026-11-b](2026-11-b.md) |
 | U-20261126-27 | 2026-11-26 | 全專案審查第六輪：結果畫面 | #done #fix #review #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-26 | 2026-11-26 | 全專案審查第五輪：對話框與服務 | #done #fix #review #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-25 | 2026-11-26 | 全專案審查第四輪：原生讀取與變更追蹤 | #done #fix #review #native | [2026-11-b](2026-11-b.md) |
