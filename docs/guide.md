@@ -193,6 +193,8 @@ The four charts expose accessible names, keyboard instructions and the current f
 
 **View → Text size** sets every text in FileTree to 90, 100, 110, 125, 150, 175 or 200% of the system's own size, at once and in every tab, and remembers the choice; **Ctrl++**, **Ctrl+-** and **Ctrl+0** step through it. List columns and rows, Tree diagram cards, Bars values and the space for labels follow, newly opened dialogs open larger (never larger than the screen), and scan results, selections and the Tree diagram's own zoom stay as they are. Columns you widened keep their proportion. The help window shows its text 1.3 times as large as labels and has the same three commands. When the results page needs more height or width than the window has, it scrolls instead of stretching the window beyond the screen. Before it scrolls, a short window folds the scan highlights, puts each total beside its name and leaves out the hint line; they return when there is room, and highlights you opened or closed yourself stay that way.
 
+**Options → Settings…** (`Ctrl+,`) shows every setting in one window with a search box. Each box and list is the menu entry itself and applies at once; buttons open the existing windows for skipped folders, scan threads, presets, budgets, background monitoring, the clean-up policy and history. **Export settings…** writes appearance, scan choices and skipped folders to a JSON file; **Import settings…** checks every value, refuses the whole file if one is unknown or out of range, lists what would change and asks first. Recent folders, presets, templates, budgets, background scans and window positions are not included; the clean-up policy keeps its own previewed import.
+
 
 The new `multi_scan.scan_roots(paths, ...)` core API scans up to 256 explicit roots under one virtual root. Duplicate/overlapping ordinary paths are collapsed; separately selected mount scopes stay independent. Each child keeps its actual absolute source path, while the virtual `Node.path` is `None` and grants no filesystem operation or OS-capacity authority. Failed/pending roots retain incomplete coverage; cancellation joins active crawlers and preserves partial data. Optional hard-link counting is applied once across all observed roots. JSON marks the virtual root explicitly, saved comparisons preserve it, and CSV/report root paths stay blank. History requires individual source roots. Use **File → Scan several folders…** to capture a folder list, or **Scan all drives** on the welcome page to capture currently ready drives. Combined results support charts, search, comparison and exports; source-changing actions are disabled. Rescan reuses the captured source list, and history stores each actual source separately. CLI `scan ROOT --also ROOT` accepts repeated `--also` arguments; its scan record has `root: null`, actual `roots`, and unknown combined OS capacity. Single-root scans keep their normal behavior.
 
@@ -512,6 +514,7 @@ scan can also be compared with a copy of the same tree elsewhere, such as a back
 | Delete | Move the selected entries to the Recycle Bin |
 | Ctrl++ / Ctrl+- | Larger / smaller text |
 | Ctrl+0 | Text at the system size |
+| Ctrl+, | Settings |
 | F1 | How to use |
 | Ctrl+Q | Quit |
 

@@ -748,6 +748,8 @@ open lists by the ratio, then emits `changed` for geometry derived from text. Ne
 text (column widths above all) go through `text_scaled`; `fit_window` grows dialogs within the screen.
 `ScrollingPage` holds the results page, so its minimum size never becomes the window's. Its `room_changed`
 drives `ShortLayout`, which folds the highlights, inlines the totals and hides the hint before anything scrolls.
+`SettingsDialog` shows the menu actions themselves (no second copy of a setting); `settings_file` holds the
+portable keys with their validators and reads or writes them all or nothing (`file-tree-settings/1`).
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

@@ -108,6 +108,7 @@ from je_file_tree.gui.multi_scan import MultiScanDialog
 from je_file_tree.gui.folder_validation import FolderDrops
 from je_file_tree.gui.folder_budget_store import display_error
 from je_file_tree.gui.scrolling_page import ScrollingPage
+from je_file_tree.gui.settings_dialog import SettingsDialog
 from je_file_tree.gui.text_size import TextSizeMenu
 from je_file_tree.gui.themes import ThemeMenu
 from je_file_tree.gui.updates import UpdateNotice
@@ -1490,6 +1491,11 @@ class MainWindow(QMainWindow):
 
     # --- settings, language, units ----------------------------------------
 
+    @property
+    def size_unit(self) -> str:
+        """The unit sizes are shown in."""
+        return self._unit
+
     def set_unit(self, unit: str) -> None:
         """Show sizes in ``unit`` and remember it."""
         self._unit = unit
@@ -1727,6 +1733,7 @@ class MainWindow(QMainWindow):
             ("exclusions", None, self.edit_exclusions),
             ("cleanup_policy", None, self.edit_cleanup_policy),
             ("shell_integration", None, self.edit_shell_integration),
+            ("settings", "Ctrl+,", self.show_settings),
             ("gentle", None, lambda: self.settings.setValue("gentle_scan", self._actions["gentle"].isChecked())),
             ("scan_workers", None, self.configure_workers),
             ("auto_cpu", None, lambda: self.settings.setValue(AUTO_CPU_KEY, self._actions["auto_cpu"].isChecked())),
@@ -1832,14 +1839,13 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self._actions["exclusions"])
         view_menu.addAction(self._actions["ask_admin"])
         options_menu = bar.addMenu("")
+        options_menu.addAction(self._actions["settings"])
+        options_menu.addSeparator()
         for key in ("cleanup_policy", "gentle", "scan_workers", "auto_cpu", "mft_scan", "scan_presets",
-                    "history_settings"):
+                    "history_settings", "check_updates", "follow_changes", "background_monitor",
+                    "capture_file_times", "capture_owners", "exact_allocation", "count_hard_links",
+                    "shell_integration"):
             options_menu.addAction(self._actions[key])
-        for key in ("check_updates", "follow_changes", "background_monitor"):
-            options_menu.addAction(self._actions[key])
-        for key in ("capture_file_times", "capture_owners", "exact_allocation", "count_hard_links"):
-            options_menu.addAction(self._actions[key])
-        options_menu.addAction(self._actions["shell_integration"])
         help_menu = bar.addMenu("")
         help_menu.addAction(self._actions["help"])
         help_menu.addAction(self._actions["about"])
@@ -2198,11 +2204,23 @@ class MainWindow(QMainWindow):
         dialog = ExclusionsDialog(self.exclusions(), self)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
-        if self._scan_defaults is not None:
-            self._scan_defaults.exclude = tuple(dialog.patterns())
-        self.settings.setValue(EXCLUSIONS_KEY, dialog.patterns())
+        self.set_exclusions(dialog.patterns())
         self.statusBar().showMessage(tr("exclusions_saved", count=format_count(len(dialog.patterns()))),
                                      _STATUS_TIMEOUT_MS)
+
+    def set_exclusions(self, patterns: list[str]) -> None:
+        """Skip ``patterns`` from the next scan on, and remember them."""
+        if self._scan_defaults is not None:
+            self._scan_defaults.exclude = tuple(patterns)
+        self.settings.setValue(EXCLUSIONS_KEY, patterns)
+
+    def show_settings(self) -> None:
+        """Every setting in one window; it changes them through the menu actions."""
+        dialog = SettingsDialog(self)
+        try:
+            dialog.exec()
+        finally:
+            dialog.deleteLater()
 
     def edit_cleanup_policy(self) -> None:
         """Preview and save clean-up settings independently of scan exclusions."""
@@ -2350,9 +2368,13 @@ class MainWindow(QMainWindow):
                                              tr("workers_prompt", default=DEFAULT_WORKERS),
                                              self._scan_options().workers, 1, _MAX_SCAN_WORKERS, 1)
         if accepted:
-            if self._scan_defaults is not None:
-                self._scan_defaults.workers = value
-            self.settings.setValue(SCAN_WORKERS_KEY, value)
+            self.set_workers(value)
+
+    def set_workers(self, value: int) -> None:
+        """Read with ``value`` threads from the next scan on, and remember it."""
+        if self._scan_defaults is not None:
+            self._scan_defaults.workers = value
+        self.settings.setValue(SCAN_WORKERS_KEY, value)
 
     def choose_saved_scan(self) -> None:
         """Ask for a saved scan (a Folder tree JSON export) and compare the scan on screen with it."""

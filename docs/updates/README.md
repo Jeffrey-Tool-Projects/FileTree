@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-06 | 2026-11-26 | 新增可搜尋的設定視窗，並可匯出與匯入設定 | #done #feature #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-05 | 2026-11-26 | 高度不足的視窗先收合結果頁的附加資訊再捲動 | #done #gui #ux | [2026-11-b](2026-11-b.md) |
 | U-20261126-04 | 2026-11-26 | 啟動時不再載入 Excel 匯出套件 | #done #perf #gui | [2026-11-b](2026-11-b.md) |
 | U-20261126-03 | 2026-11-26 | 使用說明五種語言重寫，介面名稱由字串表帶入 | #done #gui #i18n #docs | [2026-11-b](2026-11-b.md) |

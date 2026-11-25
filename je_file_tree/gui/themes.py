@@ -140,7 +140,7 @@ class ThemeMenu(QMenu):
             action = self.addAction('')
             action.setCheckable(True)
             group.addAction(action)
-            action.triggered.connect(lambda _checked=False, choice=theme: self._choose(choice))
+            action.triggered.connect(lambda _checked=False, chosen=theme: self.choose(chosen))
             self.actions_by_theme[theme] = action
         self.controller.changed.connect(self._mark)
         self._mark(self.controller.choice)
@@ -152,7 +152,8 @@ class ThemeMenu(QMenu):
         for theme, action in self.actions_by_theme.items():
             action.setText(tr(f'theme_{theme}'))
 
-    def _choose(self, theme: str) -> None:
+    def choose(self, theme: str) -> None:
+        """Use ``theme`` everywhere and remember it."""
         self.settings.setValue('theme', theme)
         self.controller.apply(theme)
 

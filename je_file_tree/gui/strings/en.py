@@ -1875,4 +1875,24 @@ EN: dict[str, str] = {
     'search_no_conditions': 'Add a name or condition to search the entire scan.',
     'search_clear_condition': 'Clear',
     'search_remove_condition': 'Clear condition: {condition}',
+    "action_settings": "Settings…",
+    "action_settings_tip": "Every setting in one searchable window, with export and import",
+    "settings_title": "Settings",
+    "settings_search": "Search settings",
+    "settings_none": "No setting matches.",
+    "settings_appearance": "Appearance",
+    "settings_scanning": "Scanning",
+    "settings_recording": "What scans record",
+    "settings_following": "Following and watching",
+    "settings_cleaning": "Clean-up and history",
+    "settings_system": "Windows",
+    "settings_export": "Export settings…",
+    "settings_import": "Import settings…",
+    "settings_file_tip": (
+        "Appearance, scan choices and skipped folders. Recent folders, presets, budgets,"
+        " background scans and the clean-up policy are not included."
+    ),
+    "settings_invalid": "This is not a usable FileTree settings file. Nothing was changed.",
+    "settings_same": "These settings are already in use.",
+    "settings_confirm": "Change {count} settings to the values in this file?",
 }

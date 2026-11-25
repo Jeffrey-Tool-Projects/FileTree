@@ -1961,4 +1961,24 @@ KO: dict[str, str] = {
     'search_no_conditions': '전체 스캔을 검색하려면 이름이나 조건을 입력하세요。',
     'search_clear_condition': '지우기',
     'search_remove_condition': '조건 지우기: {condition}',
+    "action_settings": "설정…",
+    "action_settings_tip": "검색할 수 있는 한 창에서 모든 설정을 바꾸고 내보내거나 가져옵니다",
+    "settings_title": "설정",
+    "settings_search": "설정 검색",
+    "settings_none": "일치하는 설정이 없습니다.",
+    "settings_appearance": "모양",
+    "settings_scanning": "스캔",
+    "settings_recording": "스캔할 때 기록할 정보",
+    "settings_following": "따라가기와 감시",
+    "settings_cleaning": "정리와 기록",
+    "settings_system": "Windows",
+    "settings_export": "설정 내보내기…",
+    "settings_import": "설정 가져오기…",
+    "settings_file_tip": (
+        "모양, 스캔 선택, 건너뛸 폴더가 포함됩니다. 최근 폴더, 자주 쓰는 스캔 설정, 용량"
+        " 예산, 백그라운드 스캔, 정리 정책은 포함되지 않습니다."
+    ),
+    "settings_invalid": "사용할 수 있는 FileTree 설정 파일이 아닙니다. 아무 설정도 바꾸지 않았습니다.",
+    "settings_same": "이미 이 설정을 사용하고 있습니다.",
+    "settings_confirm": "설정 {count}개를 이 파일의 값으로 바꾸시겠습니까?",
 }

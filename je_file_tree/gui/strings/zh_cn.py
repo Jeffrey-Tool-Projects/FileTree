@@ -1682,4 +1682,24 @@ ZH_CN: dict[str, str] = {
     'search_no_conditions': '添加名称或条件，即可搜索整个扫描结果。',
     'search_clear_condition': '清除',
     'search_remove_condition': '清除条件：{condition}',
+    "action_settings": "设置…",
+    "action_settings_tip": "在一个可搜索的窗口中调整所有设置，并可导出与导入",
+    "settings_title": "设置",
+    "settings_search": "搜索设置",
+    "settings_none": "没有匹配的设置。",
+    "settings_appearance": "外观",
+    "settings_scanning": "扫描",
+    "settings_recording": "扫描时记录的数据",
+    "settings_following": "跟随与监视",
+    "settings_cleaning": "清理与历史",
+    "settings_system": "Windows",
+    "settings_export": "导出设置…",
+    "settings_import": "导入设置…",
+    "settings_file_tip": (
+        "包含外观、扫描选项与跳过的文件夹。不含最近的文件夹、常用扫描设置、容量预算、后台"
+        "扫描与清理策略。"
+    ),
+    "settings_invalid": "这不是可用的 FileTree 设置文件，没有更改任何设置。",
+    "settings_same": "当前已经是这些设置。",
+    "settings_confirm": "要将 {count} 项设置改为此文件中的值吗？",
 }

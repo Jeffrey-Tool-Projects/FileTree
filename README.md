@@ -33,6 +33,7 @@ Use arrow keys to select budget rows and Tab to reach the editor. Reopening sear
 - **Save reports**: export results to CSV, JSON or Excel. Large selected-list copies prepare rows and text in batches; a newer copy in any list replaces the pending one.
 - **Use your language**: switch between English, Traditional Chinese, Simplified Chinese, Japanese and Korean.
 - **Choose the text size**: View → Text size makes every text in FileTree larger or smaller, from 90% to 200%, and remembers it. The help opens in larger text, and light and dark colours keep text and controls at high contrast.
+- **Find every setting in one place**: Options → Settings… (Ctrl+,) has a search box, and exports and imports your choices.
 - **Explorer folder menu (Windows)**: add Scan with FileTree from Options. Settings stay responsive; an active Save finishes before closing.
 
 Applied search conditions stay above the results. Remove one condition or clear them all, and choose dates from a calendar.
@@ -90,6 +91,7 @@ Starting a new scan cancels pending folder-list calculations and discards their 
 | Delete | Move selected items to the Recycle Bin |
 | Ctrl++ / Ctrl+- | Larger / smaller text |
 | Ctrl+0 | Text at the system size |
+| Ctrl+, | Settings |
 | F1 | Open help |
 | Ctrl+Q | Quit |
 

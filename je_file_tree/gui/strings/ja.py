@@ -2099,4 +2099,25 @@ JA: dict[str, str] = {
     'search_no_conditions': '名前または条件を指定して、スキャン全体を検索します。',
     'search_clear_condition': '解除',
     'search_remove_condition': '条件を解除：{condition}',
+    "action_settings": "設定…",
+    "action_settings_tip": "すべての設定を検索できる 1 つの画面で変更し、書き出しと読み込みもできます",
+    "settings_title": "設定",
+    "settings_search": "設定を検索",
+    "settings_none": "一致する設定はありません。",
+    "settings_appearance": "外観",
+    "settings_scanning": "スキャン",
+    "settings_recording": "スキャンで記録する情報",
+    "settings_following": "追跡と監視",
+    "settings_cleaning": "クリーンアップと履歴",
+    "settings_system": "Windows",
+    "settings_export": "設定を書き出す…",
+    "settings_import": "設定を読み込む…",
+    "settings_file_tip": (
+        "外観、スキャンの選択、スキップするフォルダーを含みます。最近のフォルダー、スキャ"
+        "ン設定、容量予算、バックグラウンド スキャン、クリーンアップ ポリシーは含みません"
+        "。"
+    ),
+    "settings_invalid": "FileTree の設定ファイルとして使えません。設定は変更していません。",
+    "settings_same": "すでにこの設定になっています。",
+    "settings_confirm": "{count} 件の設定をこのファイルの値に変更しますか？",
 }

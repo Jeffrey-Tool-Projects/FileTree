@@ -1681,4 +1681,24 @@ ZH_TW: dict[str, str] = {
     'search_no_conditions': '加入名稱或條件，即可搜尋整份掃描結果。',
     'search_clear_condition': '解除',
     'search_remove_condition': '解除條件：{condition}',
+    "action_settings": "設定…",
+    "action_settings_tip": "在一個可搜尋的視窗中調整所有設定，並可匯出與匯入",
+    "settings_title": "設定",
+    "settings_search": "搜尋設定",
+    "settings_none": "沒有符合的設定。",
+    "settings_appearance": "外觀",
+    "settings_scanning": "掃描",
+    "settings_recording": "掃描時記錄的資料",
+    "settings_following": "跟隨與監視",
+    "settings_cleaning": "清理與歷史",
+    "settings_system": "Windows",
+    "settings_export": "匯出設定…",
+    "settings_import": "匯入設定…",
+    "settings_file_tip": (
+        "包含外觀、掃描選項與略過的資料夾。不含最近的資料夾、常用掃描設定、容量預算、背景"
+        "掃描與清理政策。"
+    ),
+    "settings_invalid": "這不是可用的 FileTree 設定檔，沒有變更任何設定。",
+    "settings_same": "目前已經是這些設定。",
+    "settings_confirm": "要將 {count} 項設定改為這個檔案中的值嗎？",
 }

@@ -84,6 +84,7 @@ one with it. The <b>{tab_changes}</b> tab lists every folder that grew or shrank
 <tr><td><b>Shift+Delete</b></td><td>Delete the selected entries permanently</td></tr>
 <tr><td><b>Ctrl++ / Ctrl+−</b></td><td>Larger / smaller text</td></tr>
 <tr><td><b>Ctrl+0</b></td><td>Text at the system size</td></tr>
+<tr><td><b>Ctrl+,</b></td><td>Settings</td></tr>
 <tr><td><b>F1</b></td><td>This guide</td></tr>
 <tr><td><b>Ctrl+Q</b></td><td>Quit</td></tr>
 </table>
