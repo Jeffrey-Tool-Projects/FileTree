@@ -649,7 +649,13 @@ je-file-tree-cli scan D:\ --compare old.json --limit 20
 python -m je_file_tree.cli scan D:\ --exclude node_modules --workers 2
 python -m je_file_tree.cli scan D:\ --count-hard-links
 python -m je_file_tree.cli scan C:\ --also D:\ --json drives.json
+je-file-tree-cli search D:\ --name "*.iso;*.zip" --min-size 1G --limit 20
+je-file-tree-cli duplicates D:\Photos --min-size 10M
+je-file-tree-cli cleanup C:\Users --policy policy.json
+je-file-tree-cli budget D:\ --budget D:\Downloads=50G --budget D:\Videos=200G
 ```
+
+`search`, `duplicates`, `cleanup` and `budget` scan with the same options and print one more JSON record of that kind; no option moves, deletes or changes anything. `search` takes the conditions of the Search tab (`--name`, `--regex`, `--exclude-names`, `--owner`, sizes such as `10M`, ages in days, `--type`, `--kind`, depths) and checks them before scanning. `duplicates` reads files of the same size, 1 MiB and more unless `--min-size` says otherwise. `cleanup` lists candidates with their rule and risk, with the built-in rules or a policy file. `budget` compares folders with limits: exit code **4** when one is over, **1** when a size is unknown. An interrupted scan prints no report.
 
 Exit codes: **0** complete coverage, **1** incomplete coverage (including exclusions/unreadable entries),
 **2** invalid arguments, **3** scan/compare/export I/O or invalid saved-scan error, **130** interrupted.

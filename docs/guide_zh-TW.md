@@ -423,7 +423,13 @@ je-file-tree-cli scan D:\ --compare old.json --limit 20
 python -m je_file_tree.cli scan D:\ --exclude node_modules --workers 2
 python -m je_file_tree.cli scan D:\ --count-hard-links
 python -m je_file_tree.cli scan C:\ --also D:\ --json drives.json
+je-file-tree-cli search D:\ --name "*.iso;*.zip" --min-size 1G --limit 20
+je-file-tree-cli duplicates D:\Photos --min-size 10M
+je-file-tree-cli cleanup C:\Users --policy policy.json
+je-file-tree-cli budget D:\ --budget D:\Downloads=50G --budget D:\Videos=200G
 ```
+
+`search`、`duplicates`、`cleanup` 與 `budget` 使用相同的掃描選項，並多輸出一筆該類型的 JSON；沒有任何選項會移動、刪除或變更檔案。`search` 接受搜尋分頁的條件（`--name`、`--regex`、`--exclude-names`、`--owner`、`10M` 這類大小、以天計的檔齡、`--type`、`--kind`、深度），並在掃描前檢查。`duplicates` 讀取大小相同的檔案，預設 1 MiB 以上，可用 `--min-size` 調整。`cleanup` 以內建規則或政策檔列出候選項目及其規則與風險。`budget` 把資料夾和上限比較：有超過時結束代碼為 **4**，大小未知時為 **1**。掃描中斷時不輸出報告。
 
 結束代碼：**0** 涵蓋範圍完整、**1** 不完整（包含排除及無法讀取的項目）、**2** 參數錯誤、**3** 掃描／比較／匯出 I/O 錯誤或儲存的掃描格式無效、**130** 已中斷。Ctrl+C 會停止掃描並匯出已讀取的部分；再次按 Ctrl+C 則立即中止。每份匯出獨立完成原子寫入，後續匯出失敗不會撤銷先前完成的報告。命令列不提供移除或自動清理。
 

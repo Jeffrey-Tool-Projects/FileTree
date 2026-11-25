@@ -416,7 +416,13 @@ je-file-tree-cli scan D:\ --compare old.json --limit 20
 python -m je_file_tree.cli scan D:\ --exclude node_modules --workers 2
 python -m je_file_tree.cli scan D:\ --count-hard-links
 python -m je_file_tree.cli scan C:\ --also D:\ --json drives.json
+je-file-tree-cli search D:\ --name "*.iso;*.zip" --min-size 1G --limit 20
+je-file-tree-cli duplicates D:\Photos --min-size 10M
+je-file-tree-cli cleanup C:\Users --policy policy.json
+je-file-tree-cli budget D:\ --budget D:\Downloads=50G --budget D:\Videos=200G
 ```
+
+`search`、`duplicates`、`cleanup`、`budget` は同じスキャン オプションを使い、その種類の JSON を 1 件追加で出力します。移動、削除、変更を行うオプションはありません。`search` は検索タブの条件（`--name`、`--regex`、`--exclude-names`、`--owner`、`10M` のようなサイズ、日数、`--type`、`--kind`、深さ）を受け取り、スキャンの前に確認します。`duplicates` は同じサイズのファイルを読み、既定は 1 MiB 以上で `--min-size` で変更できます。`cleanup` は組み込みのルールまたはポリシー ファイルで候補とルール、リスクを一覧にします。`budget` はフォルダーを上限と比べ、超過があれば終了コード **4**、サイズが不明なら **1** です。スキャンが中断された場合はレポートを出力しません。
 
 終了コード: **0** 完全なカバレッジ、**1** 不完全なカバレッジ (除外/読み取り不可能なエントリを含む)、**2** 無効な引数、**3**スキャン/比較/エクスポート I/O または無効な保存スキャン エラーにより、**130** が中断されました。 Ctrl+C はスキャンを停止し、部分的なスナップショットをエクスポートします。 2 回目の Ctrl+C はすぐに中止されます。各エクスポートは独立してアトミックです。エクスポートが失敗しても、以前に完了したレポートはロールバックされません。コンソールから削除や自動クリーンアップを行うことはできません。
 

@@ -416,7 +416,13 @@ je-file-tree-cli scan D:\ --compare old.json --limit 20
 python -m je_file_tree.cli scan D:\ --exclude node_modules --workers 2
 python -m je_file_tree.cli scan D:\ --count-hard-links
 python -m je_file_tree.cli scan C:\ --also D:\ --json drives.json
+je-file-tree-cli search D:\ --name "*.iso;*.zip" --min-size 1G --limit 20
+je-file-tree-cli duplicates D:\Photos --min-size 10M
+je-file-tree-cli cleanup C:\Users --policy policy.json
+je-file-tree-cli budget D:\ --budget D:\Downloads=50G --budget D:\Videos=200G
 ```
+
+`search`, `duplicates`, `cleanup`, `budget`는 같은 스캔 옵션을 사용하고 해당 종류의 JSON을 하나 더 출력합니다. 옮기거나 삭제하거나 바꾸는 옵션은 없습니다. `search`는 검색 탭의 조건(`--name`, `--regex`, `--exclude-names`, `--owner`, `10M` 같은 크기, 일 단위 기간, `--type`, `--kind`, 깊이)을 받아 스캔 전에 확인합니다. `duplicates`는 크기가 같은 파일을 읽으며 기본은 1 MiB 이상이고 `--min-size`로 바꿀 수 있습니다. `cleanup`은 내장 규칙이나 정책 파일로 후보와 규칙, 위험도를 나열합니다. `budget`은 폴더를 한도와 비교해 초과가 있으면 종료 코드 **4**, 크기를 알 수 없으면 **1**입니다. 스캔이 중단되면 보고서를 출력하지 않습니다.
 
 종료 코드: **0** 전체 적용 범위, **1** 불완전한 적용 범위(제외/읽을 수 없는 항목 포함), **2** 잘못된 인수, **3** 스캔/비교/내보내기 I/O 또는 잘못된 저장된 스캔 오류, **130** 중단되었습니다. Ctrl+C는 스캔을 중지하고 부분 스냅샷을 내보냅니다. 두 번째 Ctrl+C는 즉시 중단됩니다. 각 내보내기는 독립적으로 원자성입니다. 내보내기에 실패해도 이전에 완료된 보고서는 롤백되지 않습니다. 콘솔에서는 제거나 자동 정리가 불가능합니다.
 

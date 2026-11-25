@@ -423,7 +423,13 @@ je-file-tree-cli scan D:\ --compare old.json --limit 20
 python -m je_file_tree.cli scan D:\ --exclude node_modules --workers 2
 python -m je_file_tree.cli scan D:\ --count-hard-links
 python -m je_file_tree.cli scan C:\ --also D:\ --json drives.json
+je-file-tree-cli search D:\ --name "*.iso;*.zip" --min-size 1G --limit 20
+je-file-tree-cli duplicates D:\Photos --min-size 10M
+je-file-tree-cli cleanup C:\Users --policy policy.json
+je-file-tree-cli budget D:\ --budget D:\Downloads=50G --budget D:\Videos=200G
 ```
+
+`search`、`duplicates`、`cleanup` 与 `budget` 使用相同的扫描选项，并多输出一条该类型的 JSON；没有任何选项会移动、删除或更改文件。`search` 接受搜索标签页的条件（`--name`、`--regex`、`--exclude-names`、`--owner`、`10M` 这类大小、按天计的文件年龄、`--type`、`--kind`、深度），并在扫描前检查。`duplicates` 读取大小相同的文件，默认 1 MiB 以上，可用 `--min-size` 调整。`cleanup` 用内置规则或策略文件列出候选项目及其规则与风险。`budget` 把文件夹和上限比较：有超过时退出代码为 **4**，大小未知时为 **1**。扫描中断时不输出报告。
 
 退出代码：**0** 覆盖范围完整、**1** 不完整（包含排除及无法读取的项目）、**2** 参数错误、**3** 扫描／比较／导出 I/O 错误或保存的扫描格式无效、**130** 已中断。Ctrl+C 会停止扫描并导出已读取的部分；再次按 Ctrl+C 则立即中止。每份导出独立完成原子写入，后续导出失败不会撤销先前完成的报告。命令行不提供删除或自动清理。
 

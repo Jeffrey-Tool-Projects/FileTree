@@ -758,6 +758,8 @@ holding one, and recurring proposals use `CleanupPolicy.built_in()`.
 (`core.shell_link`) and checks their targets with `lstat`, never a network or absent drive.
 `core.name_regex` prices a pattern before compiling it for search: Python's engine holds the interpreter while
 it backtracks, so anything that could grow exponentially is refused. `_Bounds` prunes excluded and too deep folders.
+`cli_reports` adds the console's read-only reports (`REPORTS`: search, duplicates, cleanup, budget) over the same
+scan; their arguments are checked before anything is scanned.
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,
