@@ -764,6 +764,8 @@ scan; their arguments are checked before anything is scanned.
 its values and charts and legends redraw. The accent is the user's or the platform's (`ThemeController.accent_for`).
 `core.preview` reads the bounded beginning of a recorded file through `archives.opened`; `PreviewPane` is off
 until asked for, follows the selection after a pause and decodes pictures scaled and within a memory limit.
+`command_palette.commands` reads the menus themselves; `WindowShortcuts` applies the validated choices of
+`ShortcutController` over each window's defaults. Removing, stopping and quitting have fixed keys (`FIXED`).
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

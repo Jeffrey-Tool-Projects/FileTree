@@ -109,7 +109,9 @@ from je_file_tree.gui.multi_scan import MultiScanDialog
 from je_file_tree.gui.folder_validation import FolderDrops
 from je_file_tree.gui.folder_budget_store import display_error
 from je_file_tree.gui.scrolling_page import ScrollingPage
+from je_file_tree.gui.command_palette import CommandPalette, ShortcutsDialog
 from je_file_tree.gui.settings_dialog import SettingsDialog
+from je_file_tree.gui.shortcuts import WindowShortcuts
 from je_file_tree.gui.text_size import TextSizeMenu
 from je_file_tree.gui.themes import ThemeMenu
 from je_file_tree.gui.updates import UpdateNotice
@@ -222,6 +224,7 @@ class MainWindow(QMainWindow):
         self._language_actions: dict[str, QAction] = {}
         self._build_actions()
         self._build_menus()
+        self._shortcuts = WindowShortcuts(self._actions, self.settings, self)
         self._build_toolbar()
         self._connect()
         self.setAcceptDrops(True)
@@ -1736,6 +1739,8 @@ class MainWindow(QMainWindow):
             ("cleanup_policy", None, self.edit_cleanup_policy),
             ("shell_integration", None, self.edit_shell_integration),
             ("settings", "Ctrl+,", self.show_settings),
+            ("shortcuts", None, self.edit_shortcuts),
+            ("palette", "Ctrl+K", self.show_palette),
             ("gentle", None, lambda: self.settings.setValue("gentle_scan", self._actions["gentle"].isChecked())),
             ("scan_workers", None, self.configure_workers),
             ("auto_cpu", None, lambda: self.settings.setValue(AUTO_CPU_KEY, self._actions["auto_cpu"].isChecked())),
@@ -1841,7 +1846,8 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self._actions["exclusions"])
         view_menu.addAction(self._actions["ask_admin"])
         options_menu = bar.addMenu("")
-        options_menu.addAction(self._actions["settings"])
+        for key in ("settings", "shortcuts"):
+            options_menu.addAction(self._actions[key])
         options_menu.addSeparator()
         for key in ("cleanup_policy", "gentle", "scan_workers", "auto_cpu", "mft_scan", "scan_presets",
                     "history_settings", "check_updates", "follow_changes", "background_monitor",
@@ -1849,8 +1855,8 @@ class MainWindow(QMainWindow):
                     "shell_integration"):
             options_menu.addAction(self._actions[key])
         help_menu = bar.addMenu("")
-        help_menu.addAction(self._actions["help"])
-        help_menu.addAction(self._actions["about"])
+        for key in ("palette", "help", "about"):
+            help_menu.addAction(self._actions[key])
         self._menus = {"menu_file": file_menu, "menu_export": export_menu, "menu_view": view_menu,
                        "menu_unit": unit_menu, "menu_language": language_menu, "menu_help": help_menu,
                        "menu_options": options_menu}
@@ -2223,6 +2229,24 @@ class MainWindow(QMainWindow):
             dialog.exec()
         finally:
             dialog.deleteLater()
+
+    def edit_shortcuts(self) -> None:
+        """Choose the keys of menu commands; every tab uses them."""
+        dialog = ShortcutsDialog(self._shortcuts, self)
+        try:
+            dialog.exec()
+        finally:
+            dialog.deleteLater()
+
+    def show_palette(self) -> None:
+        """Find a menu command by typing and run it exactly as its menu entry would."""
+        dialog = CommandPalette(self.menuBar(), self)
+        try:
+            chosen = dialog.chosen if dialog.exec() == QDialog.DialogCode.Accepted else None
+        finally:
+            dialog.deleteLater()
+        if chosen is not None:
+            chosen.trigger()
 
     def edit_cleanup_policy(self) -> None:
         """Preview and save clean-up settings independently of scan exclusions."""

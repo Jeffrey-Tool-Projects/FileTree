@@ -33,6 +33,7 @@ Use arrow keys to select budget rows and Tab to reach the editor. Reopening sear
 - **Save reports**: export results to CSV, JSON or Excel. Large selected-list copies prepare rows and text in batches; a newer copy in any list replaces the pending one.
 - **Use your language**: switch between English, Traditional Chinese, Simplified Chinese, Japanese and Korean.
 - **Choose the text size**: View → Text size makes every text in FileTree larger or smaller, from 90% to 200%, and remembers it. The help opens in larger text, and light and dark colours keep text and controls at high contrast.
+- **Find any command**: press Ctrl+K and type; choose your own shortcuts in Options.
 - **Look before you remove**: Details can preview pictures, the beginning of texts and what an archive holds.
 - **Find problem files**: empty files, dead links and shortcuts, paths too long and names Windows does not allow.
 - **Write your own clean-up rules**: name folders or files to look for; what they find is always yours to review.
@@ -95,6 +96,7 @@ Starting a new scan cancels pending folder-list calculations and discards their 
 | Ctrl++ / Ctrl+- | Larger / smaller text |
 | Ctrl+0 | Text at the system size |
 | Ctrl+, | Settings |
+| Ctrl+K | Find a command |
 | F1 | Open help |
 | Ctrl+Q | Quit |
 

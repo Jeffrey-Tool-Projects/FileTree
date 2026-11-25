@@ -75,6 +75,7 @@ HELP = cjk("""
 <tr><td><b>Ctrl++／Ctrl+−</b></td><td>放大／缩小文字</td></tr>
 <tr><td><b>Ctrl+0</b></td><td>文字恢复系统大小</td></tr>
 <tr><td><b>Ctrl+,</b></td><td>设置</td></tr>
+<tr><td><b>Ctrl+K</b></td><td>查找命令</td></tr>
 <tr><td><b>F1</b></td><td>这份说明</td></tr>
 <tr><td><b>Ctrl+Q</b></td><td>退出</td></tr>
 </table>

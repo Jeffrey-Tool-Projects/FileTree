@@ -2231,4 +2231,18 @@ JA: dict[str, str] = {
     "preview_binary": "プレビューできるテキスト、画像、圧縮ファイルではありません。",
     "preview_more": "先頭だけを表示しています。続きがあります。",
     "preview_whole": "すべて表示しています。",
+    "action_palette": "コマンドを検索…",
+    "action_palette_tip": "文字を入力してメニューのコマンドを探し、実行します",
+    "action_shortcuts": "キーボード ショートカット…",
+    "action_shortcuts_tip": "メニューのコマンドのキーを選びます",
+    "palette_title": "コマンドを検索",
+    "palette_hint": "コマンドの一部を入力",
+    "shortcuts_hint": (
+        "欄をクリックして、Ctrl や Alt と別のキー、またはファンクション キーを押します。削除"
+        "、停止、終了のキーは変わりません。"
+    ),
+    "shortcuts_command": "コマンド",
+    "shortcuts_keys": "ショートカット",
+    "shortcuts_reset": "既定に戻す",
+    "shortcuts_conflict": "使えない、または重複しているショートカットがあります: {names}",
 }

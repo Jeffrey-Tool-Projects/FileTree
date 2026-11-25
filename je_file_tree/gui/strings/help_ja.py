@@ -91,6 +91,7 @@ HELP = cjk("""
 <tr><td><b>Ctrl++ / Ctrl+−</b></td><td>文字を大きく / 小さく</td></tr>
 <tr><td><b>Ctrl+0</b></td><td>文字をシステムのサイズに戻す</td></tr>
 <tr><td><b>Ctrl+,</b></td><td>設定</td></tr>
+<tr><td><b>Ctrl+K</b></td><td>コマンドを検索</td></tr>
 <tr><td><b>F1</b></td><td>このガイド</td></tr>
 <tr><td><b>Ctrl+Q</b></td><td>終了</td></tr>
 </table>

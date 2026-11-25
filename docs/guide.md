@@ -193,6 +193,8 @@ The four charts expose accessible names, keyboard instructions and the current f
 
 **View → Text size** sets every text in FileTree to 90, 100, 110, 125, 150, 175 or 200% of the system's own size, at once and in every tab, and remembers the choice; **Ctrl++**, **Ctrl+-** and **Ctrl+0** step through it. List columns and rows, Tree diagram cards, Bars values and the space for labels follow, newly opened dialogs open larger (never larger than the screen), and scan results, selections and the Tree diagram's own zoom stay as they are. Columns you widened keep their proportion. The help window shows its text 1.3 times as large as labels and has the same three commands. When the results page needs more height or width than the window has, it scrolls instead of stretching the window beyond the screen. Before it scrolls, a short window folds the scan highlights, puts each total beside its name and leaves out the hint line; they return when there is room, and highlights you opened or closed yourself stay that way.
 
+**Help → Find a command…** (`Ctrl+K`) lists every menu command; type words of its name, menu or explanation, move with the arrow keys and press Enter to run it exactly as its menu entry would. **Options → Keyboard shortcuts…** changes the keys of menu commands: one key with Ctrl, Alt or Meta, or a function key. Keys used twice or needed elsewhere are refused; removing entries, stopping and quitting keep theirs. Choices are remembered and apply in every tab; a broken saved choice is ignored.
+
 **Details → Preview contents** (off by default) shows the selected file: a picture up to 32 MiB, the first 64 KiB of UTF-8 or marked UTF-16 text, or the first 200 members of a ZIP, 7z or RAR file from its directory, without extracting anything. It is read on a worker after a short pause, only while Details is open, and only when the file is still the scanned regular file; links, files kept only online and changed files are refused, and the file is checked again after reading.
 
 **View → Theme → High contrast** uses white text and edges on black with a yellow accent. **Accent colour…** replaces the system’s accent in every theme, shifted until it keeps its contrast; **Use the system’s accent colour** returns to it. **Chart colours for colour-blind viewers** gives file types colours that stay apart with the common colour-vision deficiencies (after Okabe and Ito), also in legends, bars, reports and exported charts. All three are remembered, are in Settings and are part of exported settings.
@@ -527,6 +529,7 @@ scan can also be compared with a copy of the same tree elsewhere, such as a back
 | Ctrl++ / Ctrl+- | Larger / smaller text |
 | Ctrl+0 | Text at the system size |
 | Ctrl+, | Settings |
+| Ctrl+K | Find a command |
 | F1 | How to use |
 | Ctrl+Q | Quit |
 

@@ -87,6 +87,7 @@ HELP = """
 <tr><td><b>Ctrl++ / Ctrl+−</b></td><td>글자 크게 / 작게</td></tr>
 <tr><td><b>Ctrl+0</b></td><td>글자를 시스템 크기로 되돌리기</td></tr>
 <tr><td><b>Ctrl+,</b></td><td>설정</td></tr>
+<tr><td><b>Ctrl+K</b></td><td>명령 찾기</td></tr>
 <tr><td><b>F1</b></td><td>이 도움말</td></tr>
 <tr><td><b>Ctrl+Q</b></td><td>종료</td></tr>
 </table>

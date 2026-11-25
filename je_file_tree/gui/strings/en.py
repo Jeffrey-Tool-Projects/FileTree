@@ -1995,4 +1995,18 @@ EN: dict[str, str] = {
     "preview_binary": "This file is not text, a picture or an archive that can be previewed.",
     "preview_more": "The beginning is shown; there is more.",
     "preview_whole": "Everything is shown.",
+    "action_palette": "Find a command…",
+    "action_palette_tip": "Type to find any menu command and run it",
+    "action_shortcuts": "Keyboard shortcuts…",
+    "action_shortcuts_tip": "Choose the keys of menu commands",
+    "palette_title": "Find a command",
+    "palette_hint": "Type part of a command",
+    "shortcuts_hint": (
+        "Click a field and press Ctrl, Alt or a function key with another key. Removing, stopping"
+        " and quitting keep their keys."
+    ),
+    "shortcuts_command": "Command",
+    "shortcuts_keys": "Shortcut",
+    "shortcuts_reset": "Restore defaults",
+    "shortcuts_conflict": "These shortcuts cannot be used, or are used twice: {names}",
 }

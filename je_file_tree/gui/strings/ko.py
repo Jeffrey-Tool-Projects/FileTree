@@ -2085,4 +2085,18 @@ KO: dict[str, str] = {
     "preview_binary": "미리 볼 수 있는 텍스트, 그림, 압축 파일이 아닙니다.",
     "preview_more": "앞부분만 표시했으며 내용이 더 있습니다.",
     "preview_whole": "모두 표시했습니다.",
+    "action_palette": "명령 찾기…",
+    "action_palette_tip": "글자를 입력해 메뉴 명령을 찾아 실행합니다",
+    "action_shortcuts": "키보드 단축키…",
+    "action_shortcuts_tip": "메뉴 명령의 키를 선택합니다",
+    "palette_title": "명령 찾기",
+    "palette_hint": "명령의 일부를 입력",
+    "shortcuts_hint": (
+        "칸을 클릭하고 Ctrl이나 Alt와 다른 키, 또는 기능 키를 누르세요. 삭제, 중지, 종료 키"
+        "는 바뀌지 않습니다."
+    ),
+    "shortcuts_command": "명령",
+    "shortcuts_keys": "단축키",
+    "shortcuts_reset": "기본값 복원",
+    "shortcuts_conflict": "사용할 수 없거나 겹치는 단축키가 있습니다: {names}",
 }
