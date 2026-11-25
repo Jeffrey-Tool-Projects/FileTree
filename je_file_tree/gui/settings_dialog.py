@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 )
 
 from je_file_tree.gui import settings_file
+from je_file_tree.gui.chart_palette import COLOUR_BLIND, palette_controller
 from je_file_tree.gui.i18n import LANGUAGES, current_language, tr
 from je_file_tree.gui.text_scale import DEFAULT_TEXT_SIZE, TEXT_SIZES, text_percent
 from je_file_tree.gui.themes import THEMES, theme_controller
@@ -110,6 +111,15 @@ class SettingsDialog(QDialog):
         for key, combo in (("menu_language", self.language), ("menu_theme", self.theme),
                            ("menu_text_size", self.text_size), ("menu_unit", self.unit)):
             self._add_combo(box, key, combo)
+        self.colour_blind = QCheckBox(tr("theme_colour_blind"))
+        self.colour_blind.setChecked(palette_controller().choice == COLOUR_BLIND)
+        self.colour_blind.clicked.connect(window.theme_menu.colour_blind.trigger)
+        self._add_row(box, self.colour_blind, tr("theme_colour_blind"))
+        for action in (window.theme_menu.accent, window.theme_menu.platform_accent):
+            button = QPushButton(action.text())
+            button.setProperty("role", "list")
+            button.clicked.connect(action.trigger)
+            self._add_row(box, button, action.text())
 
     @staticmethod
     def _combo(options: Sequence[tuple[object, str]], chosen: object, apply) -> QComboBox:
@@ -249,6 +259,10 @@ def apply_settings(window: MainWindow, values: dict[str, settings_file.Value]) -
         window.set_unit(str(values["unit"]))
     if "theme" in values:
         window.theme_menu.choose(str(values["theme"]))
+    if "accent" in values:
+        window.theme_menu.choose_accent(str(values["accent"]))
+    if "chart_palette" in values:
+        window.theme_menu.choose_palette(str(values["chart_palette"]))
     if "text_size" in values:
         window.text_size_menu.choose(int(values["text_size"]))
     if "language" in values:

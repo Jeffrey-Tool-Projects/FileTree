@@ -1980,4 +1980,8 @@ EN: dict[str, str] = {
     "search_more_error": "A name or owner condition is too long or not text.",
     "search_condition_regex": "Name matches: {value}",
     "search_condition_depth": "Depth: {least} to {most}",
+    "theme_contrast": "High contrast",
+    "theme_accent": "Accent colour…",
+    "theme_accent_platform": "Use the system's accent colour",
+    "theme_colour_blind": "Chart colours for colour-blind viewers",
 }

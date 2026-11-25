@@ -2213,4 +2213,8 @@ JA: dict[str, str] = {
     "search_more_error": "名前または所有者の条件が長すぎるか、文字ではありません。",
     "search_condition_regex": "名前が一致: {value}",
     "search_condition_depth": "深さ: {least}～{most}",
+    "theme_contrast": "ハイコントラスト",
+    "theme_accent": "アクセント カラー…",
+    "theme_accent_platform": "システムのアクセント カラーを使う",
+    "theme_colour_blind": "色覚の違いに配慮したチャートの色",
 }

@@ -24,10 +24,10 @@ from je_file_tree.gui.fluent_style import (
     tokens_for,
 )
 from je_file_tree.gui.themes import NATIVE, theme_controller, theme_palette
-from je_file_tree.gui.treemap_widget import CATEGORY_COLOURS
+from je_file_tree.gui.chart_palette import CATEGORY_COLOURS
 
 
-@pytest.mark.parametrize('theme', ['light', 'dark'])
+@pytest.mark.parametrize('theme', ['light', 'dark', 'contrast'])
 def test_primary_and_selected_palette_text_meets_minimum_contrast(theme) -> None:
     palette = theme_palette(theme)
     for ink, fill in ((QPalette.ColorRole.Text, QPalette.ColorRole.Base),
@@ -97,7 +97,7 @@ def test_platform_scheme_changes_reapply_only_the_system_theme(window, qapp, mon
         controller.apply('system')
 
 
-@pytest.mark.parametrize('scheme', ['light', 'dark'])
+@pytest.mark.parametrize('scheme', ['light', 'dark', 'contrast'])
 @pytest.mark.parametrize('accent', [None, '#0067c0', '#f38064', '#ffb900', '#ffffff', '#000000', '#00cc6a', '#8764b8'])
 def test_tokens_keep_wcag_contrast_for_any_platform_accent(scheme, accent) -> None:
     tokens = tokens_for(scheme, accent)
@@ -121,7 +121,7 @@ def test_tokens_keep_wcag_contrast_for_any_platform_accent(scheme, accent) -> No
     assert contrast(colour['selection'], colour['card']) >= DIVIDER_CONTRAST
 
 
-@pytest.mark.parametrize('scheme', ['light', 'dark'])
+@pytest.mark.parametrize('scheme', ['light', 'dark', 'contrast'])
 @pytest.mark.parametrize('colour', [*CATEGORY_COLOURS.values(), *ADVICE_COLOURS.values()])
 def test_file_type_and_advice_colours_stand_out_from_the_surface(scheme, colour) -> None:
     assert contrast(QColor(colour), QColor(tokens_for(scheme).card)) >= EDGE_CONTRAST

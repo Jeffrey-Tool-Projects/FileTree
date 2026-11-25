@@ -760,6 +760,8 @@ holding one, and recurring proposals use `CleanupPolicy.built_in()`.
 it backtracks, so anything that could grow exponentially is refused. `_Bounds` prunes excluded and too deep folders.
 `cli_reports` adds the console's read-only reports (`REPORTS`: search, duplicates, cleanup, budget) over the same
 scan; their arguments are checked before anything is scanned.
+`chart_palette.CATEGORY_COLOURS` is the one dictionary of file-type colours in use; `PaletteController` swaps
+its values and charts and legends redraw. The accent is the user's or the platform's (`ThemeController.accent_for`).
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

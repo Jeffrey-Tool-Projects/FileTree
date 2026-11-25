@@ -2070,4 +2070,8 @@ KO: dict[str, str] = {
     "search_more_error": "이름 또는 소유자 조건이 너무 길거나 텍스트가 아닙니다.",
     "search_condition_regex": "이름 일치: {value}",
     "search_condition_depth": "깊이: {least}~{most}",
+    "theme_contrast": "고대비",
+    "theme_accent": "강조 색…",
+    "theme_accent_platform": "시스템 강조 색 사용",
+    "theme_colour_blind": "색각 이상을 배려한 차트 색",
 }

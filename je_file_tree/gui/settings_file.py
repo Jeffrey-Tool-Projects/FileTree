@@ -17,9 +17,10 @@ from pathlib import Path
 from PySide6.QtCore import QSettings
 
 from je_file_tree.core.formatting import AUTO_UNIT, SIZE_UNITS
+from je_file_tree.gui.chart_palette import PALETTES, STANDARD
 from je_file_tree.gui.i18n import LANGUAGES
 from je_file_tree.gui.text_scale import DEFAULT_TEXT_SIZE, TEXT_SIZES
-from je_file_tree.gui.themes import THEMES
+from je_file_tree.gui.themes import THEMES, valid_accent
 
 FORMAT = "file-tree-settings/1"
 MAX_BYTES = 1_000_000
@@ -60,6 +61,8 @@ def _patterns(value: object) -> bool:
 SETTINGS: dict[str, Setting] = {
     "language": _choice(tuple(LANGUAGES), "en"),
     "theme": _choice(THEMES, "system"),
+    "accent": Setting("", lambda value: isinstance(value, str) and value == valid_accent(value)),
+    "chart_palette": _choice(tuple(PALETTES), STANDARD),
     "text_size": _choice(TEXT_SIZES, DEFAULT_TEXT_SIZE),
     "unit": _choice(UNITS, AUTO_UNIT),
     "include_hidden": _flag(True),

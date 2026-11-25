@@ -59,8 +59,9 @@ TEXT_CONTRAST, DISABLED_CONTRAST, EDGE_CONTRAST, DIVIDER_CONTRAST = 7.0, 4.5, 3.
 _ACCENT_CONTRAST = 4.5
 _MID_LUMINANCE = .18  # black and white contrast equally with it
 # Text on the selection; the light scheme leaves room for the share bar, which is drawn at 7:1, to show on it.
-_SELECTION_TEXT = {"light": 8.5, "dark": TEXT_CONTRAST}
-_SELECTION_STRONGEST, _SELECTION_FAINTEST, _SELECTION_STEP = .45, .1, .025
+_SELECTION_TEXT = {"light": 8.5, "dark": TEXT_CONTRAST, "contrast": TEXT_CONTRAST}
+_SELECTION_STRONGEST = {"light": .45, "dark": .45, "contrast": .6}
+_SELECTION_FAINTEST, _SELECTION_STEP = .1, .025
 
 _SURFACES = {
     "light": {"window": "#ededed", "card": "#ffffff", "subtle": "#f2f2f2", "control": "#fafafa",
@@ -71,7 +72,12 @@ _SURFACES = {
              "control_hover": "#3d3d3d", "control_pressed": "#484848", "stroke": "#545454",
              "stroke_strong": "#8a8a8a", "text": "#ffffff", "text_secondary": "#e0e0e0",
              "text_disabled": "#9a9a9a", "scrollbar": "#a0a0a0", "success": "#7fdc72", "caution": "#fce100"},
+    "contrast": {"window": "#000000", "card": "#000000", "subtle": "#141414", "control": "#000000",
+                 "control_hover": "#2b2b2b", "control_pressed": "#3d3d3d", "stroke": "#a6a6a6",
+                 "stroke_strong": "#ffffff", "text": "#ffffff", "text_secondary": "#ffffff",
+                 "text_disabled": "#b3b3b3", "scrollbar": "#ffffff", "success": "#8dff7f", "caution": "#ffe100"},
 }
+CONTRAST_ACCENT = "#ffd400"  # high contrast uses yellow unless an accent was chosen
 
 
 def _shift_until(colour: QColor, against: tuple[QColor, ...], ratio: float, lighter: bool) -> QColor:
@@ -89,15 +95,15 @@ def _shift_until(colour: QColor, against: tuple[QColor, ...], ratio: float, ligh
 
 
 def _selection(scheme: str, accent: QColor, card: QColor, text: QColor) -> QColor:
-    """The strongest tint of ``accent`` over ``card``, up to 45 %, that keeps ``text`` readable on it."""
-    amount = _SELECTION_STRONGEST
+    """The strongest tint of ``accent`` over ``card``, up to a share, that keeps ``text`` readable on it."""
+    amount = _SELECTION_STRONGEST[scheme]
     while amount > _SELECTION_FAINTEST and contrast(blend(accent, card, amount), text) < _SELECTION_TEXT[scheme]:
         amount -= _SELECTION_STEP
     return blend(accent, card, amount)
 
 
 def tokens_for(scheme: str, accent: QColor | str | None = None) -> Tokens:
-    """Tokens for ``light`` or ``dark``, fitting ``accent`` so controls and links stay distinguishable.
+    """Tokens for ``light``, ``dark`` or ``contrast``, fitting ``accent`` so controls and links stay distinguishable.
 
     The accent is shifted until it has 4.5:1 against cards and the link colour until 7:1 against every
     surface text sits on; text on the accent is black or white, whichever reads better (always at least
@@ -107,7 +113,7 @@ def tokens_for(scheme: str, accent: QColor | str | None = None) -> Tokens:
     surfaces = _SURFACES[scheme]
     card = QColor(surfaces["card"])
     base = QColor(accent) if accent is not None and QColor(accent).isValid() else QColor(DEFAULT_ACCENT)
-    lighter = scheme == "dark"
+    lighter = scheme != "light"
     fitted = _shift_until(base, (card,), _ACCENT_CONTRAST, lighter)
     surfaces_behind_text = tuple(QColor(surfaces[name]) for name in ("window", "card", "subtle"))
     link = _shift_until(fitted, surfaces_behind_text, TEXT_CONTRAST, lighter)

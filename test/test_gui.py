@@ -61,7 +61,8 @@ from je_file_tree.gui.tree_model import ALLOCATED, NAME, NODE_ROLE, SHARE_ROLE, 
 from je_file_tree.gui import bar_chart
 from je_file_tree.gui.charts import BARS, SUNBURST, TREE, TREEMAP, ChartStack
 from je_file_tree.gui.sunburst_widget import SunburstWidget
-from je_file_tree.gui.treemap_widget import BY_FOLDER, CATEGORY_COLOURS, MIN_SIDE, TreemapWidget
+from je_file_tree.gui.chart_palette import CATEGORY_COLOURS
+from je_file_tree.gui.treemap_widget import BY_FOLDER, MIN_SIDE, TreemapWidget
 
 
 def _wait(app: QApplication, done: Callable[[], bool], timeout: float = 10.0) -> None:

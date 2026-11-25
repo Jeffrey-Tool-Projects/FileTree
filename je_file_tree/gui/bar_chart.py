@@ -20,10 +20,10 @@ from PySide6.QtWidgets import QStyle, QWidget
 from je_file_tree.core.analysis import category_of, extension_of
 from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, format_size
 from je_file_tree.core.node import Node
+from je_file_tree.gui.chart_palette import CATEGORY_COLOURS
 from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.text_scale import text_scaled
-from je_file_tree.gui.treemap_widget import CATEGORY_COLOURS
 
 MAX_BARS = 100
 _NAME_SHARE = 0.34  # of the width, at most _NAME_MAX pixels

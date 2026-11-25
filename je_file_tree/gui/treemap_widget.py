@@ -39,24 +39,12 @@ from je_file_tree.core.node import Node
 from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.treemap import Rect, Tile, layout
 from je_file_tree.gui.change_colours import ChangeColours
+from je_file_tree.gui.chart_palette import CATEGORY_COLOURS
 from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.age_colours import age_colour
 from je_file_tree.gui.colours import blend, readable_ink
-
-# One flat colour per file-type group (every key of analysis.CATEGORIES): evenly bright hues
-# that read on light and dark surfaces alike; labels pick black or white by contrast.
-CATEGORY_COLOURS: dict[str, str] = {
-    "images": "#3fa34d",
-    "video": "#be8912",
-    "audio": "#8e6cc8",
-    "documents": "#3b82c4",
-    "archives": "#dc7434",
-    "code": "#1fa2a8",
-    "programs": "#d9534f",
-    "other": "#958a7b",
-}
 _FOLDER_SHADES = (.10, .16, .22)  # text colour laid over the surface, by folder depth
 LEVELS = (1, 2, 3, 4, 8)  # 8: every level worth drawing
 DEFAULT_LEVELS = 2

@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-12 | 2026-11-26 | 新增高對比主題、自訂強調色與色盲友善圖表配色 | #done #feature #gui #theme #accessibility #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-11 | 2026-11-26 | 命令列新增 search、duplicates、cleanup 與 budget | #done #feature #cli | [2026-11-b](2026-11-b.md) |
 | U-20261126-10 | 2026-11-26 | 搜尋新增正規表示式、排除、擁有者與深度條件 | #done #feature #search #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-09 | 2026-11-26 | 新增問題檔案檢查 | #done #feature #gui #i18n | [2026-11-b](2026-11-b.md) |

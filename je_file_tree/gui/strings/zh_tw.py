@@ -1776,4 +1776,8 @@ ZH_TW: dict[str, str] = {
     "search_more_error": "名稱或擁有者條件過長，或不是文字。",
     "search_condition_regex": "名稱符合：{value}",
     "search_condition_depth": "深度：{least} 到 {most}",
+    "theme_contrast": "高對比",
+    "theme_accent": "強調色…",
+    "theme_accent_platform": "使用系統的強調色",
+    "theme_colour_blind": "色盲友善的圖表配色",
 }

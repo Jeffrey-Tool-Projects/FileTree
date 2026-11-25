@@ -1777,4 +1777,8 @@ ZH_CN: dict[str, str] = {
     "search_more_error": "名称或所有者条件过长，或不是文本。",
     "search_condition_regex": "名称匹配：{value}",
     "search_condition_depth": "深度：{least} 到 {most}",
+    "theme_contrast": "高对比度",
+    "theme_accent": "强调色…",
+    "theme_accent_platform": "使用系统的强调色",
+    "theme_colour_blind": "色盲友好的图表配色",
 }

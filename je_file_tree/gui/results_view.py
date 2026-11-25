@@ -70,6 +70,7 @@ from je_file_tree.gui.changes_panel import ChangesPanel
 from je_file_tree.gui.capacity_panel import CapacityPanel
 from je_file_tree.gui.age_colours import AGE_COLOURS, UNKNOWN_AGE_COLOUR
 from je_file_tree.gui.change_colours import CHANGE_COLOURS, SAME
+from je_file_tree.gui.chart_palette import CATEGORY_COLOURS, palette_controller
 from je_file_tree.gui.charts import MODES as CHART_MODES
 from je_file_tree.gui.charts import SUNBURST, TREE, TREEMAP, ChartStack
 from je_file_tree.gui.chart_legend import ChartLegend
@@ -115,7 +116,7 @@ from je_file_tree.gui.tree_model import (
     MoreRows,
 )
 from je_file_tree.gui.tree_filter import TreeFilter
-from je_file_tree.gui.treemap_widget import BY_AGE, BY_CHANGE, BY_FOLDER, CATEGORY_COLOURS, COLOUR_MODES, LEVELS
+from je_file_tree.gui.treemap_widget import BY_AGE, BY_CHANGE, BY_FOLDER, COLOUR_MODES, LEVELS
 from je_file_tree.gui.tree_diagram import ORIENTATIONS
 from je_file_tree.gui.tree_columns import TreeColumns
 from je_file_tree.gui.type_locations import TypeLocationsModel, TypeLocationsWorker
@@ -934,6 +935,11 @@ class ResultsView(QWidget):
         self._short_layout = ShortLayout(self, self.highlights, self.overview, self._analysis_hint)
         self._responsive_layout()
         text_size_controller().changed.connect(self._responsive_layout)
+        palette_controller().changed.connect(self._palette_changed)
+
+    def _palette_changed(self, _name: str) -> None:
+        self.charts.invalidate()
+        self._legend.set_items(self._legend_items())
 
     def fit_height(self, room: int) -> None:
         """Tighten or relax the page for the height its window leaves it."""
