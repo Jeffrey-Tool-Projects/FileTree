@@ -78,7 +78,8 @@ def test_a_comparison_colours_the_charts_and_stopping_it_greys_them(window, qapp
     results.charts.treemap.grab()
     file = folders["grown"].children[0]
     assert results.charts.treemap._colour(file, 2) == QColor(CHANGE_COLOURS[GREW_LOT])
-    assert results.charts.treemap._colour(folders["grown"], 1).lightness() < QColor(CHANGE_COLOURS[GREW_LOT]).lightness()
+    opened = results.charts.treemap._colour(folders["grown"], 1)
+    assert opened.lightness() < QColor(CHANGE_COLOURS[GREW_LOT]).lightness()
     assert len(results._legend.labels()) == len(CHANGE_COLOURS)
     results.changes.stop_comparing()
     assert results.charts.treemap.change_colours.kind(folders["grown"]) == SAME
