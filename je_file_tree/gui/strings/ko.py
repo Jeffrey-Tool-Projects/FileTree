@@ -2173,4 +2173,15 @@ KO: dict[str, str] = {
     "zip_reason_folder_required": "일반 폴더만 보관할 수 있습니다.\n{path}",
     "zip_reason_verify": "보관 파일을 올바르게 다시 읽지 못해 제거했습니다.\n{path}",
     "zip_reason_changed": "폴더가 스캔할 때와 다릅니다. 먼저 다시 스캔하세요.\n{path}",
+    "media_similar": "비슷한 동영상과 오디오",
+    "media_find": "비슷한 동영상과 오디오 찾기",
+    "media_distance": "길이 허용 오차(0–16초):",
+    "media_hint": (
+        "파일 헤더만으로 후보를 찾습니다. 길이와 제목 또는 이름이 같거나, 길이와 화면 비율이 같"
+        "은 긴 동영상입니다. 디코딩하지 않으므로 재생해 확인한 뒤 결정하세요. 자동 선택은 없습니"
+        "다."
+    ),
+    "media_group": "파일 {count}개, 첫 파일과 {distance}초 이내",
+    "media_running": "헤더 읽는 중: {read}, 건너뜀/실패: {skipped}",
+    "media_summary": "비슷한 동영상과 오디오 {groups}그룹, {read}개 읽음, {skipped}개 건너뜀/실패.",
 }

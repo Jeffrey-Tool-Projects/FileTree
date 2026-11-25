@@ -1868,4 +1868,14 @@ ZH_CN: dict[str, str] = {
     "zip_reason_folder_required": "只能归档普通文件夹。\n{path}",
     "zip_reason_verify": "归档读回的内容不正确，已移除。\n{path}",
     "zip_reason_changed": "文件夹和扫描时不同，请先重新扫描。\n{path}",
+    "media_similar": "相似的视频与音频",
+    "media_find": "查找相似影音",
+    "media_distance": "长度容差（0–16 秒）：",
+    "media_hint": (
+        "只按文件头找出候选：长度相同且标题或名称相同，或长度与画面比例相同的长视频。不会解码；"
+        "请播放确认后再决定，也不会自动选择。"
+    ),
+    "media_group": "{count} 个文件；与第一个相差 {distance} 秒以内",
+    "media_running": "读取文件头：{read}；跳过／失败：{skipped}",
+    "media_summary": "{groups} 组相似影音；读取 {read} 个文件；跳过／失败 {skipped} 个。",
 }

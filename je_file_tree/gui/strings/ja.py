@@ -2325,4 +2325,15 @@ JA: dict[str, str] = {
     "zip_reason_folder_required": "アーカイブできるのは通常のフォルダーだけです。\n{path}",
     "zip_reason_verify": "アーカイブを正しく読み戻せなかったため削除しました。\n{path}",
     "zip_reason_changed": "フォルダーがスキャン時と異なります。先に再スキャンしてください。\n{path}",
+    "media_similar": "似ている動画と音声",
+    "media_find": "似ている動画と音声を検索",
+    "media_distance": "長さの許容差（0～16 秒）:",
+    "media_hint": (
+        "ファイルのヘッダーだけから候補を探します。長さとタイトルまたは名前が同じもの、あるいは"
+        "長さと縦横比が同じ長い動画です。デコードはしません。再生して確かめてから判断してくださ"
+        "い。自動選択はありません。"
+    ),
+    "media_group": "{count} 個のファイル、最初のファイルとの差は {distance} 秒以内",
+    "media_running": "ヘッダーを読み取り中: {read}、スキップ/失敗: {skipped}",
+    "media_summary": "似ている動画と音声 {groups} 組、{read} 個を読み取り、{skipped} 個をスキップ/失敗。",
 }

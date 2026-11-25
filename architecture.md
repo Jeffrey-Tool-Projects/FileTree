@@ -771,6 +771,8 @@ until asked for, follows the selection after a pause and decodes pictures scaled
 only, never `Node` objects, so it grants no operation.
 `core.zip_archive` packs an unchanged scanned folder into a temporary sibling, reads every member back by
 SHA-256 and publishes it with `rename_no_replace`; the original is moved only through `move_to_trash`.
+`core.media_info` parses bounded container headers with the standard library; `core.similar_media` groups
+candidates and reuses the similar-photo result, so they get no keeper, estimate or bulk selection.
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

@@ -2086,4 +2086,15 @@ EN: dict[str, str] = {
     "zip_reason_folder_required": "Only an ordinary folder can be archived.\n{path}",
     "zip_reason_verify": "The archive did not read back correctly and was removed.\n{path}",
     "zip_reason_changed": "The folder is not as it was scanned: rescan it first.\n{path}",
+    "media_similar": "Similar audio and video",
+    "media_find": "Find similar media",
+    "media_distance": "Length tolerance (0–16 seconds):",
+    "media_hint": (
+        "Candidates only, from file headers: the same length with the same title or name, or long"
+        " videos of the same length and shape. Nothing is decoded; play them before deciding. There"
+        " is no automatic selection."
+    ),
+    "media_group": "{count} files; within {distance} s of the first",
+    "media_running": "Reading headers: {read}; skipped/failed: {skipped}",
+    "media_summary": "{groups} groups of similar media; {read} files read; {skipped} skipped/failed.",
 }

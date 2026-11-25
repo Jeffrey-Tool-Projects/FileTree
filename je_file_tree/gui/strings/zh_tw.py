@@ -1867,4 +1867,14 @@ ZH_TW: dict[str, str] = {
     "zip_reason_folder_required": "只能封存一般資料夾。\n{path}",
     "zip_reason_verify": "封存檔讀回的內容不正確，已移除。\n{path}",
     "zip_reason_changed": "資料夾和掃描時不同，請先重新掃描。\n{path}",
+    "media_similar": "相似的影片與音訊",
+    "media_find": "尋找相似影音",
+    "media_distance": "長度容許差（0–16 秒）：",
+    "media_hint": (
+        "只依檔案標頭找出候選：長度相同且標題或名稱相同，或長度與畫面比例相同的長影片。不會解碼"
+        "；請播放確認後再決定，也不會自動選取。"
+    ),
+    "media_group": "{count} 個檔案；與第一個相差 {distance} 秒以內",
+    "media_running": "讀取標頭：{read}；略過／失敗：{skipped}",
+    "media_summary": "{groups} 組相似影音；讀取 {read} 個檔案；略過／失敗 {skipped} 個。",
 }
