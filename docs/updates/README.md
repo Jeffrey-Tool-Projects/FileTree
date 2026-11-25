@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-01 | 2026-11-26 | 整合 Ruff 0.17.3、pytest 9.2.0 與鎖定檔相依套件更新 | #done #migration #tooling #ci | [2026-11-b](2026-11-b.md) |
 | U-20261125-02 | 2026-11-25 | 提高淺色與深色主題的對比，重畫核取方塊與箭頭 | #feature #gui #theme #accessibility | [2026-11-b](2026-11-b.md) |
 | U-20261125-01 | 2026-11-25 | 新增「文字大小」設定，使用說明改用較大的文字 | #feature #gui #i18n #accessibility | [2026-11-b](2026-11-b.md) |
 | U-20261120-04 | 2026-11-20 | 修正兩個偶爾失敗的測試，以及只在 Windows 能通過的名稱查詢測試 | #test #ci | [2026-11](2026-11.md) |

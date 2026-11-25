@@ -1909,7 +1909,7 @@ guards locked installs, the producer's backend, publisher token isolation and co
 The source distribution carries no tests (`MANIFEST.in`,
 `test/test_sdist_manifest.py`).
 
-Development tooling uses pytest >=9.1.1 and Ruff 0.17.1. The hash-locked CI test requirements
+Development tooling uses pytest >=9.2.0 and Ruff 0.17.3. The hash-locked CI test requirements
 match that pytest floor; the local Ruff requirement, locked CI wheel and dedicated lint job share
 one exact version. `test/test_workflow_actions.py` rejects a partial Ruff update across those files.
 
