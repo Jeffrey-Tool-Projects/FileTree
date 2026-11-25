@@ -109,6 +109,7 @@ from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue
 from je_file_tree.gui.multi_scan import MultiScanDialog
 from je_file_tree.gui.folder_validation import FolderDrops
 from je_file_tree.gui.folder_budget_store import display_error
+from je_file_tree.gui.scan_overview import ScanOverviewDialog
 from je_file_tree.gui.scrolling_page import ScrollingPage
 from je_file_tree.gui.command_palette import CommandPalette, ShortcutsDialog
 from je_file_tree.gui.settings_dialog import SettingsDialog
@@ -1715,6 +1716,7 @@ class MainWindow(QMainWindow):
             ("special_files", None, self.show_special_files),
             ("problem_files", None, self.show_problem_files),
             ("dev_tools", None, self.show_dev_tools),
+            ("scan_overview", None, self.show_scan_overview),
             ("live_compare", None, self.compare_live_folders),
             ("git_history", None, self.show_git_history),
             ("history", None, self.show_history),
@@ -1813,7 +1815,8 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self._actions["print_view"])
         file_menu.addAction(self._actions["compare"])
         for key in ("recent_actions", "special_files", "problem_files", "live_compare", "git_history", "projects",
-                    "dev_tools", "history", "programs", "virtual_disks", "file_times", "recurring", "folder_budgets"):
+                    "dev_tools", "scan_overview", "history", "programs", "virtual_disks", "file_times", "recurring",
+                    "folder_budgets"):
             file_menu.addAction(self._actions[key])
         file_menu.addSeparator()
         file_menu.addAction(self._reclaim_action)
@@ -2295,6 +2298,15 @@ class MainWindow(QMainWindow):
             return
         self._run_survey(ProblemFilesDialog(outcome.result.root, self._unit, parent=self,
                                             partial=outcome.partial or bool(outcome.result.errors)))
+
+    def show_scan_overview(self) -> None:
+        """Put saved scans of several computers side by side; they grant no file operation here."""
+        dialog = ScanOverviewDialog(self._unit, self)
+        try:
+            dialog.exec()
+        finally:
+            dialog.shutdown()
+            dialog.deleteLater()
 
     def show_dev_tools(self) -> None:
         """Show what development tools keep in the scan and their own commands; nothing is run."""

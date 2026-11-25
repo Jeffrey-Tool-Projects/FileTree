@@ -767,6 +767,8 @@ until asked for, follows the selection after a pause and decodes pictures scaled
 `command_palette.commands` reads the menus themselves; `WindowShortcuts` applies the validated choices of
 `ShortcutController` over each window's defaults. Removing, stopping and quitting have fixed keys (`FIXED`).
 `core.dev_tools.TOOLS` is data: path ends and the commands a tool has; the dialog copies them and never runs one.
+`core.scan_overview` matches saved scans of several computers by relative folder path; it holds numbers and text
+only, never `Node` objects, so it grants no operation.
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

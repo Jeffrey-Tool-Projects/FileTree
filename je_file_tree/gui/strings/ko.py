@@ -2120,4 +2120,30 @@ KO: dict[str, str] = {
     "dev_tools_copy_inspect": "내용 보기 명령 복사",
     "dev_tools_copy_clean": "정리 명령 복사",
     "dev_tools_copied": "복사함: {command}",
+    "action_scan_overview": "여러 컴퓨터 비교…",
+    "action_scan_overview_tip": "여러 컴퓨터의 저장된 스캔을 나란히 비교합니다",
+    "overview_scans_hint": (
+        "다른 컴퓨터에서 내보낸 폴더 트리(JSON)를 추가하세요. 폴더는 스캔한 폴더 아래의"
+        " 경로로 짝을 맞춥니다. 기록된 크기만 표시하며 여기서 열거나 옮기거나 지울 수 "
+        "없습니다."
+    ),
+    "overview_scans_list": "스캔",
+    "overview_scans_add": "저장된 스캔 추가…",
+    "overview_scans_rename": "이름 바꾸기…",
+    "overview_scans_remove": "목록에서 빼기",
+    "overview_scans_label": "컴퓨터",
+    "overview_scans_depth": "단계:",
+    "overview_scans_spread": "차이",
+    "overview_scans_total": "(전체 스캔)",
+    "overview_scans_empty": "저장된 스캔을 추가하면 비교할 수 있습니다.",
+    "overview_scans_reading": "읽는 중…",
+    "overview_scans_summary": (
+        "폴더 {count}개 중 {shown}개를 큰 순서로 표시합니다. “—”는 그 스캔에 폴더가"
+        " 없다는 뜻입니다."
+    ),
+    "overview_scans_limit": "최대 {limit}개의 스캔을 비교할 수 있습니다.",
+    "overview_scans_failed": "다음 파일을 읽을 수 없습니다:",
+    "overview_scans_item": "{label} — {size}({saved})",
+    "overview_scans_csv": "CSV로 저장…",
+    "overview_scans_html": "HTML로 저장…",
 }

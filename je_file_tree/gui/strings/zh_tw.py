@@ -1816,4 +1816,29 @@ ZH_TW: dict[str, str] = {
     "dev_tools_copy_inspect": "複製查看指令",
     "dev_tools_copy_clean": "複製清理指令",
     "dev_tools_copied": "已複製：{command}",
+    "action_scan_overview": "比較多台電腦…",
+    "action_scan_overview_tip": "把多台電腦儲存的掃描並排比較",
+    "overview_scans_hint": (
+        "加入其他電腦匯出的資料夾樹（JSON）。資料夾依掃描資料夾下的路徑對應。只顯示記錄"
+        "的大小：這裡的項目無法開啟、移動或移除。"
+    ),
+    "overview_scans_list": "掃描",
+    "overview_scans_add": "加入儲存的掃描…",
+    "overview_scans_rename": "重新命名…",
+    "overview_scans_remove": "移除",
+    "overview_scans_label": "電腦",
+    "overview_scans_depth": "層數：",
+    "overview_scans_spread": "差異",
+    "overview_scans_total": "（整個掃描）",
+    "overview_scans_empty": "加入儲存的掃描即可比較。",
+    "overview_scans_reading": "讀取中…",
+    "overview_scans_summary": (
+        "顯示 {count} 個資料夾中的 {shown} 個，由大到小。「—」表示該掃描沒有這個資料"
+        "夾。"
+    ),
+    "overview_scans_limit": "最多可比較 {limit} 份掃描。",
+    "overview_scans_failed": "下列檔案無法讀取：",
+    "overview_scans_item": "{label} — {size}（{saved}）",
+    "overview_scans_csv": "儲存為 CSV…",
+    "overview_scans_html": "儲存為 HTML…",
 }

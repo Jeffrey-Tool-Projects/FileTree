@@ -1817,4 +1817,29 @@ ZH_CN: dict[str, str] = {
     "dev_tools_copy_inspect": "复制查看命令",
     "dev_tools_copy_clean": "复制清理命令",
     "dev_tools_copied": "已复制：{command}",
+    "action_scan_overview": "比较多台电脑…",
+    "action_scan_overview_tip": "把多台电脑保存的扫描并排比较",
+    "overview_scans_hint": (
+        "加入其他电脑导出的文件夹树（JSON）。文件夹按扫描文件夹下的路径对应。只显示记录"
+        "的大小：这里的项目无法打开、移动或移除。"
+    ),
+    "overview_scans_list": "扫描",
+    "overview_scans_add": "加入保存的扫描…",
+    "overview_scans_rename": "重命名…",
+    "overview_scans_remove": "移除",
+    "overview_scans_label": "电脑",
+    "overview_scans_depth": "层数：",
+    "overview_scans_spread": "差异",
+    "overview_scans_total": "（整个扫描）",
+    "overview_scans_empty": "加入保存的扫描即可比较。",
+    "overview_scans_reading": "读取中…",
+    "overview_scans_summary": (
+        "显示 {count} 个文件夹中的 {shown} 个，由大到小。“—”表示该扫描没有这个文件夹"
+        "。"
+    ),
+    "overview_scans_limit": "最多可比较 {limit} 份扫描。",
+    "overview_scans_failed": "下列文件无法读取：",
+    "overview_scans_item": "{label} — {size}（{saved}）",
+    "overview_scans_csv": "保存为 CSV…",
+    "overview_scans_html": "保存为 HTML…",
 }

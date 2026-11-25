@@ -33,6 +33,7 @@ Use arrow keys to select budget rows and Tab to reach the editor. Reopening sear
 - **Save reports**: export results to CSV, JSON or Excel. Large selected-list copies prepare rows and text in batches; a newer copy in any list replaces the pending one.
 - **Use your language**: switch between English, Traditional Chinese, Simplified Chinese, Japanese and Korean.
 - **Choose the text size**: View → Text size makes every text in FileTree larger or smaller, from 90% to 200%, and remembers it. The help opens in larger text, and light and dark colours keep text and controls at high contrast.
+- **Compare computers**: put the folder trees exported on several computers side by side.
 - **See what development tools keep**: Docker, pip, npm, Cargo and more, with their own commands to copy.
 - **Find any command**: press Ctrl+K and type; choose your own shortcuts in Options.
 - **Look before you remove**: Details can preview pictures, the beginning of texts and what an archive holds.

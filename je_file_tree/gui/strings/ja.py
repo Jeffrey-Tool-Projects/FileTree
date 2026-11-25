@@ -2266,4 +2266,30 @@ JA: dict[str, str] = {
     "dev_tools_copy_inspect": "内容を見るコマンドをコピー",
     "dev_tools_copy_clean": "クリーンアップのコマンドをコピー",
     "dev_tools_copied": "コピーしました: {command}",
+    "action_scan_overview": "複数のコンピューターを比較…",
+    "action_scan_overview_tip": "複数のコンピューターの保存したスキャンを並べて比較します",
+    "overview_scans_hint": (
+        "ほかのコンピューターで書き出したフォルダー ツリー (JSON) を追加します。フォル"
+        "ダーはスキャンしたフォルダーからのパスで対応付けます。表示するのは記録されたサ"
+        "イズだけで、ここから開く、移動する、削除することはできません。"
+    ),
+    "overview_scans_list": "スキャン",
+    "overview_scans_add": "保存したスキャンを追加…",
+    "overview_scans_rename": "名前を変更…",
+    "overview_scans_remove": "一覧から外す",
+    "overview_scans_label": "コンピューター",
+    "overview_scans_depth": "階層:",
+    "overview_scans_spread": "差",
+    "overview_scans_total": "（スキャン全体）",
+    "overview_scans_empty": "保存したスキャンを追加すると比較できます。",
+    "overview_scans_reading": "読み取り中…",
+    "overview_scans_summary": (
+        "{count} 個のフォルダーのうち {shown} 個を大きい順に表示しています。「—」は"
+        "そのスキャンにフォルダーがないことを示します。"
+    ),
+    "overview_scans_limit": "比較できるスキャンは {limit} 件までです。",
+    "overview_scans_failed": "次のファイルを読み取れませんでした:",
+    "overview_scans_item": "{label} — {size}（{saved}）",
+    "overview_scans_csv": "CSV で保存…",
+    "overview_scans_html": "HTML で保存…",
 }

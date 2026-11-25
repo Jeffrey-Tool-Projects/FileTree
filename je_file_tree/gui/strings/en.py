@@ -2030,4 +2030,30 @@ EN: dict[str, str] = {
     "dev_tools_copy_inspect": "Copy the command to look",
     "dev_tools_copy_clean": "Copy the command to clean up",
     "dev_tools_copied": "Copied: {command}",
+    "action_scan_overview": "Compare computers…",
+    "action_scan_overview_tip": "Put saved scans of several computers side by side",
+    "overview_scans_hint": (
+        "Add the folder trees (JSON) exported on other computers. Folders are matched by"
+        " their path below the scanned folder. Only recorded sizes are shown: nothing here"
+        " can be opened, moved or removed."
+    ),
+    "overview_scans_list": "Scans",
+    "overview_scans_add": "Add saved scans…",
+    "overview_scans_rename": "Rename…",
+    "overview_scans_remove": "Remove",
+    "overview_scans_label": "Computer",
+    "overview_scans_depth": "Levels:",
+    "overview_scans_spread": "Difference",
+    "overview_scans_total": "(whole scan)",
+    "overview_scans_empty": "Add saved scans to compare them.",
+    "overview_scans_reading": "Reading…",
+    "overview_scans_summary": (
+        "Showing {shown} of {count} folders, the largest first. “—” means a scan does"
+        " not have the folder."
+    ),
+    "overview_scans_limit": "At most {limit} scans can be compared.",
+    "overview_scans_failed": "These files could not be read:",
+    "overview_scans_item": "{label} — {size} ({saved})",
+    "overview_scans_csv": "Save as CSV…",
+    "overview_scans_html": "Save as HTML…",
 }

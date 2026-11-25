@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-16 | 2026-11-26 | 新增比較多台電腦的掃描 | #done #feature #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-15 | 2026-11-26 | 新增開發工具佔用與官方清理指令 | #done #feature #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-14 | 2026-11-26 | 新增指令搜尋與自訂快速鍵 | #done #feature #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-13 | 2026-11-26 | 詳細資訊可預覽圖片、文字與壓縮檔清單 | #done #feature #gui #i18n | [2026-11-b](2026-11-b.md) |
