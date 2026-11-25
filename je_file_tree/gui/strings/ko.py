@@ -2184,4 +2184,33 @@ KO: dict[str, str] = {
     "media_group": "파일 {count}개, 첫 파일과 {distance}초 이내",
     "media_running": "헤더 읽는 중: {read}, 건너뜀/실패: {skipped}",
     "media_summary": "비슷한 동영상과 오디오 {groups}그룹, {read}개 읽음, {skipped}개 건너뜀/실패.",
+    "action_remote_scan": "원격 폴더 스캔(SSH)…",
+    "action_remote_scan_tip": "SSH로 다른 컴퓨터의 폴더를 계산해 스캔으로 저장합니다",
+    "remote_hint": (
+        "이 컴퓨터의 OpenSSH와 키 또는 에이전트를 사용하며, FileTree는 암호를 묻거나 보관하지 "
+        "않습니다. 호스트는 이미 알려져 있어야 합니다(먼저 ssh로 한 번 연결하세요). 폴더 목록만"
+        " 읽습니다. 아무것도 열거나 바꾸지 않으며, 결과는 조작할 수 있는 항목이 아니라 저장된 "
+        "스캔입니다."
+    ),
+    "remote_host": "호스트",
+    "remote_user": "사용자",
+    "remote_user_default": "SSH 설정에 따름",
+    "remote_port": "포트",
+    "remote_path": "폴더",
+    "remote_start": "스캔",
+    "remote_save": "스캔으로 저장(JSON)…",
+    "remote_compare": "비교…",
+    "remote_largest": "가장 큰 파일",
+    "remote_invalid": (
+        "호스트 이름이나 주소, 폴더, 필요하면 사용자를 입력하세요. 공백이나 옵션은 쓸 수 없"
+        "습니다."
+    ),
+    "remote_connecting": "{host}에 연결 중…",
+    "remote_failed": "스캔할 수 없습니다.\n{reason}",
+    "remote_counts": "폴더 {folders}개, 파일 {files}개, {size}, 읽을 수 없는 폴더: {unread}",
+    "remote_done": (
+        "{label}\n{counts}, {duration}. 크기는 파일 크기이며 SFTP는 디스크 사용량을 알려 주지 않"
+        "습니다."
+    ),
+    "remote_saved": "{path}에 저장했습니다",
 }

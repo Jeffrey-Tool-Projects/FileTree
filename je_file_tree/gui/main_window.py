@@ -110,6 +110,7 @@ from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue
 from je_file_tree.gui.multi_scan import MultiScanDialog
 from je_file_tree.gui.folder_validation import FolderDrops
 from je_file_tree.gui.folder_budget_store import display_error
+from je_file_tree.gui.remote_scan import RemoteScanDialog
 from je_file_tree.gui.scan_overview import ScanOverviewDialog
 from je_file_tree.gui.scrolling_page import ScrollingPage
 from je_file_tree.gui.command_palette import CommandPalette, ShortcutsDialog
@@ -1750,6 +1751,7 @@ class MainWindow(QMainWindow):
             ("problem_files", None, self.show_problem_files),
             ("dev_tools", None, self.show_dev_tools),
             ("scan_overview", None, self.show_scan_overview),
+            ("remote_scan", None, self.show_remote_scan),
             ("live_compare", None, self.compare_live_folders),
             ("git_history", None, self.show_git_history),
             ("history", None, self.show_history),
@@ -1848,8 +1850,8 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self._actions["print_view"])
         file_menu.addAction(self._actions["compare"])
         for key in ("recent_actions", "special_files", "problem_files", "live_compare", "git_history", "projects",
-                    "dev_tools", "scan_overview", "history", "programs", "virtual_disks", "file_times", "recurring",
-                    "folder_budgets"):
+                    "dev_tools", "scan_overview", "remote_scan", "history", "programs", "virtual_disks", "file_times",
+                    "recurring", "folder_budgets"):
             file_menu.addAction(self._actions[key])
         file_menu.addSeparator()
         file_menu.addAction(self._reclaim_action)
@@ -2332,9 +2334,23 @@ class MainWindow(QMainWindow):
         self._run_survey(ProblemFilesDialog(outcome.result.root, self._unit, parent=self,
                                             partial=outcome.partial or bool(outcome.result.errors)))
 
-    def show_scan_overview(self) -> None:
+    def show_remote_scan(self) -> None:
+        """Measure a folder of another computer over SSH; its saved scan can then be compared."""
+        dialog = RemoteScanDialog(self.settings, self._unit, self)
+        chosen: list[str] = []
+        dialog.compare_requested.connect(chosen.append)
+        try:
+            dialog.exec()
+        finally:
+            dialog.shutdown()
+            dialog.deleteLater()
+        if chosen and not self._closing:
+            self.show_scan_overview(chosen)
+
+    def show_scan_overview(self, files: Sequence[str] = ()) -> None:
         """Put saved scans of several computers side by side; they grant no file operation here."""
         dialog = ScanOverviewDialog(self._unit, self)
+        dialog.add_files(files)
         try:
             dialog.exec()
         finally:

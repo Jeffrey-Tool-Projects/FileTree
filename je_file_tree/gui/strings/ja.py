@@ -2336,4 +2336,33 @@ JA: dict[str, str] = {
     "media_group": "{count} 個のファイル、最初のファイルとの差は {distance} 秒以内",
     "media_running": "ヘッダーを読み取り中: {read}、スキップ/失敗: {skipped}",
     "media_summary": "似ている動画と音声 {groups} 組、{read} 個を読み取り、{skipped} 個をスキップ/失敗。",
+    "action_remote_scan": "リモート フォルダーをスキャン (SSH)…",
+    "action_remote_scan_tip": "SSH でほかのコンピューターのフォルダーを集計し、スキャンとして保存します",
+    "remote_hint": (
+        "このコンピューターの OpenSSH と、鍵またはエージェントを使います。FileTree がパスワード"
+        "を尋ねたり保存したりすることはありません。ホストは既知である必要があります（先に ssh "
+        "で一度接続してください）。読み取るのはフォルダーの一覧だけで、何も開いたり変更したりせ"
+        "ず、結果は操作できる項目ではなく保存されたスキャンです。"
+    ),
+    "remote_host": "ホスト",
+    "remote_user": "ユーザー",
+    "remote_user_default": "SSH の設定に従う",
+    "remote_port": "ポート",
+    "remote_path": "フォルダー",
+    "remote_start": "スキャン",
+    "remote_save": "スキャンとして保存 (JSON)…",
+    "remote_compare": "比較…",
+    "remote_largest": "最大のファイル",
+    "remote_invalid": (
+        "ホスト名またはアドレスとフォルダー、必要ならユーザーを入力してください。空白やオプ"
+        "ションは使えません。"
+    ),
+    "remote_connecting": "{host} に接続中…",
+    "remote_failed": "スキャンできませんでした。\n{reason}",
+    "remote_counts": "フォルダー {folders}、ファイル {files}、{size}、読み取れないフォルダー: {unread}",
+    "remote_done": (
+        "{label}\n{counts}、{duration}。サイズはファイルのサイズです。SFTP ではディスク使用量は"
+        "分かりません。"
+    ),
+    "remote_saved": "{path} に保存しました",
 }

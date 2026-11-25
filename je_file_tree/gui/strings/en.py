@@ -2097,4 +2097,30 @@ EN: dict[str, str] = {
     "media_group": "{count} files; within {distance} s of the first",
     "media_running": "Reading headers: {read}; skipped/failed: {skipped}",
     "media_summary": "{groups} groups of similar media; {read} files read; {skipped} skipped/failed.",
+    "action_remote_scan": "Scan a remote folder (SSH)…",
+    "action_remote_scan_tip": "Measure a folder of another computer over SSH and save it as a scan",
+    "remote_hint": (
+        "Uses this computer's OpenSSH with your keys or agent; FileTree never asks for or keeps"
+        " a password. The host must already be known (connect once with ssh). Only folder listings"
+        " are read: nothing there is opened or changed, and the result is a saved scan, not entries"
+        " you can act on."
+    ),
+    "remote_host": "Host",
+    "remote_user": "User",
+    "remote_user_default": "as your SSH settings say",
+    "remote_port": "Port",
+    "remote_path": "Folder",
+    "remote_start": "Scan",
+    "remote_save": "Save as scan (JSON)…",
+    "remote_compare": "Compare…",
+    "remote_largest": "Largest files",
+    "remote_invalid": "Enter a host name or address, a folder and, if needed, a user: no spaces or options.",
+    "remote_connecting": "Connecting to {host}…",
+    "remote_failed": "The scan could not be made.\n{reason}",
+    "remote_counts": "{folders} folders, {files} files, {size}; unreadable folders: {unread}",
+    "remote_done": (
+        "{label}\n{counts}; {duration}. Sizes are file sizes; SFTP does not say what they take on"
+        " disk."
+    ),
+    "remote_saved": "Saved to {path}",
 }

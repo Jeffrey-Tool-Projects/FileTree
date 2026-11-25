@@ -1877,4 +1877,26 @@ ZH_TW: dict[str, str] = {
     "media_group": "{count} 個檔案；與第一個相差 {distance} 秒以內",
     "media_running": "讀取標頭：{read}；略過／失敗：{skipped}",
     "media_summary": "{groups} 組相似影音；讀取 {read} 個檔案；略過／失敗 {skipped} 個。",
+    "action_remote_scan": "掃描遠端資料夾（SSH）…",
+    "action_remote_scan_tip": "透過 SSH 計算另一台電腦的資料夾，並儲存為掃描",
+    "remote_hint": (
+        "使用這台電腦的 OpenSSH 與你的金鑰或 agent；FileTree 不會詢問或保存密碼。主機必須是已知"
+        "的（先用 ssh 連線一次）。只讀取資料夾清單：不會開啟或變更任何東西，結果是儲存的掃描，"
+        "而不是可以操作的項目。"
+    ),
+    "remote_host": "主機",
+    "remote_user": "使用者",
+    "remote_user_default": "依 SSH 設定",
+    "remote_port": "連接埠",
+    "remote_path": "資料夾",
+    "remote_start": "掃描",
+    "remote_save": "儲存為掃描（JSON）…",
+    "remote_compare": "比較…",
+    "remote_largest": "最大的檔案",
+    "remote_invalid": "請輸入主機名稱或位址、資料夾，需要時輸入使用者；不可含空白或選項。",
+    "remote_connecting": "正在連線到 {host}…",
+    "remote_failed": "無法掃描。\n{reason}",
+    "remote_counts": "{folders} 個資料夾、{files} 個檔案、{size}；無法讀取的資料夾：{unread}",
+    "remote_done": "{label}\n{counts}；{duration}。大小是檔案大小，SFTP 不提供磁碟佔用量。",
+    "remote_saved": "已儲存到 {path}",
 }

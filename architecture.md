@@ -773,6 +773,10 @@ only, never `Node` objects, so it grants no operation.
 SHA-256 and publishes it with `rename_no_replace`; the original is moved only through `move_to_trash`.
 `core.media_info` parses bounded container headers with the standard library; `core.similar_media` groups
 candidates and reuses the similar-photo result, so they get no keeper, estimate or bulk selection.
+`core.sftp` implements only the read-only requests of SFTP 3 (no request that opens or changes a file exists);
+`core.remote_scan` runs the fixed system OpenSSH client (keys or agent only, known hosts only, no forwarding) and
+walks with several requests under way. Its tree stays private and is written as a saved scan, so remote paths
+never reach anything that acts on local entries.
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

@@ -1878,4 +1878,26 @@ ZH_CN: dict[str, str] = {
     "media_group": "{count} 个文件；与第一个相差 {distance} 秒以内",
     "media_running": "读取文件头：{read}；跳过／失败：{skipped}",
     "media_summary": "{groups} 组相似影音；读取 {read} 个文件；跳过／失败 {skipped} 个。",
+    "action_remote_scan": "扫描远程文件夹（SSH）…",
+    "action_remote_scan_tip": "通过 SSH 计算另一台电脑的文件夹，并保存为扫描",
+    "remote_hint": (
+        "使用这台电脑的 OpenSSH 与你的密钥或 agent；FileTree 不会询问或保存密码。主机必须是已知"
+        "的（先用 ssh 连接一次）。只读取文件夹列表：不会打开或更改任何东西，结果是保存的扫描，"
+        "而不是可以操作的项目。"
+    ),
+    "remote_host": "主机",
+    "remote_user": "用户",
+    "remote_user_default": "按 SSH 设置",
+    "remote_port": "端口",
+    "remote_path": "文件夹",
+    "remote_start": "扫描",
+    "remote_save": "保存为扫描（JSON）…",
+    "remote_compare": "比较…",
+    "remote_largest": "最大的文件",
+    "remote_invalid": "请输入主机名或地址、文件夹，需要时输入用户；不可含空格或选项。",
+    "remote_connecting": "正在连接到 {host}…",
+    "remote_failed": "无法扫描。\n{reason}",
+    "remote_counts": "{folders} 个文件夹、{files} 个文件、{size}；无法读取的文件夹：{unread}",
+    "remote_done": "{label}\n{counts}；{duration}。大小是文件大小，SFTP 不提供磁盘占用量。",
+    "remote_saved": "已保存到 {path}",
 }
