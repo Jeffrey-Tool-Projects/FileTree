@@ -459,7 +459,8 @@ def test_closing_a_visible_window_leaves_ending_to_the_toolkit(monitored, qapp, 
     assert not quits and monitored.isHidden()
 
 
-def test_a_read_only_volume_is_not_short_of_space(monitored, qapp, monkeypatch):
+def test_a_read_only_volume_is_not_short_of_space(monitored, qapp, monkeypatch, tmp_path):
+    disc, disk = str(tmp_path / "disc"), str(tmp_path / "disk")
     class Storage:
         def __init__(self, root, read_only):
             self._root, self._read_only = root, read_only
@@ -484,7 +485,7 @@ def test_a_read_only_volume_is_not_short_of_space(monitored, qapp, monkeypatch):
         def rootPath(self):  # noqa: N802 - Qt API
             return self._root
 
-    monkeypatch.setattr(workers.QStorageInfo, "mountedVolumes", lambda: [Storage("D:/", True), Storage("C:/", False)])
+    monkeypatch.setattr(workers.QStorageInfo, "mountedVolumes", lambda: [Storage(disc, True), Storage(disk, False)])
     worker = workers.CapacityWorker(monitored)
     _CAPACITY_RUN(worker)
-    assert not worker.error and [row.root for row in worker.rows] == ["C:/"]
+    assert not worker.error and [row.root for row in worker.rows] == [disk]
