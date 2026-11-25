@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import re
+import string
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
@@ -24,6 +27,20 @@ _READING_SCALE = 1.3  # continuous text is read at a larger size than labels and
 _READING_STYLE = "p, li { line-height: 145%; margin-bottom: 6px; } h2 { margin-top: 18px; }"
 
 
+_MNEMONIC = re.compile(r"\(&.\)|&")
+
+
+def label(key: str) -> str:
+    """The text ``key`` shows in the window, as it is read: without its access key and trailing dots."""
+    return _MNEMONIC.sub("", tr(key)).removesuffix("…").strip()
+
+
+def help_text() -> str:
+    """The help of the current language, naming menus and tabs exactly as the window does."""
+    fields = {field for _text, field, _spec, _conversion in string.Formatter().parse(tr("help_html")) if field}
+    return tr("help_html", **{field: label(field) for field in fields})
+
+
 class HelpDialog(QDialog):
     """Shows the help text of the current language at a size for reading.
 
@@ -41,7 +58,7 @@ class HelpDialog(QDialog):
         browser.document().setDefaultStyleSheet(_READING_STYLE)
         self.browser = browser
         self._fit_text()
-        browser.setHtml(tr("help_html"))
+        browser.setHtml(help_text())
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
         buttons.rejected.connect(self.reject)
         row = QHBoxLayout()

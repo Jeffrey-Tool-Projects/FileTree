@@ -118,3 +118,23 @@ def test_the_scanners_worded_reasons_are_translated_and_other_text_passes_throug
     assert problem_text(scanner.ACCESS_DENIED) == "拒絕存取"
     assert problem_text(scanner.NOT_SCANNED).startswith("沒有掃描到")
     assert problem_text("Some system text") == "Some system text"
+
+
+def test_the_help_has_the_same_structure_in_every_language_and_names_real_labels() -> None:
+    from je_file_tree.gui.help_dialog import help_text
+
+    shapes = {}
+    for language in i18n.LANGUAGES:
+        i18n.set_language(language)
+        text = help_text()
+        shapes[language] = re.findall(r"</?(?:h2|ol|ul|li|table|tr|td|code|p)\b", text)
+        assert "{" not in text and "&amp;" not in text
+        for key in ("permanent_delete", "menu_text_size", "reclaim_action"):  # what the window calls it, always
+            label = re.sub(r"\(&.\)|&", "", i18n.tr(key)).removesuffix("…")
+            assert label in text, (language, key)
+    assert all(shape == shapes["en"] for shape in shapes.values())
+
+
+@pytest.mark.parametrize("claim", ["never deletes anything for good", "不會永久刪除任何東西", "不会永久删除任何东西"])
+def test_the_help_does_not_deny_the_permanent_delete(claim: str) -> None:
+    assert all(claim not in table["help_html"] for table in STRINGS.values())

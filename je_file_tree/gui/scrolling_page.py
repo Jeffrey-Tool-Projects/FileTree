@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QEvent, QObject
-from PySide6.QtGui import QResizeEvent
+from PySide6.QtCore import QEvent, QObject, Signal
+from PySide6.QtGui import QResizeEvent, QShowEvent
 from PySide6.QtWidgets import QScrollArea, QWidget
 
 
@@ -17,6 +17,8 @@ class ScrollingPage(QScrollArea):
     ``setWidgetResizable`` is not used: for a page with wrapping labels it asks for the preferred height,
     not the minimum, and scrolled a 1200 x 800 window the page fits in.
     """
+
+    room_changed = Signal(int)  # the height there is for the page, before its size is settled
 
     def __init__(self, page: QWidget, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -37,6 +39,13 @@ class ScrollingPage(QScrollArea):
         super().resizeEvent(event)
         self._fit()
 
+    def showEvent(self, event: QShowEvent) -> None:  # noqa: N802 - Qt's name
+        """Qt: the size is settled now, so the page can choose its layout for it."""
+        super().showEvent(event)
+        self._fit()
+
     def _fit(self) -> None:
         page = self.widget()
+        if self.isVisible():  # before that the size is only a default
+            self.room_changed.emit(self.maximumViewportSize().height())
         page.resize(self.viewport().size().expandedTo(page.minimumSizeHint().expandedTo(page.minimumSize())))

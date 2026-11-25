@@ -71,6 +71,9 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-05 | 2026-11-26 | 高度不足的視窗先收合結果頁的附加資訊再捲動 | #done #gui #ux | [2026-11-b](2026-11-b.md) |
+| U-20261126-04 | 2026-11-26 | 啟動時不再載入 Excel 匯出套件 | #done #perf #gui | [2026-11-b](2026-11-b.md) |
+| U-20261126-03 | 2026-11-26 | 使用說明五種語言重寫，介面名稱由字串表帶入 | #done #gui #i18n #docs | [2026-11-b](2026-11-b.md) |
 | U-20261126-02 | 2026-11-26 | 字串表依語言拆成五個模組 | #migration #i18n #code-quality | [2026-11-b](2026-11-b.md) |
 | U-20261126-01 | 2026-11-26 | 整合 Ruff 0.17.3、pytest 9.2.0 與鎖定檔相依套件更新 | #done #migration #tooling #ci | [2026-11-b](2026-11-b.md) |
 | U-20261125-02 | 2026-11-25 | 提高淺色與深色主題的對比，重畫核取方塊與箭頭 | #feature #gui #theme #accessibility | [2026-11-b](2026-11-b.md) |

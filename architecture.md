@@ -746,7 +746,10 @@ modal help window. `TextSizeController.apply` sets the application font through 
 (always from the captured base font), delivers Qt's posted font change, scales the columns and rows of
 open lists by the ratio, then emits `changed` for geometry derived from text. New pixel sizes chosen for
 text (column widths above all) go through `text_scaled`; `fit_window` grows dialogs within the screen.
-`ScrollingPage` holds the results page, so its minimum size never becomes the window's.
+`ScrollingPage` holds the results page, so its minimum size never becomes the window's. Its `room_changed`
+drives `ShortLayout`, which folds the highlights, inlines the totals and hides the hint before anything scrolls.
+Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
+so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,
 rounded corners from 8 px) and folder fills blend the palette's text over its base by depth. Sunburst/age labels share this logic; bars use palette text roles.
 

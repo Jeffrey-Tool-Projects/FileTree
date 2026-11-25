@@ -207,7 +207,9 @@ class MainWindow(QMainWindow):
         self._bin_labels.ready.connect(self._bin_metadata_ready)
         self._bin_labels.busy_changed.connect(lambda _busy: self._update_bin_buttons())
         self.pages = QStackedWidget()
-        for page in (self.welcome, ScrollingPage(self.results)):
+        scrolled = ScrollingPage(self.results)
+        scrolled.room_changed.connect(self.results.fit_height)
+        for page in (self.welcome, scrolled):
             self.pages.addWidget(page)
         self._live_timer = LiveRefresh(self.results.refresh_live, self)  # spaced by its cost (U-20261118-01)
         self.setCentralWidget(self.pages)

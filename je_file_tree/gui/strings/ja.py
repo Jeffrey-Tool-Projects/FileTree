@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from je_file_tree.gui.strings.help_ja import HELP
+
 _JA_FOLDER = "フォルダー"
 
 
@@ -322,7 +324,7 @@ JA: dict[str, str] = {
         '選択した内容と現在のビンの内容が、観察されたヘッドルームのあるリサイクル制限を超えています。元の項目'
         'を保持しました。'
     ),
-    'action_check_updates': '毎日更新をチェックする',
+    'action_check_updates': '毎日更新を確認',
     'action_background_monitor': 'バックグラウンドモニター…',
     'action_background_monitor_tip': (
         'トレイ通知と穏やかなスケジュールされたフォルダー履歴スキャンをオプトインします。'
@@ -366,7 +368,7 @@ JA: dict[str, str] = {
     ),
     'background_warning': '{detail}',
     'background_low_space': '{root} の空き容量が少ない: {free} ({percent}%)',
-    'action_follow_changes': '変更を追跡する',
+    'action_follow_changes': '変更を追跡',
     'action_follow_changes_tip': (
         'デフォルトではオフです。 Windows、Linux、macOS で変更されたフォルダーだけを読み直し、'
         '変更のないサブフォルダーはそのまま残します。'
@@ -388,7 +390,7 @@ JA: dict[str, str] = {
     ),
     'update_available': 'FileTree {version} は利用可能です',
     'multi_roots': '複数のルート',
-    'action_multi_scan': '複数のフォルダーをスキャンします…',
+    'action_multi_scan': '複数のフォルダーをスキャン…',
     'action_multi_scan_tip': '1 回の結合スキャンで明示的なフォルダーを確認します。',
     'multi_choose': '複数のフォルダーをスキャンする',
     'multi_add': 'フォルダを追加…',
@@ -516,7 +518,7 @@ JA: dict[str, str] = {
     'undo_unavailable': '一部の項目では元に戻すことができません: {reason}',
     'journal_status_restored': 'ゴミ箱から復元',
     'journal_reason_undo': '明示的なゴミ箱の取り消し',
-    'menu_move_drive': '別のドライブに移動します…',
+    'menu_move_drive': '別のドライブに移動…',
     'copy_hint': (
         '別のドライブにある既存のフォルダーを選択します。オリジナルは、別のゴミ箱確認が行われるまで保持されま'
         'す。ファイル数、長さ、SHA-256 が 64 MiB 未満であることを確認します。より大きなペイロードは長さのみで'
@@ -558,7 +560,7 @@ JA: dict[str, str] = {
     'namespace_refreshed': '{path}: {files} ファイルを更新しました。 {errors} スキャン エラー。',
     'namespace_refresh_failed': '{path} で更新に失敗しました: {reason}',
     'namespace_refreshing': '影響を受ける宛先を更新しています: {path}',
-    'menu_move_folder': 'フォルダに移動…',
+    'menu_move_folder': 'フォルダーに移動…',
     'menu_rename': '名前を変更…',
     'namespace_source': 'ソース',
     'namespace_destination': '目的地',
@@ -642,13 +644,13 @@ JA: dict[str, str] = {
     'archive_stopped': 'アーカイブのプレビューが停止しました。在庫が不完全',
     'archive_busy': '2 つのアーカイブ読み取りがすでに実行されています。再スキャンして再試行する',
     'archive_stop': 'このアーカイブを読むのをやめる',
-    'action_count_hard_links': '観察されたハードリンクを 1 回カウントする',
+    'action_count_hard_links': '見つかったハードリンクを 1 回だけ数える',
     'action_count_hard_links_tip': (
         'デフォルトではオフです。今後のスキャンでは名前付きサイズが保持され、カウントされた合計が追加されます'
         '。ブランチ/ゴミ箱の再スキャンにより、完全なルートが再構築されます。'
     ),
-    'column_accounted_size': 'カウントサイズ',
-    'column_accounted_allocated': 'カウントされたディスクサイズ',
+    'column_accounted_size': '集計サイズ',
+    'column_accounted_allocated': '集計ディスク使用量',
     'hard_links_hint': (
         'ハードリンク アカウンティングを有効にすると、最初に検出された語彙名がバイト数に寄与します。ここでは'
         'エイリアスはゼロとカウントされます。名前付きサイズは実際のファイル長のままです。不明または矛盾した記'
@@ -686,7 +688,7 @@ JA: dict[str, str] = {
         '止まった。以前のファイルまたは現在のファイルが変更されている可能性があります。再スキャン間近です。'
     ),
     'compression_failed': '操作が失敗しました: {reason}。部分的な変更は可能です。再スキャン間近です。',
-    'action_exact_allocation': 'ファイルごとの割り当て Windows を測定します',
+    'action_exact_allocation': 'Windows のファイルごとの割り当てを測定',
     'action_exact_allocation_tip': (
         'デフォルトではオフです。追加のメタデータは、XPRESS/WOF ファイルなど、今後のスキャンを必要とします。'
         '有効にして再スキャンします。既知のクラウド/オフライン ファイルは照会されません。失敗したクエリは推定'
@@ -710,14 +712,14 @@ JA: dict[str, str] = {
         '、回復可能な領域が保証されているわけではありません。ペイロードは読み取られません。ダブルクリックする'
         'と、記録されたファイルが選択されます。 Ctrl+C で行をコピーします。'
     ),
-    'action_capture_owners': 'Windows ファイル所有者をキャプチャする',
+    'action_capture_owners': 'Windows のファイル所有者を記録',
     'action_capture_owners_tip': (
         'デフォルトではオフです。今後のスキャンに所有者のメタデータ クエリを追加します。有効にして再スキャン'
         'する'
     ),
     'tab_users': 'ユーザー',
     'column_owner': '所有者',
-    'column_owner_id': '所有者の身元',
+    'column_owner_id': '所有者の識別子',
     'owner_unknown': '不明な所有者',
     'owners_refresh': '記録された合計を更新する',
     'owners_reading': '記録された所有者の合計を追加し、アカウント名を解決しています...',
@@ -746,15 +748,15 @@ JA: dict[str, str] = {
     'bin_label_unqueried': '{root} ごみ箱: クエリされませんでした',
     'bin_label_total': '{root} ごみ箱: {size}、{count} アイテム',
     'bin_label_partial': '{root} ごみ箱: 合計は不明です。既知の {size}、{count} アイテム',
-    'action_file_times': 'ファイル時間…',
+    'action_file_times': 'ファイルの日時…',
     'action_file_times_tip': 'このスキャンで記録されたアクセス日と作成日をフィルターします。',
-    'action_capture_file_times': 'ファイルのアクセス/作成時間をキャプチャする',
+    'action_capture_file_times': 'ファイルのアクセス日時と作成日時を記録',
     'action_capture_file_times_tip': (
         'デフォルトではオフです。今後のスキャンでは、通常のファイルごとに 16 バイトが追加されます。有効にした'
         '後に再スキャンする'
     ),
-    'column_accessed': '記録されたアクセス',
-    'column_created': '作成されました',
+    'column_accessed': '記録されたアクセス日時',
+    'column_created': '作成日時',
     'file_times_hint': (
         '[オプション] → [ファイルのアクセス/作成時間をキャプチャ] を有効にしてから、再スキャンします。通常の'
         'ファイルのみ。ディレクトリ/リンク、および利用できない作成日は不明のままです。アクセス日は、バックグ'
@@ -788,7 +790,7 @@ JA: dict[str, str] = {
         'ファイルシステム/プロバイダーの設定により、アクセスの更新が延期または抑制される場合があります。これ'
         'らの日付を記録されたメタデータとして扱います。'
     ),
-    'action_programs': 'インストールされているプログラム…',
+    'action_programs': 'インストール済みプログラム…',
     'action_programs_tip': 'このスキャンでインストーラー/ゲームのメタデータとインストール フォルダーを比較します',
     'program_name': 'プログラム・ゲーム',
     'program_source': 'メタデータソース',
@@ -885,7 +887,7 @@ JA: dict[str, str] = {
     ),
     'history_failed': '履歴を読み取れません: {reason}',
     'history_save_failed': 'スキャンは完了しましたが、履歴を保存できませんでした: {reason}',
-    'action_scan_workers': 'スキャン作業者…',
+    'action_scan_workers': 'スキャン スレッド数…',
     'action_scan_workers_tip': '新しいスキャンの同時実行性を選択します。高いほど速いとは限りません',
     'workers_prompt': (
         '新しいスキャンのワーカー (1 ～ 32)。デフォルトは {default} です。ネットワーク共有が遅い場合は、ワー'
@@ -1121,7 +1123,7 @@ JA: dict[str, str] = {
     'project_maven_store': 'メイブンストア',
     'project_gradle_store': 'グローバル Gradle ストア',
     'project_docker_store': 'Dockerデータ',
-    'action_git_history': 'Gitの歴史…',
+    'action_git_history': 'Git の履歴…',
     'action_git_history_tip': 'すべての Git 参照から到達可能な最大のオブジェクトを検査する',
     'git_oid': 'オブジェクトID',
     'git_kind': 'オブジェクトの種類',
@@ -1157,7 +1159,7 @@ JA: dict[str, str] = {
         'す。チャート/リストで非表示のエントリを選択すると、フィルターがクリアされます。スキャンの合計とエク'
         'スポートは変更されません。'
     ),
-    'action_live_compare': '2 つのフォルダーを比較してください…',
+    'action_live_compare': '2 つのフォルダーを比較…',
     'action_live_compare_tip': '新しい相対パスを比較し、要求されたファイルのペアのみを検証します',
     'compare_choose_left': '左側のフォルダーを選択してください',
     'compare_choose_right': '適切なフォルダーを選択してください',
@@ -1217,7 +1219,7 @@ JA: dict[str, str] = {
         'を記録しました。利用できないファイル メタデータ: {unknown}。最大の 1,000 が保持されます。'
     ),
     'special_partial': 'スキャン範囲は不完全です。表示されていないファイルは不明のままです。',
-    'action_shell_integration': 'エクスプローラーの統合…',
+    'action_shell_integration': 'エクスプローラー統合…',
     'action_shell_integration_tip': (
         'エクスプローラーのフォルダー メニューで [FileTree でスキャン] を追加または削除します'
     ),
@@ -1234,7 +1236,7 @@ JA: dict[str, str] = {
     'menu_theme': 'テーマ',
     'theme_system': 'システム',
     'theme_light': 'ライト',
-    'theme_dark': '暗い',
+    'theme_dark': 'ダーク',
     'menu_text_size': '文字サイズ',
     'text_size_larger': '大きく',
     'text_size_smaller': '小さく',
@@ -1337,7 +1339,7 @@ JA: dict[str, str] = {
     'print_submitted': 'プリンターに送信されたビュー',
     'action_export_chart_png': '画面上のグラフ (PNG)…',
     'action_export_chart_png_tip': '現在のビューポートを含む表示されているグラフを保存します。',
-    'action_export_chart_svg': 'バーまたはサンバースト (SVG)…',
+    'action_export_chart_svg': '棒グラフまたはサンバースト (SVG)…',
     'action_export_chart_svg_tip': '完全に囲まれたバーまたはリングをベクトル図形およびテキストとして保存',
     'png_filter': 'PNG画像(*.png)',
     'svg_filter': 'SVG画像(*.svg)',
@@ -1348,7 +1350,7 @@ JA: dict[str, str] = {
         '変更されてからの経過時間。フォルダーの色には、記録された最新の変更が使用されます。灰色は使用可能な日'
         '付がないことを意味します。グループ化されたタイルは灰色のままです。'
     ),
-    'action_gentle': '穏やかなスキャン',
+    'action_gentle': '低負荷スキャン',
     'action_gentle_tip': '新しいスキャンの CPU と I/O の優先順位が低くなります。もっと時間がかかるかもしれない',
     'scan_priority_warning': 'スキャンの注意事項: {reason}',
     'scan_pause': '一時停止',
@@ -1365,7 +1367,7 @@ JA: dict[str, str] = {
         '論理バイトをボリュームの合計容量で割った値。ハードリンク名は個別にカウントされます。これは割り当てら'
         'れたスペースでも回復可能なスペースでもありません。容量が利用できないか古い場合は不明です。'
     ),
-    'action_recent_actions': '最近の行動…',
+    'action_recent_actions': '最近の操作…',
     'action_recent_actions_tip': '保持されている操作メタデータを検査し、編集された監査レポートをエクスポートします',
     'journal_time': '時間 (UTC)',
     'journal_source': '元のパス',
@@ -1400,9 +1402,9 @@ JA: dict[str, str] = {
         '一致する名前、サイズ、検証済みのハッシュ、および空のフォルダー構造。読み取り専用。クリーンアップの承'
         '認ではありません。'
     ),
-    'duplicates_keep_selected': '選択したコピーを保持する',
-    'duplicates_kept_name': '保持: {name}',
-    'duplicates_kept_path': 'コピーを保持: {path}。',
+    'duplicates_keep_selected': '選択したコピーを残す',
+    'duplicates_kept_name': '残す: {name}',
+    'duplicates_kept_path': '残すコピー: {path}。',
     'duplicates_choose_keeper': 'エクストラを選択する前に、このグループで保持されているコピーを選択してください。',
     'duplicates_group_blocked': 'グループはそのまま残されました。再スキャンが必要です: {reason}',
     'trash_skip_duplicate_choose': '保存されたコピーを選択し、グループを再度確認します',
@@ -1618,13 +1620,13 @@ JA: dict[str, str] = {
         '<h3>FileTree {version}</h3><p>ディスク容量がどこにあるかを確認してください。</p><p>MIT ライセンス · '
         '© 2026 JE-Chen</p>'
     ),
-    'menu_file': '&ファイル',
-    'menu_export': '&エクスポート',
-    'menu_view': '&表示',
-    'menu_unit': 'サイズ&単位',
-    'menu_language': '&言語',
-    'menu_help': '&ヘルプ',
-    'action_open': 'フォルダを選択してください…',
+    'menu_file': 'ファイル(&F)',
+    'menu_export': 'エクスポート(&E)',
+    'menu_view': '表示(&V)',
+    'menu_unit': 'サイズの単位(&U)',
+    'menu_language': '言語(&L)',
+    'menu_help': 'ヘルプ(&H)',
+    'action_open': 'フォルダーを選択…',
     'action_open_tip': 'スキャンするフォルダーまたはドライブを選択します',
     'action_rescan': '再スキャン',
     'action_rescan_tip': '同じフォルダを再度スキャンして変更を取得します',
@@ -1640,7 +1642,7 @@ JA: dict[str, str] = {
     'action_export_json_tip': 'スクリプトやその他のプログラムのフォルダー ツリーを保存します。',
     'action_trash': 'ごみ箱に移動',
     'action_trash_tip': '選択したファイルとフォルダーをごみ箱に移動します (最初に尋ねられます)。',
-    'action_find': '見つけてください…',
+    'action_find': '検索…',
     'action_find_tip': 'スキャン内の任意の場所でファイルとフォルダーを名前で検索します',
     'action_quit': '終了',
     'action_quit_tip': '閉じる FileTree',
@@ -1660,14 +1662,14 @@ JA: dict[str, str] = {
     'exclusions_saved': '{count} 件の除外が保存されました。次のスキャンから適用されます。',
     'tooltip_excluded': '{path}\nスキップ: 表示中です → スキャン中はスキップします',
     'action_hidden_tip': '隠しファイルと隠しフォルダーを数える (次回のスキャンに適用)',
-    'action_help': '使用方法',
+    'action_help': '使い方',
     'action_help_tip': 'FileTree への短いガイド',
     'action_about': 'FileTree について',
     'action_about_tip': 'バージョンとライセンス',
     'app_title_admin': 'FileTree (管理者)',
-    'action_elevate': '管理者として再起動する',
+    'action_elevate': '管理者として再起動',
     'action_elevate_tip': 'すべてのフォルダーを読み取ることができるように、管理者権限で FileTree を再度起動します。',
-    'action_ask_admin': '開始時に管理者権限を要求する',
+    'action_ask_admin': '起動時に管理者権限を要求',
     'action_ask_admin_tip': (
         'Windows は FileTree の起動時に許可を求めるため、保護されたフォルダーも読み取ることができます'
     ),
@@ -1758,19 +1760,19 @@ JA: dict[str, str] = {
     ),
     'tab_search': '検索',
     'tab_changes': '変更点',
-    'action_compare': '保存したスキャンと比較してください…',
+    'action_compare': '保存したスキャンと比較…',
     'action_compare_tip': (
         '[エクスポート] → [フォルダー ツリー (JSON)] で保存したスキャンを開き、その後の成長を確認します。'
     ),
     'compare_title': '保存したスキャンと比較する',
     'compare_failed': 'このファイルは、FileTree:\n{reason} によって保存されたスキャンではありません。',
     'column_before': '以前',
-    'column_now': '今',
-    'column_change': '変更',
+    'column_now': '現在',
+    'column_change': '増減',
     'changes_new': '新しい',
     'changes_gone': '消えた',
     'changes_whole_scan': '(スキャンしたフォルダー)',
-    'changes_stop': '比較するのをやめる',
+    'changes_stop': '比較を終了',
     'changes_running': '比較中…',
     'changes_waiting': 'スキャンが完了すると、比較が行われます。',
     'changes_unknown_time': '未知の時間に',
@@ -1778,11 +1780,11 @@ JA: dict[str, str] = {
         '{path} と比較すると、{when} が保存されました。その後、{before}、現在は {now} ({change})。 {count} フ'
         'ォルダーが変更されました。'
     ),
-    'tab_duplicates': '重複',
+    'tab_duplicates': '重複ファイル',
     'tab_cleanup': 'クリーンアップ',
     'cleanup_suggestions': '提案',
     'cleanup_select_all': 'すべて選択',
-    'cleanup_select_group': 'このグループを選択してください',
+    'cleanup_select_group': 'このグループを選択',
     'cleanup_running': '掃除するものを探しています…',
     'cleanup_hint': '通常、コンテンツが移動できる場所は、スキャン後にここに表示されます。',
     'cleanup_none': 'このスキャンでは何も示唆されません。',
@@ -1818,11 +1820,11 @@ JA: dict[str, str] = {
     ),
     'cleanup_empty_folders': '空のフォルダー',
     'cleanup_empty_folders_tip': '何も入っていないフォルダー、または他の空のフォルダーのみ。',
-    'duplicates_min_size': 'からのファイルを比較',
-    'duplicates_any_size': '任意のサイズ',
-    'duplicates_find': '重複の検索',
+    'duplicates_min_size': '比較する最小サイズ',
+    'duplicates_any_size': 'すべてのサイズ',
+    'duplicates_find': '重複を検索',
     'duplicates_stop': '停止',
-    'duplicates_select_extra': '追加のコピーを選択してください',
+    'duplicates_select_extra': '余分なコピーを選択',
     'duplicates_select_extra_tip': (
         '選択した残すファイルと成功したチェックでグループ内のエキストラを選択します。次に「削除」を押します'
     ),
@@ -1832,11 +1834,11 @@ JA: dict[str, str] = {
     ),
     'duplicates_starting': '同じサイズのファイルを探しています…',
     'duplicates_running': '{total} ファイルの {files} ({bytes} の {read}) を読み取ります…',
-    'duplicates_stopped': '捜索は中止された。',
-    'duplicates_none': '重複したファイルは見つかりませんでした。',
+    'duplicates_stopped': '検索を中止しました。',
+    'duplicates_none': '重複するファイルは見つかりませんでした。',
     'duplicates_summary': '{groups} の重複グループ: 追加コピーの {extra} 論理サイズ。',
     'duplicates_limited': '最も多くの追加スペースを持つ {shown} グループがリストされます。',
-    'duplicates_skipped': '{count} ファイルを読み取れませんでした。',
+    'duplicates_skipped': '{count} 個のファイルを読み取れませんでした。',
     'duplicates_group': '{count} コピー × {size}: {extra} の論理追加コピー サイズ。',
     'search_placeholder': '名前の一部またはパターン:backup、*.mp4、*.iso;*.zip',
     'search_hint': (
@@ -1889,7 +1891,7 @@ JA: dict[str, str] = {
     'search_limited': '最大の {shown} がリストされます。',
     'tab_types': 'ファイルの種類',
     'tab_age': '更新時期',
-    'column_age': '最後に変更されました',
+    'column_age': '最終変更',
     'age_month': '1ヶ月以内',
     'age_half_year': '1～6 か月前',
     'age_year': '6 ～ 12 か月前',
@@ -1899,17 +1901,17 @@ JA: dict[str, str] = {
     'largest_show_all': 'すべて表示',
     'list_files_tip': '行をダブルクリックすると、その最大のファイルが一覧表示されます',
     'tab_problems': '問題点',
-    'tab_problems_count': '問題 ({count})',
+    'tab_problems_count': '問題点 ({count})',
     'column_name': '名前',
     'column_size': 'サイズ',
-    'column_allocated': 'ディスク上',
+    'column_allocated': 'ディスク使用量',
     'column_share': '親の%',
     'column_share_total': '全体の %',
     'column_files': 'ファイル',
     'column_folders': _JA_FOLDER,
-    'column_modified': '修正済み',
+    'column_modified': '更新日時',
     'column_folder': _JA_FOLDER,
-    'column_extension': '延長',
+    'column_extension': '拡張子',
     'column_type': '種類',
     'column_path': 'パス',
     'column_problem': '問題',
@@ -1945,10 +1947,10 @@ JA: dict[str, str] = {
     'status_selected_root': '{name}: {size}',
     'menu_open_item': '開く',
     'menu_reveal': 'ファイルマネージャーで表示',
-    'menu_copy_path': 'パスをコピーする',
+    'menu_copy_path': 'パスをコピー',
     'menu_show_chart': 'チャートで表示',
-    'menu_scan_here': 'このフォルダーをスキャンします',
-    'menu_rescan_here': 'このフォルダーを再スキャンします',
+    'menu_scan_here': 'このフォルダーだけをスキャン',
+    'menu_rescan_here': 'このフォルダーを再スキャン',
     'rescan_done': '再スキャン {name}: {before} → {after}',
     'refresh_notice': 'このスキャンの後、スキャン済みのフォルダー {count} 個の内容が変更されたため、'
                       'そこに表示されているサイズは古い可能性があります。'
@@ -1968,7 +1970,7 @@ JA: dict[str, str] = {
     'trash_confirm': '「{name}」({size}) をごみ箱に移動しますか?\n\nそこから復元できます。',
     'trash_failed': '「{name}」をごみ箱に移動できませんでした。使用中または読み取り専用である可能性があります。',
     'trash_done': '「{name}」をごみ箱に移動しました: {size} は解放されました。',
-    'action_trash_many': '{count} アイテムをごみ箱に移動します',
+    'action_trash_many': '{count} 個の項目をごみ箱に移動',
     'trash_confirm_many': (
         'これらの {count} アイテム (合計 {size}) をごみ箱に移動しますか?\n\n{names}\n\nそこから復元できます。'
     ),
@@ -2047,93 +2049,7 @@ JA: dict[str, str] = {
     'export_done': '{count} 行を {path} に保存しました',
     'export_failed': 'ファイルを保存できませんでした。\n\n理由: {reason}',
     'help_title': 'FileTreeの使用方法',
-    'help_html': (
-        '\n<h2>FileTree 3 つのステップ</h2>\n<ol>\n<li><b>スキャン対象を選択してください。</b> をクリックしま'
-        'す<i> フォルダーを選択してください…</i> またはドライブの 1 つを選択し、フォルダーをドラッグします\n'
-        'ウィンドウにパスを入力するか、上部のボックスにパスを入力して Enter キーを押します。</li>\n<li><b>入'
-        '力を見てください。</b> ツリーがすぐに表示され、最大のフォルダーが一番上に移動します\n一方、FileTree '
-        'はすべてのファイルを合計します。スキャンが終了すると、最大のファイルとファイルの種類が続きます。 \n '
-        'を押してください<i></i> をいつでも停止 (または Esc) できます。これまでに読み取られた内容は画面上に残'
-        'り、不完全としてマークされます。</li>\n<li><b>スペースを占有しているものを見つけます。</b> 最大のフ'
-        'ォルダーがツリーの最上部にあります。矢印をクリック\nフォルダの横にあるをクリックして中を確認します。'
-        '</li>\n</ol>\n<h2>結果の読み取り</h2>\n<ul>\n<li><b>フォルダー ツリー</b> (左): 各フォルダーまたはフ'
-        'ァイルのサイズ、ディスク上の<i></i> (全体\n)クラスターなので、通常はもう少し多くなります。圧縮ファイ'
-        'ルの場合は少なく、オンラインのみに保存されているファイルの場合は何もありません)、a\n親</i> バーの<i>'
-        '% (\n の量)その上のフォルダー (このエントリが必要とする)、保持するファイルとフォルダーの数、その中に'
-        '何かがあるとき\n最後に変更されました。列タイトルをクリックして並べ替えます。</li>\n<li><b>Chart</b>:'
-        ' タブの隅にある同じフォルダーの 4 つのビュー (ツリーマップ\n) を切り替えます。が最初に表示され、File'
-        'Tree は選択したものを記憶します)。 \n<i>Treemap</i> は、すべてのファイルを長方形として描画します。フ'
-        'ァイルが大きくなるほど、長方形も大きくなります。各フォルダー\n名前とサイズが記載されたストリップがあ'
-        'り、フォルダーのファイルが小さすぎて見えない共有 1 つがあり、灰色のハッチングが施されています\nタイ'
-        'ル (<i>12 more</i>): ダブルクリックすると、そのフォルダーが単独で表示されます。 <i>Levels</i> はレベ'
-        'ル数を設定します\n<i>Colors</i> ファイル タイプ (凡例はその下にあります) または最上位フォルダーごと'
-        'に色が描画されます。\n<i>Bars</i> では、フォルダーの各エントリに 1 つのバーが与えられ、最初に最大の'
-        'バーが表示され、そのサイズとシェアが最も簡単です\n正確に読むこと。 <i>Sunburst</i> は、フォルダーを'
-        '中央に配置し、\n の周囲のリングのさらに深いレベルに配置します。それ;中央をクリックすると上に移動しま'
-        'す。 <i>Tree</i> には、展開可能なフォルダー カードが表示されます。 + または「その他のフォルダー」を'
-        'クリックします\nカードをさらに表示するには、方向を選択し、Ctrl+ホイールでズームし、スクロールしてパ'
-        'ンします。クリックして\nのエントリを見つけますフォルダー ツリーで、フォルダーをダブルクリックしてそ'
-        'のフォルダーに移動します。\n<i>Up</i> を押して戻ります。</li>\n<li><b>最大のファイル</b>: スキャン内'
-        'の任意の場所にある最大の 1,000 ファイル。フィルターボックスに「\n」と入力します。リストを絞り込みま'
-        'す。行をダブルクリックしてツリー内でファイルを見つけます。</li>\n<li><b>Search</b> (Ctrl+F): スキャ'
-        'ン内の任意の場所にある、入力した内容が名前に含まれるファイルとフォルダー。\n<code>*.mp4</code> のよ'
-        'うなパターンは、名前全体と一致する必要があります。 <code>;</code>\n で複数を区切ります。(<code>*.iso'
-        ';*.zip</code>)。ボックスの下の条件 (サイズ、最終変更日、ファイルタイプ、ファイルまたは\n)フォルダー)'
-        ' で検索を絞り込むか、独自に検索を作成します。<i>Save...</i> は検索を名前で保持します。 \n最大の一致'
-        'が 1,000 個、すべての数と合計サイズとともにリストされます。</li>\n<li><b>クリーンアップ → 提案</b>: '
-        '各スキャン後、コンテンツが通常移動できる場所、\n ごとに 1 つのグループ種類 (一時ファイル、キャッシュ'
-        '、クラッシュ ダンプ、再ビルド可能なビルド出力、ダウンロード内の古いインストーラー、\n)空のフォルダー'
-        ');グループの上にマウスを移動して、削除の内容を確認してから、<i>このグループを選択</i> または\n<i>す'
-        'べて</i>を選択し、[削除]を押します。</li>\n<li><b>クリーンアップ→重複</b>: <i>重複を検索</i>を押して'
-        '、同じ内容のファイルをグループ化します。 \n のファイルのみ同じサイズが読み取られます。 1 MB 未満のフ'
-        'ァイルは、読み取りに\n かかるため、より小さいサイズを選択しない限り除外されます。時間。各グループは'
-        '、そのコピーを最も古いものから順にリストします。 <i>追加のコピーを選択</i>は最も古いコピーを除くすべ'
-        'てを選択し、\n削除すると、それらはごみ箱に移動します。</li>\n<li><b>ファイル タイプ</b>: 各種類のフ'
-        'ァイルが拡張子ごとに使用するスペース。リストからタイプを選択してください\nテーブルの上にあるとその種'
-        '類だけが表示されます。行をダブルクリックすると、その種類の最大のファイルが一覧表示されます。</li>\n<'
-        'li><b>Age</b>: 1 か月以内、1 ～ 6 か月前などに最後に変更されたスペースの量\n何年も前。多くの場合、古'
-        'いデータはアーカイブまたは削除できるものです。行をダブルクリックすると、最大の\nがリストされます。フ'
-        'ァイル。</li>\n<li><b>問題</b>: フォルダー FileTree は読み取りを許可されませんでした。中に何が入って'
-        'いるかはカウントされません。</li>\n</ul>\n<h2>スペースを解放</h2>\n<p>任意のエントリを右クリックして'
-        '<i>開く</i>、<i>ファイルマネージャーに表示</i>、<i>パスをコピー</i>、\n<i>ツリーマップに表示</i>、<i'
-        '>このフォルダーを再スキャン</i> (FileTree の外側で行われた変更後、残りの部分は\n)結果は残ります)、<i'
-        '>このフォルダーを単独でスキャン</i>、または<i>ごみ箱に移動</i>.\n複数のエントリを一度に移動するには'
-        '、フォルダ ツリー (\n) で Ctrl キーを押しながらクリックするか、Shift キーを押しながらクリックしてエ'
-        'ントリを選択します。<i>最大ファイル</i> リストまたは <i>Search</i> 結果: FileTree は 1 回質問し、合'
-        '計サイズをリストします。\nFileTree は永久に何も削除しません。常に最初に要求し、移動したものはすべて'
-        '復元できます\nごみ箱 (macOS および Linux のゴミ箱) から。番号は再スキャンせずにすぐに更新されます。'
-        '\nシステム フォルダーとプログラム フォルダーについては、理由とともに 2 回ほど尋ねられます。一時フォ'
-        'ルダーとキャッシュは対象外です。</p>\n<h2>成長したものを見る</h2>\n<p><i>ファイル → エクスポート → '
-        'フォルダー ツリー (JSON)</i> を使用してスキャンを保存します。後で新しいスキャンを行った後、\n を選択'
-        'します。<i>ファイル → 保存されたスキャンと比較…</i> し、そのファイルを開きます。 <b>Changes</b> タブ'
-        'には、\n が含まれるすべてのフォルダーがリストされます。当時と現在のサイズを比較すると、最初に最大の'
-        '増加が見られます (<i>new</i> および <i>gone</i> は、\n というフォルダーをマークします)現れたり消えた'
-        'り）。 <i>比較を停止</i>.</p>\nを押すまで、再スキャンのたびに比較が継続されます。<h2>キーボード ショ'
-        'ートカット</h2>\n<table cellpadding="3">\n<tr><td><b>Ctrl+O</b></td><td>フォルダーを選択</td></tr>\n'
-        '<tr><td><b>F5</b></td><td>再スキャン</td></tr>\n<tr><td><b>Esc</b></td><td>スキャンを停止</td></tr>'
-        '\n<tr><td><b>Ctrl+F</b></td><td>名前で検索</td></tr>\n<tr><td><b>削除</b></td><td>選択したエントリを'
-        'ごみ箱に移動</td></tr>\n<tr><td><b>Ctrl++ / Ctrl+−</b></td><td>文字を大きく / 小さく</td></tr>\n'
-        '<tr><td><b>Ctrl+0</b></td><td>文字をシステムのサイズに戻す</td></tr>\n'
-        '<tr><td><b>F1</b></td><td>このガイド</td></tr>\n<tr><td><b>Ctrl+Q</b></td><t'
-        'd>終了</td></tr>\n</table>\n<p>macOS では、Ctrl の代わりに ⌘ を使用します (再スキャンするには ⌘R)。<'
-        '/p>\n<h2>知っておきたい</h2>\n<ul>\n<li>文字が小さすぎる、または大きすぎる場合は、<i>表示 → 文字サイズ</i> '
-        'で FileTree 全体の文字を変更できます。選択は記憶されます。</li>\n'
-        '<li>サイズはバイナリ単位の実際のファイル サイズ (1 KB = 1,024 バ'
-        'イト) であり、Windows Explorer と同じです。\n<i>View → サイズ単位</i>.</li>\n で固定単位を選択します'
-        '。<li>ショートカットとリンク (シンボリック リンク、ジャンクション) はリストされていますが、たどられ'
-        'ることはないため、何もありません\n2 回カウントされました。</li>\n<li>Windows では、FileTree は起動時'
-        'に TreeSize などの管理者権限を要求するため、\n を読み取ることができます。保護されたフォルダーも。 「'
-        'いいえ」と言えば、正常に実行されます。読み取れなかったフォルダーは\n の下にリストされます。<i>問題</'
-        'i>、<i>管理者として再起動</i> ボタン。 \n の下の質問をオフにしてください<i>表示 → 開始時に管理者権限'
-        'を要求</i>.</li>\n<li><i>最大のファイル</i>、<i>ファイル タイプ</i>、<i>Age</i> はスキャン全体をカバ'
-        'ーします。 <i>選択したフォルダーのみ</i>、\nこれらのタブの右上にあるをクリックすると、ツリーで選択し'
-        'たフォルダーをたどります。</li>\n<li>隠しファイルもカウントされます。 <i>View をオフにする → 隠しフ'
-        'ァイル</i> を含めて、\n から除外します。次のスキャン。</li>\n<li>すべてのスキャンからフォルダーを除'
-        '外するには、<i>表示→スキャン中にスキップ</i>:\n などの名前を付けます。<code>node_modules</code> はそ'
-        'の名前のすべてのフォルダーをスキップし、パスは 1 つのフォルダーをスキップします。スキップされたフォ'
-        'ルダーは\nですサイズは 0.</li>\n でグレー表示されます。<li><i>File → Export</i> で結果を保存します。'
-        'CSV は Excel で開き、JSON はスクリプト用です。</li>\n</ul>\n'
-    ),
+    'help_html': HELP,
     "budget_close": "閉じる",
     "action_folder_budgets": "フォルダー容量予算…", "action_folder_budgets_tip": "上限と前回のスキャン使用量を管理",
     "budget_title": "フォルダー容量予算", "budget_name": "名前", "budget_path": "フォルダーのパス",

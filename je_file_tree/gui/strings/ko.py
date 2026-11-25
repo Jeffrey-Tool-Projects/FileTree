@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from je_file_tree.gui.strings.help_ko import HELP
+
 KO: dict[str, str] = {
     "busy_scanning": ("스캔이 진행 중이라 '{action}'을(를) 실행할 수 없습니다. "
         "스캔이 끝날 때까지 기다리거나 먼저 스캔을 중지하세요(Esc)."),
@@ -309,7 +311,7 @@ KO: dict[str, str] = {
         '선택 항목 및 현재 쓰레기통 내용물이 여유 공간이 있는 관찰된 재활용 한도를 초과합니다. 소스가 유지됩'
         '니다.'
     ),
-    'action_check_updates': '매일 업데이트를 확인하세요',
+    'action_check_updates': '매일 업데이트 확인',
     'action_background_monitor': '백그라운드 모니터…',
     'action_background_monitor_tip': '트레이 알림 및 일정에 따른 폴더 기록 검색을 선택하세요.',
     'background_enable': '백그라운드 모니터링 활성화',
@@ -345,7 +347,7 @@ KO: dict[str, str] = {
     'background_canceled': '예약된 검사가 취소되었습니다. 부분 소스 범위가 저장되지 않았습니다: {detail}',
     'background_warning': '{detail}',
     'background_low_space': '{root}의 사용 가능한 공간 부족: {free} ({percent}%)',
-    'action_follow_changes': '변경 사항 따르기',
+    'action_follow_changes': '변경 사항 따라가기',
     'action_follow_changes_tip': (
         '기본적으로 꺼져 있습니다. Windows, Linux, macOS에서 변경된 폴더만 다시 읽고, '
         '변경되지 않은 하위 폴더는 그대로 둡니다.'
@@ -365,7 +367,7 @@ KO: dict[str, str] = {
     'action_check_updates_tip': '최대 하루에 한 번 HTTPS를 통해 PyPI에 문의하세요. 설치 없이 참고만 가능합니다.',
     'update_available': 'FileTree {version} 사용 가능',
     'multi_roots': '여러 뿌리',
-    'action_multi_scan': '여러 폴더를 스캔합니다…',
+    'action_multi_scan': '여러 폴더 스캔…',
     'action_multi_scan_tip': '한 번의 결합 스캔으로 명시적 폴더를 검토합니다.',
     'multi_choose': '여러 폴더 스캔',
     'multi_add': '폴더 추가…',
@@ -601,7 +603,7 @@ KO: dict[str, str] = {
     'archive_stopped': '아카이브 미리보기가 중지되었습니다. 재고가 불완전하다',
     'archive_busy': '두 개의 아카이브 읽기가 이미 실행 중입니다. 다시 스캔하여 다시 시도',
     'archive_stop': '이 아카이브 읽기를 중지하세요',
-    'action_count_hard_links': '관찰된 하드 링크를 한 번 계산합니다.',
+    'action_count_hard_links': '발견된 하드 링크를 한 번만 계산',
     'action_count_hard_links_tip': (
         '기본적으로 꺼져 있습니다. 향후 스캔에서는 이름이 지정된 크기를 유지하고 계산된 총계를 추가합니다. Br'
         'anch/Trash는 전체 루트를 재구축합니다.'
@@ -641,7 +643,7 @@ KO: dict[str, str] = {
     ),
     'compression_canceled': '중지됨; 이전 또는 현재 파일이 변경되었을 수 있습니다. 재검색이 종료되었습니다.',
     'compression_failed': '작업 실패: {reason}. 부분적인 변경이 가능합니다. 재검사에 가깝습니다.',
-    'action_exact_allocation': 'Windows 파일별 할당 측정',
+    'action_exact_allocation': 'Windows 파일별 할당량 측정',
     'action_exact_allocation_tip': (
         '기본적으로 꺼져 있습니다. XPRESS/WOF 파일을 포함하여 향후 스캔을 위한 추가 메타데이터 호출. 활성화하'
         '고 다시 검색합니다. 알려진 클라우드/오프라인 파일은 쿼리되지 않은 상태로 유지됩니다. 실패한 쿼리는 '
@@ -664,13 +666,13 @@ KO: dict[str, str] = {
         '니다. 명명된 할당은 하드 링크에 의해 추정되거나 공유될 수 있으므로 복구 가능한 공간이 보장되지 않습'
         '니다. 페이로드를 읽지 않았습니다. 두 번 클릭하면 녹음된 파일이 선택됩니다. Ctrl+C는 행을 복사합니다.'
     ),
-    'action_capture_owners': 'Windows 파일 소유자 캡처',
+    'action_capture_owners': 'Windows 파일 소유자 기록',
     'action_capture_owners_tip': (
         '기본적으로 꺼져 있습니다. 향후 스캔에 소유자 메타데이터 쿼리를 추가합니다. 활성화 및 다시 검색'
     ),
     'tab_users': '사용자',
     'column_owner': '소유자',
-    'column_owner_id': '소유자 신원',
+    'column_owner_id': '소유자 식별자',
     'owner_unknown': '알 수 없는 소유자',
     'owners_refresh': '기록된 총계 새로 고침',
     'owners_reading': '기록된 소유자 합계 추가 및 계정 이름 확인 중...',
@@ -700,14 +702,14 @@ KO: dict[str, str] = {
     'bin_label_unqueried': '{root} 휴지통: 쿼리되지 않음',
     'bin_label_total': '{root} 휴지통: {size}, {count} 항목',
     'bin_label_partial': '{root} 휴지통: 총 알 수 없음; 알려진 {size}, {count} 항목',
-    'action_file_times': '파일 시간…',
+    'action_file_times': '파일 날짜…',
     'action_file_times_tip': '이 스캔에서 기록된 액세스 및 생성 날짜를 필터링합니다.',
-    'action_capture_file_times': '파일 액세스/생성 시간 캡처',
+    'action_capture_file_times': '파일 액세스/만든 날짜 기록',
     'action_capture_file_times_tip': (
         '기본적으로 꺼져 있습니다. 향후 스캔에 일반 파일당 16바이트를 추가합니다. 활성화 후 다시 검색'
     ),
-    'column_accessed': '기록된 접근',
-    'column_created': '생성됨',
+    'column_accessed': '기록된 액세스',
+    'column_created': '만든 날짜',
     'file_times_hint': (
         '옵션 활성화 → 파일 액세스/생성 시간을 캡처한 다음 다시 검색합니다. 일반 파일만 해당; 디렉토리/링크 '
         '및 사용할 수 없는 생성 날짜는 아직 알 수 없습니다. 액세스 날짜는 백그라운드 도구를 통해 비활성화, 지'
@@ -831,7 +833,7 @@ KO: dict[str, str] = {
     'history_summary': '{count} 스캔 중 {shown} 표시 중; {invalid} 유효하지 않거나 사용할 수 없는 메타데이터 파일',
     'history_failed': '기록을 읽을 수 없습니다: {reason}',
     'history_save_failed': '스캔이 완료되었지만 기록을 저장할 수 없습니다: {reason}',
-    'action_scan_workers': '작업자 스캔…',
+    'action_scan_workers': '스캔 스레드 수…',
     'action_scan_workers_tip': '새로운 스캔에 대한 동시성을 선택하십시오. 높을수록 항상 빠른 것은 아닙니다',
     'workers_prompt': (
         '새 스캔을 위한 작업자(1–32). 기본값은 {default}입니다. 느린 네트워크 공유는 더 많은 작업자로부터 이'
@@ -848,7 +850,7 @@ KO: dict[str, str] = {
         '관리자 권한으로 실행하여 NTFS 드라이브의 폴더를 스캔할 때 폴더를 하나씩 나열하는 대신 '
         '드라이브의 마스터 파일 테이블을 직접 읽습니다. 다른 스캔은 이전과 같습니다'
     ),
-    'action_bins': '재활용 쓰레기통…',
+    'action_bins': '휴지통…',
     'action_bins_tip': '빈 합계 및 명시적인 범위 OS 비우기 검토',
     'bin_finder_empty': '마운트된 모든 볼륨의 Finder 휴지통을 비우세요…',
     'bin_finder_all': '마운트된 모든 볼륨(Finder 전체 휴지통)',
@@ -1002,7 +1004,7 @@ KO: dict[str, str] = {
     'disks_tool_storage': '저장소 설정…',
     'action_export_report_html': '스캔 보고서(HTML)…',
     'action_export_report_html_tip': '3개의 차트 이미지가 포함된 독립형 보고서 저장',
-    'action_export_report_xlsx': '보고서 스캔(Excel)…',
+    'action_export_report_xlsx': '스캔 보고서(Excel)…',
     'action_export_report_xlsx_tip': '보고서 목록을 별도의 Excel 워크시트에 저장',
     'html_filter': 'HTML 보고서(*.html)',
     'xlsx_filter': 'Excel 통합 문서(*.xlsx)',
@@ -1061,7 +1063,7 @@ KO: dict[str, str] = {
     'project_maven_store': '메이븐 스토어',
     'project_gradle_store': '글로벌 Gradle 스토어',
     'project_docker_store': '도커 데이터',
-    'action_git_history': '힘내 역사…',
+    'action_git_history': 'Git 기록…',
     'action_git_history_tip': '모든 Git 참조에서 연결할 수 있는 가장 큰 개체를 검사합니다.',
     'git_oid': '개체 ID',
     'git_kind': '객체 유형',
@@ -1094,7 +1096,7 @@ KO: dict[str, str] = {
         '은 검색되지 않습니다. 트리를 복원하려면 필터를 지우세요. 차트/목록에서 숨겨진 항목을 선택하면 필터가'
         ' 지워집니다. 스캔 합계 및 내보내기는 변경되지 않습니다.'
     ),
-    'action_live_compare': '두 폴더를 비교합니다…',
+    'action_live_compare': '두 폴더 비교…',
     'action_live_compare_tip': '새로운 상대 경로를 비교하고 요청된 파일 쌍만 확인합니다.',
     'compare_choose_left': '왼쪽 폴더를 선택하세요',
     'compare_choose_right': '올바른 폴더를 선택하세요',
@@ -1167,8 +1169,8 @@ KO: dict[str, str] = {
     'properties_failed': 'Windows은(는) 다음에 대한 속성을 열 수 없습니다:\n{path}',
     'menu_theme': '테마',
     'theme_system': '시스템',
-    'theme_light': '빛',
-    'theme_dark': '어둠',
+    'theme_light': '밝게',
+    'theme_dark': '어둡게',
     'menu_text_size': '글자 크기',
     'text_size_larger': '크게',
     'text_size_smaller': '작게',
@@ -1262,7 +1264,7 @@ KO: dict[str, str] = {
     'print_submitted': '프린터에 제출된 보기',
     'action_export_chart_png': '화면 위의 차트(PNG)…',
     'action_export_chart_png_tip': '현재 뷰포트를 포함하여 보이는 차트를 저장합니다.',
-    'action_export_chart_svg': '막대 또는 햇살(SVG)…',
+    'action_export_chart_svg': '막대 또는 선버스트(SVG)…',
     'action_export_chart_svg_tip': '전체 경계 막대 또는 링을 벡터 모양 및 텍스트로 저장',
     'png_filter': 'PNG 이미지(*.png)',
     'svg_filter': 'SVG 이미지(*.svg)',
@@ -1273,7 +1275,7 @@ KO: dict[str, str] = {
         '수정 이후 시간입니다. 폴더 색상은 가장 최근에 기록된 수정 사항을 사용합니다. 회색은 사용 가능한 날짜'
         '가 없음을 의미합니다. 그룹화된 타일은 회색으로 유지됩니다.'
     ),
-    'action_gentle': '부드러운 스캐닝',
+    'action_gentle': '부하가 적은 스캔',
     'action_gentle_tip': '새로운 스캔에 대해서는 CPU 및 I/O 우선순위를 낮춥니다. 더 오래 걸릴 수 있습니다',
     'scan_priority_warning': '스캔 참고 사항: {reason}',
     'scan_pause': '일시중지',
@@ -1289,7 +1291,7 @@ KO: dict[str, str] = {
         '논리 바이트를 총 볼륨 용량으로 나눈 값입니다. 하드 링크 이름은 별도로 계산됩니다. 이는 할당되거나 복'
         '구 가능한 공간이 아닙니다. 용량을 사용할 수 없거나 오래된 동안에는 알 수 없습니다.'
     ),
-    'action_recent_actions': '최근 활동…',
+    'action_recent_actions': '최근 작업…',
     'action_recent_actions_tip': '보관된 작업 메타데이터를 검사하고 수정된 감사 보고서를 내보냅니다.',
     'journal_time': '시간(UTC)',
     'journal_source': '원래 경로',
@@ -1319,8 +1321,8 @@ KO: dict[str, str] = {
     'duplicate_folder_match': '{copy} = {original} ({size}, {files} 파일; 일치하는 검색 스냅샷)',
     'duplicate_folder_tip': '이름, 크기, 검증된 해시 및 빈 폴더 구조가 일치합니다. 읽기 전용; 청소 승인이 아닙니다.',
     'duplicates_keep_selected': '선택한 사본 유지',
-    'duplicates_kept_name': '보관됨: {name}',
-    'duplicates_kept_path': '보관된 사본: {path}.',
+    'duplicates_kept_name': '유지: {name}',
+    'duplicates_kept_path': '유지한 사본: {path}.',
     'duplicates_choose_keeper': '추가 항목을 선택하기 전에 이 그룹에 보관된 사본을 선택하세요.',
     'duplicates_group_blocked': '그룹은 그대로 유지됩니다. 재검색 필요: {reason}',
     'trash_skip_duplicate_choose': '보관된 사본을 선택한 다음 그룹을 다시 검토하세요.',
@@ -1331,7 +1333,7 @@ KO: dict[str, str] = {
         '그룹 콘텐츠가 변경되었거나 다시 해시될 수 없습니다. 다시 스캔하고 다시 검색해 보세요.'
     ),
     'menu_options': '옵션',
-    'action_cleanup_policy': '청소정책…',
+    'action_cleanup_policy': '정리 정책…',
     'action_cleanup_policy_tip': '규칙을 활성화하고, 최소 기간을 변경하고, 정리 제안에서 경로를 제외하세요.',
     'policy_enabled': '활성화됨',
     'policy_age': '최소 연령(일)',
@@ -1512,12 +1514,12 @@ KO: dict[str, str] = {
         '<h3>FileTree {version}</h3><p>디스크 공간이 어디로 가는지 확인하세요.</p><p>MIT 라이센스 · © 2026 JE'
         '-Chen</p>'
     ),
-    'menu_file': '&파일',
-    'menu_export': '&내보내기',
-    'menu_view': '&보기',
-    'menu_unit': '크기 &단위',
-    'menu_language': '&언어',
-    'menu_help': '&도움말',
+    'menu_file': '파일(&F)',
+    'menu_export': '내보내기(&E)',
+    'menu_view': '보기(&V)',
+    'menu_unit': '크기 단위(&U)',
+    'menu_language': '언어(&L)',
+    'menu_help': '도움말(&H)',
     'action_open': '폴더 선택…',
     'action_open_tip': '스캔할 폴더나 드라이브를 선택하세요.',
     'action_rescan': '다시 스캔',
@@ -1537,7 +1539,7 @@ KO: dict[str, str] = {
     'action_quit': '종료',
     'action_quit_tip': 'FileTree 닫기',
     'action_hidden': '숨겨진 파일 포함',
-    'action_exclusions': '스캔하는 동안 건너뛰기…',
+    'action_exclusions': '스캔할 때 건너뛰기…',
     'action_exclusions_tip': 'node_modules와 같이 검사하는 폴더 및 폴더 이름은 생략합니다.',
     'exclusions_title': '스캔하는 동안 건너뛰기',
     'exclusions_hint': (
@@ -1552,7 +1554,7 @@ KO: dict[str, str] = {
     'exclusions_saved': '{count} 제외 항목이 저장되었습니다. 다음 스캔부터 적용됩니다.',
     'tooltip_excluded': '{path}\n건너뛰기: 보기 → 스캔 중 건너뛰기 상태입니다.',
     'action_hidden_tip': '숨겨진 파일 및 폴더 수 계산(다음 검사에 적용)',
-    'action_help': '사용방법',
+    'action_help': '사용 방법',
     'action_help_tip': 'FileTree에 대한 간략한 가이드',
     'action_about': 'FileTree 정보',
     'action_about_tip': '버전 및 라이센스',
@@ -1644,7 +1646,7 @@ KO: dict[str, str] = {
     'changes_new': '새로운',
     'changes_gone': '사라졌다',
     'changes_whole_scan': '(스캔한 폴더)',
-    'changes_stop': '비교를 중지하세요',
+    'changes_stop': '비교 끝내기',
     'changes_running': '비교 중…',
     'changes_waiting': '스캔이 완료되면 비교가 이루어집니다.',
     'changes_unknown_time': '알 수 없는 시간에',
@@ -1652,11 +1654,11 @@ KO: dict[str, str] = {
         '{path}과 비교하여 {when}을 저장했습니다: {before}, 현재 {now}({change}); {count} 폴더가 변경되었습니'
         '다.'
     ),
-    'tab_duplicates': '중복',
+    'tab_duplicates': '중복 파일',
     'tab_cleanup': '정리',
     'cleanup_suggestions': '제안',
     'cleanup_select_all': '모두 선택',
-    'cleanup_select_group': '이 그룹을 선택하세요',
+    'cleanup_select_group': '이 그룹 선택',
     'cleanup_running': '청소할 물건을 찾고 있습니다…',
     'cleanup_hint': '스캔 후 콘텐츠가 일반적으로 갈 수 있는 장소가 여기에 나타납니다.',
     'cleanup_none': '이 스캔에는 제안할 내용이 없습니다.',
@@ -1681,11 +1683,11 @@ KO: dict[str, str] = {
     'cleanup_old_installers_tip': '오래 전에 실행되었을 가능성이 가장 높은 설정 파일. 다시 설치한 것을 유지하세요.',
     'cleanup_empty_folders': '빈 폴더',
     'cleanup_empty_folders_tip': '아무것도 없는 폴더 또는 다른 빈 폴더만 있습니다.',
-    'duplicates_min_size': '다음의 파일 비교',
-    'duplicates_any_size': '어떤 크기',
-    'duplicates_find': '중복 찾기',
+    'duplicates_min_size': '비교할 최소 크기',
+    'duplicates_any_size': '모든 크기',
+    'duplicates_find': '중복 파일 찾기',
     'duplicates_stop': '중지',
-    'duplicates_select_extra': '추가 사본 선택',
+    'duplicates_select_extra': '여분의 사본 선택',
     'duplicates_select_extra_tip': (
         '선택한 유지할 파일와 성공적인 확인을 통해 그룹에서 추가 항목을 선택합니다. 그런 다음 삭제를 누르세요'
     ),
@@ -1696,10 +1698,10 @@ KO: dict[str, str] = {
     'duplicates_starting': '같은 크기의 파일을 찾는 중…',
     'duplicates_running': '{total} 파일 중 {files}({bytes} 중 {read}) 읽기…',
     'duplicates_stopped': '검색이 중지되었습니다.',
-    'duplicates_none': '중복된 파일이 없습니다.',
+    'duplicates_none': '중복 파일을 찾지 못했습니다.',
     'duplicates_summary': '{groups} 중복 그룹: {extra} 추가 복사본의 논리적 크기.',
     'duplicates_limited': '추가 공간이 가장 많은 {shown} 그룹이 나열됩니다.',
-    'duplicates_skipped': '{count} 파일을 읽을 수 없습니다.',
+    'duplicates_skipped': '파일 {count}개를 읽을 수 없습니다.',
     'duplicates_group': '{count} 복사본 × {size}: {extra} 논리적 추가 복사본 크기.',
     'search_placeholder': '이름 또는 패턴의 일부: 백업, *.mp4, *.iso;*.zip',
     'search_hint': (
@@ -1752,7 +1754,7 @@ KO: dict[str, str] = {
     'search_limited': '가장 큰 {shown}이 나열됩니다.',
     'tab_types': '파일 형식',
     'tab_age': '경과 기간',
-    'column_age': '마지막으로 변경됨',
+    'column_age': '마지막 변경',
     'age_month': '한 달 이내',
     'age_half_year': '1~6개월 전',
     'age_year': '6~12개월 전',
@@ -1765,14 +1767,14 @@ KO: dict[str, str] = {
     'tab_problems_count': '문제({count})',
     'column_name': '이름',
     'column_size': '크기',
-    'column_allocated': '디스크에',
+    'column_allocated': '디스크 사용량',
     'column_share': '상위 %',
     'column_share_total': '전체의 %',
     'column_files': '파일',
     'column_folders': '폴더',
-    'column_modified': '수정됨',
+    'column_modified': '수정한 날짜',
     'column_folder': '폴더',
-    'column_extension': '확장',
+    'column_extension': '확장자',
     'column_type': '유형',
     'column_path': '경로',
     'column_problem': '문제',
@@ -1796,7 +1798,7 @@ KO: dict[str, str] = {
     'largest_filter': '이름이나 폴더로 필터링…',
     'types_all': '모든 유형',
     'category_images': '사진',
-    'category_video': '비디오',
+    'category_video': '동영상',
     'category_audio': '음악 및 오디오',
     'category_documents': '문서',
     'category_archives': '아카이브 및 디스크 이미지',
@@ -1806,11 +1808,11 @@ KO: dict[str, str] = {
     'status_selected': '{name}: {size}(해당 폴더의 {share})',
     'status_selected_root': '{name}: {size}',
     'menu_open_item': '열기',
-    'menu_reveal': '파일 관리자에 표시',
+    'menu_reveal': '파일 관리자에서 보기',
     'menu_copy_path': '경로 복사',
-    'menu_show_chart': '차트에 표시',
-    'menu_scan_here': '이 폴더를 스캔하세요',
-    'menu_rescan_here': '이 폴더를 다시 검사하세요.',
+    'menu_show_chart': '차트에서 보기',
+    'menu_scan_here': '이 폴더만 스캔',
+    'menu_rescan_here': '이 폴더 다시 스캔',
     'rescan_done': '다시 스캔됨 {name}: {before} → {after}',
     'refresh_notice': '이 스캔 이후 스캔한 폴더 {count}개의 내용이 변경되어 그곳에 표시된 크기가 '
                       '최신이 아닐 수 있습니다. FileTree는 요청하지 않는 한 다시 스캔하지 않습니다.',
@@ -1829,7 +1831,7 @@ KO: dict[str, str] = {
     'trash_confirm': '“{name}”({size})을 휴지통으로 이동하시겠습니까?\n\n휴지통에서 복원할 수 있습니다.',
     'trash_failed': '"{name}"을(를) 휴지통으로 이동할 수 없습니다. 사용 중이거나 읽기 전용일 수 있습니다.',
     'trash_done': '“{name}”을 휴지통으로 이동했습니다: {size}이 해제되었습니다.',
-    'action_trash_many': '{count} 항목을 휴지통으로 이동',
+    'action_trash_many': '항목 {count}개를 휴지통으로 이동',
     'trash_confirm_many': (
         '이 {count} 항목(총 {size})을 휴지통으로 이동하시겠습니까?\n\n{names}\n\n여기에서 복원할 수 있습니다.'
     ),
@@ -1907,83 +1909,7 @@ KO: dict[str, str] = {
     'export_done': '{count} 행을 {path}에 저장했습니다.',
     'export_failed': '파일을 저장할 수 없습니다.\n\n이유: {reason}',
     'help_title': 'FileTree 사용 방법',
-    'help_html': (
-        '\n<h2>FileTree 세 단계로</h2>\n<ol>\n<li><b>검사 대상을 선택하세요.</b> <i>폴더를 선택하세요…</i> 또'
-        '는 드라이브 중 하나를 선택하고 폴더를 드래그하세요\n창으로 이동하거나 상단 상자에 경로를 입력하고 En'
-        'ter 키를 누릅니다.</li>\n<li><b>채워지는 모습을 지켜보세요.</b> 트리가 바로 나타나고 가장 큰 폴더가 '
-        '맨 위로 이동합니다\nFileTree은 모든 파일을 추가합니다. 스캔이 끝나면 가장 큰 파일과 파일 형식이 따릅'
-        '니다.  누르기\n언제든지 <i>Stop</i>(또는 Esc): 지금까지 읽은 내용이 화면에 유지되고 불완전한 것으로 '
-        '표시됩니다.</li>\n<li><b>공간을 차지하는 것이 무엇인지 찾아보세요.</b> 가장 큰 폴더는 트리 상단에 있'
-        '습니다. 화살표를 클릭하세요.\n폴더 옆에 있는 내부를 살펴보세요.</li>\n</ol>\n<h2>결과 읽기</h2>\n<ul'
-        '>\n<li><b>폴더 트리</b>(왼쪽): 각 폴더 또는 파일의 크기, 디스크에서 차지하는 공간<i></i>(전체\n클러'
-        '스터이므로 일반적으로 조금 더 많습니다. 압축 파일의 경우 더 적고 온라인에만 보관된 파일의 경우 아무'
-        '것도 없음), a\n상위 </i> 막대의 <i>%(의 양\n이 항목이 차지하는 위의 폴더), 얼마나 많은 파일과 폴더가'
-        ' 있는지, 그 안에 무엇인가가 있는 경우\n마지막으로 변경되었습니다. 항목별로 정렬하려면 열 제목을 클릭'
-        '하세요.</li>\n<li><b>Chart</b>: 탭 모서리에 있는 동일한 폴더의 4개 보기 간에 전환합니다(트리맵\n먼저'
-        ' 오고 FileTree는 선택한 것을 기억합니다. \n<i>Treemap</i>은 모든 파일을 직사각형으로 그립니다. 파일'
-        '이 클수록 직사각형도 커집니다. 각 폴더\n이름과 크기가 있는 스트립이 있고 폴더의 파일이 너무 작아서 '
-        '볼 수 없는 회색으로 표시된 을 공유합니다.\n타일(<i>12 more</i>): 해당 폴더를 자체적으로 표시하려면 '
-        '타일을 두 번 클릭하세요. <i>레벨</i>은 레벨 수를 설정합니다\n파일 형식(범례는 그 아래에 있음) 또는 '
-        '최상위 폴더별로 <i>Colours</i> 색상으로 그려집니다.\n<i>Bars</i>은 폴더의 각 항목에 하나의 막대를 가'
-        '장 큰 것부터 제공하고 크기와 공유는 가장 쉬운 입니다.\n정확하게 읽으려면. <i>Sunburst</i>은 폴더를 '
-        '중앙에 배치하고 각 더 깊은 수준은  주위의 링에 배치합니다.\n그것; 중앙을 클릭하면 위로 올라갑니다. <'
-        'i>Tree</i>은 확장 가능한 폴더 카드를 표시합니다. + 또는 "다른 폴더"를 클릭하세요.\n카드를 더 많이 보'
-        '려면 방향을 선택하고, Ctrl+휠을 누르면 확대/축소하고 스크롤하여 이동할 수 있습니다. 에서 항목을 찾으'
-        '려면 클릭하세요.\n폴더 트리에서 폴더를 두 번 클릭하여 해당 폴더로 이동하세요.\n돌아가려면 <i>Up</i>'
-        '을 누르세요.</li>\n<li><b>가장 큰 파일</b>: 스캔 위치에 관계없이 가장 큰 1,000개의 파일입니다. 필터 '
-        '상자에 을 입력하세요.\n목록을 좁히십시오. 트리에서 파일을 찾으려면 행을 두 번 클릭하세요.</li>\n<li>'
-        '<b>검색</b>(Ctrl+F): 스캔의 모든 위치에서 입력한 내용이 이름에 포함된 파일 및 폴더.\n<code>*.mp4</co'
-        'de>과 같은 패턴은 전체 이름과 일치해야 합니다. <code>;</code>로 여러 개를 분리하세요.\n(<code>*.iso;'
-        '*.zip</code>). 상자 아래의 조건(크기, 마지막 변경 시기, 파일 형식, 파일 또는)\n폴더) 검색 범위를 좁'
-        '히거나 자체적으로 검색을 만들고 <i>Save…</i>은 이름으로 검색을 유지합니다. \n1,000개의 가장 큰 일치 '
-        '항목이 모두 개수 및 총 크기와 함께 나열됩니다.</li>\n<li><b>정리 → 제안</b>: 스캔할 때마다 콘텐츠가 '
-        '일반적으로 이동할 수 있는 장소,당 한 그룹씩\n종류(임시 파일, 캐시, 크래시 덤프, 다시 빌드할 수 있는 '
-        '빌드 출력, 다운로드의 이전 설치 프로그램,\n빈 폴더); 그룹 위로 마우스를 가져가 삭제 작업을 확인한 다'
-        '음 <i>이 그룹을 선택</i> 또는\n<i>모두 선택</i>하고 삭제를 누르세요.</li>\n<li><b>정리 → 중복</b>: <'
-        'i>중복 항목 찾기</i>을 눌러 동일한 콘텐츠가 포함된 파일을 그룹화합니다. 의 파일만\n동일한 크기를 읽'
-        '습니다. 1MB 미만의 파일은 읽는 데 이 걸리므로 더 작은 크기를 선택하지 않는 한 제외됩니다.\n시간. 각 '
-        '그룹은 가장 오래된 사본부터 나열합니다. <i>추가 복사본 선택</i>은 가장 오래된 복사본을 제외한 모든 '
-        '복사본을 선택하고 \n삭제하면 휴지통으로 이동됩니다.</li>\n<li><b>파일 유형</b>: 확장자당 각 종류의 '
-        '파일이 차지하는 공간입니다. 목록에서 유형을 선택하세요\n테이블 위에는 그 종류만 볼 수 있습니다. 해당'
-        ' 유형의 가장 큰 파일을 나열하려면 행을 두 번 클릭하십시오.</li>\n<li><b>Age</b>: 한 달 동안, 1~6개월'
-        ' 전에 마지막으로 변경된 공간의 양 등 최대 2개까지\n몇 년 전. 오래된 데이터는 보관되거나 삭제될 수 있'
-        '는 경우가 많습니다. 가장 큰 행을 나열하려면 행을 두 번 클릭하세요.\n파일.</li>\n<li><b>문제</b>: Fil'
-        'eTree 폴더를 읽을 수 없습니다. 그 안에 무엇이 들어 있는지는 계산되지 않습니다.</li>\n</ul>\n<h2>여유'
-        ' 공간</h2>\n<p>항목을 마우스 오른쪽 버튼으로 클릭하여 <i>열기</i>, <i>파일 관리자에 표시</i>, <i>경'
-        '로 복사</i>,\n<i>트리맵에 표시</i>, <i>이 폴더를 다시 검색</i>(FileTree 외부에서 변경한 후, 나머지\n'
-        '결과 유지), <i>이 폴더</i>를 자체적으로 검사하거나 <i>휴지통으로 이동</i>.\n한 번에 여러 항목을 이동'
-        '하려면 폴더 트리에서 Ctrl+클릭 또는 Shift+클릭으로 항목을 선택합니다.\n<i>가장 큰 파일</i> 목록 또는'
-        ' <i>검색</i> 결과: FileTree이 한 번 묻고 전체 크기와 함께 나열됩니다.\nFileTree은 어떤 것도 영원히 '
-        '삭제하지 않습니다. 항상 먼저 묻고 이동한 모든 내용을 복원할 수 있습니다.\n휴지통(macOS 및 Linux의 휴'
-        '지통)에서. 다시 스캔하지 않고도 숫자가 즉시 업데이트됩니다.\n시스템 및 프로그램 폴더는 두 번 정도 묻'
-        '는 이유가 있습니다. 임시 폴더와 캐시는 그렇지 않습니다.</p>\n<h2>무엇이 성장했는지 살펴보기</h2>\n<p'
-        '><i>파일 → 내보내기 → 폴더 트리(JSON)</i>을 사용하여 스캔을 저장합니다. 나중에 새로 스캔한 후 다음을'
-        ' 선택하세요.\n<i>파일 → 저장된 스캔과 비교…</i>하고 해당 파일을 엽니다. <b>Changes</b> 탭에는 스캔된'
-        ' 모든 폴더가 나열됩니다.\n그 당시와 지금은 크기가 가장 크게 증가했습니다(<i>new</i> 및 <i>gone</i>은'
-        ' 폴더를 표시함).\n나타나거나 사라졌습니다). <i>비교 중지</i>.</p>을 누를 때까지 각 재검색 후에 계속 '
-        '비교합니다.\n<h2>키보드 단축키</h2>\n<table cellpadding="3">\n<tr><td><b>Ctrl+O</b></td><td>폴더 선'
-        '택</td></tr>\n<tr><td><b>F5</b></td><td>재검색</td></tr>\n<tr><td><b>Esc</b></td><td>스캔 중지</td><'
-        '/tr>\n<tr><td><b>Ctrl+F</b></td><td>이름으로 검색</td></tr>\n<tr><td><b>삭제</b></td><td>선택한 항목'
-        '을 휴지통으로 이동</td></tr>\n<tr><td><b>Ctrl++ / Ctrl+−</b></td><td>글자 크게 / 작게</td></tr>\n'
-        '<tr><td><b>Ctrl+0</b></td><td>글자를 시스템 크기로 되돌리기</td></tr>\n'
-        '<tr><td><b>F1</b></td><td>이 가이드</td></tr>\n<tr><td><b>Ctrl+Q</b></'
-        'td><td>종료</td></tr>\n</table>\n<p>On macOS에서는 Ctrl 대신 ⌘를 사용합니다(다시 스캔하려면 ⌘R).</p>'
-        '\n<h2>알아두면 좋은 정보</h2>\n<ul>\n<li>글자가 너무 작거나 크면 <i>보기 → 글자 크기</i>에서 '
-        'FileTree 전체의 글자를 바꿀 수 있으며 선택은 기억됩니다.</li>\n'
-        '<li>Sizes는 Windows Explorer와 동일하게 바이너리 단위(1KB = 1,0'
-        '24바이트)의 실제 파일 크기입니다.\n<i>보기 → 크기 단위</i>.</li>에서 고정 단위를 선택합니다.\n<li>바'
-        '로가기 및 링크(기호 링크, 교차점)가 나열되지만 따라갈 수 없으므로 아무것도 없습니다.\n두 번 계산되었'
-        '습니다.</li>\n<li>On Windows, FileTree는 시작할 때 TreeSize와 같이 읽을 수 있도록 관리자 권한을 요청'
-        '합니다.\n보호된 폴더도 마찬가지입니다. 아니오라고 말하면 정상적으로 실행됩니다. 읽을 수 없는 폴더는 '
-        '아래에 나열됩니다.\n<i>문제</i>, <i>관리자로 다시 시작</i> 버튼이 있습니다. 아래의 질문을 끄세요.\n<'
-        'i>보기 → 시작 시 관리자 권한 요청</i>.</li>\n<li><i>가장 큰 파일</i>, <i>파일 유형</i> 및 <i>Age</i>'
-        '은 전체 스캔을 포괄합니다. <i>선택한 폴더만</i>,\n해당 탭의 오른쪽 상단에 있는 트리에서 선택한 폴더'
-        '를 따르도록 합니다.</li>\n<li>숨겨진 파일도 계산됩니다. <i>보기를 끄고 → 숨김 파일 포함</i>을(를) 제'
-        '외하세요.\n다음 스캔.</li>\n<li>모든 스캔에서 폴더를 제외하려면 <i>보기 → 스캔 중 건너뛰기</i>에 나'
-        '열하십시오.\n<code>node_modules</code>은 해당 이름의 모든 폴더를 건너뛰고 경로는 하나의 폴더를 건너'
-        '뜁니다. 건너뛴 폴더는\n회색으로 표시되고 크기는 0.</li>입니다.\n<li>결과를 <i>파일 → 내보내기로 저장'
-        '합니다</i>: CSV은 Excel에서 열리고 JSON은 스크립트용입니다.</li>\n</ul>\n'
-    ),
+    'help_html': HELP,
     "budget_close": "닫기",
     "action_folder_budgets": "폴더 용량 예산…", "action_folder_budgets_tip": "폴더 한도와 마지막 스캔 사용량 관리",
     "budget_title": "폴더 용량 예산", "budget_name": "이름", "budget_path": "폴더 경로",

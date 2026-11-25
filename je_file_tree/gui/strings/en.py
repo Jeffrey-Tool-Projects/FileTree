@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from je_file_tree.gui.strings.help_en import HELP
+
 EN: dict[str, str] = {
     "busy_scanning": ("“{action}” has to wait for the scan that is running. "
         "Let it finish, or stop it first (Esc)."),
@@ -1822,106 +1824,7 @@ EN: dict[str, str] = {
     "export_failed": "The file could not be saved.\n\nReason: {reason}",
     # help
     "help_title": "How to use FileTree",
-    "help_html": """
-<h2>FileTree in three steps</h2>
-<ol>
-<li><b>Choose what to scan.</b> Click <i>Choose a folder…</i> or one of the drives, drag a folder
-onto the window, or type a path in the box at the top and press Enter.</li>
-<li><b>Watch it fill in.</b> The tree appears right away and the biggest folders move to the top
-while FileTree adds up every file; the largest files and file types follow when the scan ends. Press
-<i>Stop</i> (or Esc) at any time: what was read so far stays on screen, marked as incomplete.</li>
-<li><b>Find what takes the space.</b> The biggest folders are at the top of the tree. Click the arrow
-next to a folder to look inside.</li>
-</ol>
-<h2>Reading the results</h2>
-<ul>
-<li><b>Folder tree</b> (left): the size of each folder or file, the space it takes <i>on disk</i> (whole
-clusters, so usually a little more; less for compressed files, nothing for files kept only online), a
-<i>% of parent</i> bar (how much of
-the folder above it this entry takes), how many files and folders it holds, and when something in it
-last changed. Click a column title to sort by it.</li>
-<li><b>Chart</b>: switch between four views of the same folder in the corner of the tab (the treemap
-comes first, and FileTree remembers the one you chose). The
-<i>Treemap</i> draws every file as a rectangle, the bigger the file the bigger the rectangle; each folder
-has a strip with its name and size, and the files of a folder too small to see share one grey, hatched
-tile (<i>12 more</i>): double-click it to show that folder on its own. <i>Levels</i> sets how many levels
-are drawn, <i>Colours</i> colours by file type (the legend is under it) or by top-level folder.
-<i>Bars</i> gives each entry of the folder one bar, largest first, with its size and share, the easiest
-to read exactly. The <i>Sunburst</i> puts the folder in the centre and each deeper level in a ring around
-it; click the centre to go up. The <i>Tree</i> shows expandable folder cards; click + or an “other folders”
-card to reveal more, choose the direction, Ctrl+wheel to zoom and scroll to pan. Click to find an entry in
-the folder tree, double-click a folder to go into it,
-and press <i>Up</i> to go back.</li>
-<li><b>Largest files</b>: the 1,000 biggest files anywhere in the scan. Type in the filter box to
-narrow the list; double-click a row to find the file in the tree.</li>
-<li><b>Search</b> (Ctrl+F): files and folders whose name contains what you type, anywhere in the scan.
-A pattern such as <code>*.mp4</code> must match the whole name; separate several with <code>;</code>
-(<code>*.iso;*.zip</code>). The conditions under the box (size, when last changed, file type, files or
-folders) narrow the search or make one on their own, and <i>Save…</i> keeps a search under a name. The
-1,000 largest matches are listed, with the count and total size of all.</li>
-<li><b>Clean up → Suggestions</b>: after every scan, the places whose contents can usually go, one group per
-kind (temporary files, caches, crash dumps, build output that can be rebuilt, old installers in Downloads,
-empty folders); hover over a group to see what deleting it does, then <i>Select this group</i> or
-<i>Select all</i> and press Delete.</li>
-<li><b>Clean up → Duplicates</b>: press <i>Find duplicates</i> to group files with the same content. Only files of the
-same size are read; files under 1 MB are left out unless you choose a smaller size, because reading takes
-time. Each group lists its copies oldest first; <i>Select extra copies</i> selects all but the oldest, and
-Delete moves them to the Recycle Bin.</li>
-<li><b>File types</b>: how much space each kind of file takes, per extension. Pick a type in the list
-above the table to see only that kind; double-click a row to list the largest files of that type.</li>
-<li><b>Age</b>: how much space was last changed within a month, 1–6 months ago, and so on up to over two
-years ago. Old data is often what can be archived or deleted; double-click a row to list its largest
-files.</li>
-<li><b>Problems</b>: folders FileTree was not allowed to read. What is inside them is not counted.</li>
-</ul>
-<h2>Freeing space</h2>
-<p>Right-click any entry to <i>Open</i> it, <i>Show in file manager</i>, <i>Copy path</i>,
-<i>Show in treemap</i>, <i>Rescan this folder</i> (after changes made outside FileTree; the rest of the
-results stay), <i>Scan this folder</i> on its own, or <i>Move to Recycle Bin</i>.
-To move several entries at once, pick them with Ctrl+click or Shift+click in the folder tree, the
-<i>Largest files</i> list or the <i>Search</i> results: FileTree asks once, listing them with their total size.
-FileTree never deletes anything for good: it always asks first, and whatever it moves can be restored
-from the Recycle Bin (the Trash on macOS and Linux). The numbers update right away, without a rescan.
-System and program folders are asked about twice, with the reason; temporary folders and caches are not.</p>
-<h2>Seeing what grew</h2>
-<p>Save a scan with <i>File → Export → Folder tree (JSON)</i>. Later, after a new scan, choose
-<i>File → Compare with a saved scan…</i> and open that file: the <b>Changes</b> tab lists every folder that
-changed, with its size then and now, the biggest growth first (<i>new</i> and <i>gone</i> mark folders that
-appeared or disappeared). It keeps comparing after each rescan until you press <i>Stop comparing</i>.</p>
-<h2>Keyboard shortcuts</h2>
-<table cellpadding="3">
-<tr><td><b>Ctrl+O</b></td><td>Choose a folder</td></tr>
-<tr><td><b>F5</b></td><td>Rescan</td></tr>
-<tr><td><b>Esc</b></td><td>Stop the scan</td></tr>
-<tr><td><b>Ctrl+F</b></td><td>Search by name</td></tr>
-<tr><td><b>Delete</b></td><td>Move the selected entries to the Recycle Bin</td></tr>
-<tr><td><b>Ctrl++ / Ctrl+−</b></td><td>Larger / smaller text</td></tr>
-<tr><td><b>Ctrl+0</b></td><td>Text at the system size</td></tr>
-<tr><td><b>F1</b></td><td>This guide</td></tr>
-<tr><td><b>Ctrl+Q</b></td><td>Quit</td></tr>
-</table>
-<p>On macOS use ⌘ instead of Ctrl (⌘R to rescan).</p>
-<h2>Good to know</h2>
-<ul>
-<li>Sizes are the real file sizes in binary units (1 KB = 1,024 bytes), the same as Windows Explorer.
-Choose a fixed unit under <i>View → Size unit</i>.</li>
-<li>Text too small or too large? <i>View → Text size</i> changes every text in FileTree and is remembered.</li>
-<li>Shortcuts and links (symbolic links, junctions) are listed but never followed, so nothing is
-counted twice.</li>
-<li>On Windows, FileTree asks for administrator rights when it starts, like TreeSize, so it can read
-protected folders too. Say no and it runs normally; folders it could not read are listed under
-<i>Problems</i>, with a <i>Restart as administrator</i> button. Turn the question off under
-<i>View → Ask for administrator rights at start</i>.</li>
-<li><i>Largest files</i>, <i>File types</i> and <i>Age</i> cover the whole scan; <i>Selected folder only</i>,
-at the top right of those tabs, makes them follow the folder selected in the tree.</li>
-<li>Hidden files are counted. Turn off <i>View → Include hidden files</i> to leave them out of the
-next scan.</li>
-<li>To leave folders out of every scan, list them in <i>View → Skip while scanning</i>: a name such as
-<code>node_modules</code> skips every folder of that name, a path skips one folder. Skipped folders are
-listed greyed out, with size 0.</li>
-<li>Save the results with <i>File → Export</i>: CSV opens in Excel, JSON is for scripts.</li>
-</ul>
-""",
+    "help_html": HELP,
     "budget_close": "Close",
     "action_folder_budgets": "Folder budgets…", "action_folder_budgets_tip": "Manage folder limits and dated usage",
     "budget_title": "Folder budgets", "budget_name": "Name", "budget_path": "Folder path",

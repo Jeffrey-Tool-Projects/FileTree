@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QResizeEvent
-from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QBoxLayout, QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from je_file_tree.core.formatting import format_count, format_size
 from je_file_tree.core.node import Node
@@ -16,6 +16,7 @@ from je_file_tree.gui.text_size import text_size_controller
 
 _METRICS = ("size", "allocated", "files", "folders")
 _COMPACT_WIDTH = 680
+_STACKED_SPACING, _INLINE_SPACING = 2, 10
 _TONES = {"complete": "success", "partial": "caution", "live": "accent"}  # the state chip's colour
 
 
@@ -39,6 +40,7 @@ class ResultOverview(QWidget):
         self.cards: list[QFrame] = []
         self.captions: list[QLabel] = []
         self.values: list[QLabel] = []
+        self._card_layouts: list[QVBoxLayout] = []
         self._grid = QGridLayout()
         for _key in _METRICS:
             self._add_card()
@@ -66,12 +68,21 @@ class ResultOverview(QWidget):
         value.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         column = QVBoxLayout(card)
         column.setContentsMargins(14, 8, 14, 10)
-        column.setSpacing(2)
+        column.setSpacing(_STACKED_SPACING)
         column.addWidget(caption)
         column.addWidget(value)
         self.cards.append(card)
         self.captions.append(caption)
         self.values.append(value)
+        self._card_layouts.append(column)
+
+    def set_inline(self, inline: bool) -> None:
+        """Put each total beside its name instead of under it, for windows short of height."""
+        direction = QBoxLayout.Direction.LeftToRight if inline else QBoxLayout.Direction.TopToBottom
+        for column in self._card_layouts:
+            column.setDirection(direction)
+            column.setSpacing(_INLINE_SPACING if inline else _STACKED_SPACING)
+            column.setContentsMargins(14, 4 if inline else 8, 14, 4 if inline else 10)
 
     def show_totals(self, root: Node | None, state: str, errors: int = 0) -> None:
         """Show a recorded root and explicit empty/live/complete/partial state without filesystem calls."""

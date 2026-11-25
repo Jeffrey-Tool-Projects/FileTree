@@ -98,6 +98,7 @@ from je_file_tree.gui.tables import (
     ProblemsModel,
     TableProxy,
 )
+from je_file_tree.gui.short_layout import ShortLayout
 from je_file_tree.gui.text_scale import compact_rows, text_scaled
 from je_file_tree.gui.text_size import text_size_controller
 from je_file_tree.gui.tree_model import (
@@ -928,8 +929,13 @@ class ResultsView(QWidget):
         self._body_layout.addWidget(splitter, 1)
         layout.addWidget(body, 1)
         self.overview.problems_requested.connect(lambda: self.tabs.setCurrentIndex(PROBLEMS_TAB))
+        self._short_layout = ShortLayout(self, self.highlights, self.overview, self._analysis_hint)
         self._responsive_layout()
         text_size_controller().changed.connect(self._responsive_layout)
+
+    def fit_height(self, room: int) -> None:
+        """Tighten or relax the page for the height its window leaves it."""
+        self._short_layout.fit(room)
 
     def _responsive_layout(self, _percent: int = 0) -> None:
         compact = self.width() < text_scaled(_COMPACT_NAVIGATION_WIDTH)
