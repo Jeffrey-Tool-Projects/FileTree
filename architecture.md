@@ -754,6 +754,8 @@ portable keys with their validators and reads or writes them all or nothing (`fi
 `core.custom_rules` validates user-written clean-up rules (data in policy version 2). They run after the
 built-in rules, always as manual review; `Guard` refuses protected and Windows-managed places and folders
 holding one, and recurring proposals use `CleanupPolicy.built_in()`.
+`core.problem_files` surveys recorded entries; on disk it reads only link texts and small local shortcuts
+(`core.shell_link`) and checks their targets with `lstat`, never a network or absent drive.
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

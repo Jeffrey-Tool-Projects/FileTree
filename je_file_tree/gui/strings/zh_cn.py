@@ -1741,4 +1741,23 @@ ZH_CN: dict[str, str] = {
         "这条规则无法使用：请给它不重复的名称，以及至少一个足够明确的模式（三个字母或"
         "数字，不含盘符或反斜线；文件夹须以普通名称结尾）。"
     ),
+    "action_problem_files": "检查问题文件…",
+    "action_problem_files_tip": "空文件、失效的链接与快捷方式、过长的路径，以及 Windows 不允许的名称",
+    "problem_files_found": "发现",
+    "problem_files_target": "指向",
+    "problem_files_all": "所有问题",
+    "problem_files_empty": "空文件",
+    "problem_files_dead_link": "失效的链接",
+    "problem_files_long_path": "路径过长",
+    "problem_files_bad_name": "不允许的名称",
+    "problem_files_hint": (
+        "按界面上的扫描检查。只有链接与本机的小型快捷方式会读取磁盘，而且不会跟随；目标"
+        "在网络或不存在的磁盘上时保持未知。这里不会更改任何东西：双击可在文件夹树中选中"
+        "项目。"
+    ),
+    "problem_files_reading": "检查中…",
+    "problem_files_summary": (
+        "显示 {shown} 个项目，共发现 {count} 个问题。无法判断的链接：{unknown}。每一"
+        "种列出前 1,000 个。"
+    ),
 }

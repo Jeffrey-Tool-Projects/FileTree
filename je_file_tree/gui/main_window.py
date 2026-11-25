@@ -49,6 +49,7 @@ from je_file_tree.gui.shell_dialog import ShellIntegrationDialog
 from je_file_tree.gui.elevation_dialog import ElevationDialog
 from je_file_tree.gui.startup_state import WorkspaceState
 from je_file_tree.gui.scan_preferences import MAX_SCAN_WORKERS as _MAX_SCAN_WORKERS, SCAN_FLAGS, ScanDefaults
+from je_file_tree.gui.problem_files import ProblemFilesDialog
 from je_file_tree.gui.special_files import SpecialFilesDialog
 from je_file_tree.gui.live_compare import LiveCompareDialog
 from je_file_tree.gui.live_refresh import LiveRefresh
@@ -128,7 +129,7 @@ _STATUS_TIMEOUT_MS = 8000
 _WAIT_FOR_SCAN = frozenset({
     "rescan", "export_folders", "export_largest", "export_list", "export_json", "export_chart_png",
     "export_chart_svg", "print_view", "export_view_pdf", "export_report_html", "export_report_xlsx", "trash",
-    "permanent_delete", "find", "compare", "special_files", "live_compare", "git_history", "history",
+    "permanent_delete", "find", "compare", "special_files", "problem_files", "live_compare", "git_history", "history",
     "recurring", "scan_presets", "projects", "programs", "virtual_disks", "file_times", "volumes", "disks",
     "bins", "cleanup_policy",
 })
@@ -1707,6 +1708,7 @@ class MainWindow(QMainWindow):
             ("compare", None, self.choose_saved_scan),
             ("recent_actions", None, self.show_recent_actions),
             ("special_files", None, self.show_special_files),
+            ("problem_files", None, self.show_problem_files),
             ("live_compare", None, self.compare_live_folders),
             ("git_history", None, self.show_git_history),
             ("history", None, self.show_history),
@@ -1802,8 +1804,8 @@ class MainWindow(QMainWindow):
             export_menu.addAction(self._actions[key])
         file_menu.addAction(self._actions["print_view"])
         file_menu.addAction(self._actions["compare"])
-        for key in ("recent_actions", "special_files", "live_compare", "git_history", "projects", "history",
-                    "programs", "virtual_disks", "file_times", "recurring", "folder_budgets"):
+        for key in ("recent_actions", "special_files", "problem_files", "live_compare", "git_history", "projects",
+                    "history", "programs", "virtual_disks", "file_times", "recurring", "folder_budgets"):
             file_menu.addAction(self._actions[key])
         file_menu.addSeparator()
         file_menu.addAction(self._reclaim_action)
@@ -1958,8 +1960,8 @@ class MainWindow(QMainWindow):
     def _update_result_actions(self, shown: bool) -> None:
         """Enable the actions on the results on screen (``shown``); a running scan makes them explain instead."""
         for key in ("export_folders", "export_largest", "export_json", "export_chart_png", "find", "compare",
-                    "print_view", "export_view_pdf", "special_files", "projects", "programs", "virtual_disks",
-                    "file_times"):
+                    "print_view", "export_view_pdf", "special_files", "problem_files", "projects", "programs",
+                    "virtual_disks", "file_times"):
             self._actions[key].setEnabled(shown)
         self._actions["export_chart_svg"].setEnabled(shown and self.results.charts.mode in SVG_MODES)
         for key in ("export_report_html", "export_report_xlsx"):
@@ -2256,8 +2258,18 @@ class MainWindow(QMainWindow):
         outcome = self.results.outcome
         if outcome is None or self._worker is not None or self.operation_busy:
             return
-        dialog = SpecialFilesDialog(outcome.result.root, self._unit,
-                                    partial=outcome.partial or bool(outcome.result.errors), parent=self)
+        self._run_survey(SpecialFilesDialog(outcome.result.root, self._unit, parent=self,
+                                            partial=outcome.partial or bool(outcome.result.errors)))
+
+    def show_problem_files(self) -> None:
+        """List empty files, dead links, long paths and unusable names among the scanned entries."""
+        outcome = self.results.outcome
+        if outcome is None or self._worker is not None or self.operation_busy:
+            return
+        self._run_survey(ProblemFilesDialog(outcome.result.root, self._unit, parent=self,
+                                            partial=outcome.partial or bool(outcome.result.errors)))
+
+    def _run_survey(self, dialog: SpecialFilesDialog | ProblemFilesDialog) -> None:
         dialog.selected.connect(self.results.select_node)
         try:
             dialog.exec()

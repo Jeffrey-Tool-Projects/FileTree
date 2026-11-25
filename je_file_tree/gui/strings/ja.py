@@ -2167,4 +2167,27 @@ JA: dict[str, str] = {
         "定してください（英数字などを 3 文字以上、ドライブ名や円記号は不可、フォルダー"
         "は通常の名前で終わること）。"
     ),
+    "action_problem_files": "問題のあるファイルを確認…",
+    "action_problem_files_tip": (
+        "空のファイル、切れたリンクやショートカット、長すぎるパス、Windows で使え"
+        "ない名前を探します"
+    ),
+    "problem_files_found": "見つかった問題",
+    "problem_files_target": "リンク先",
+    "problem_files_all": "すべての問題",
+    "problem_files_empty": "空のファイル",
+    "problem_files_dead_link": "切れたリンク",
+    "problem_files_long_path": "長すぎるパス",
+    "problem_files_bad_name": "使えない名前",
+    "problem_files_hint": (
+        "表示中のスキャンを確認します。ディスクを読むのはリンクとローカルの小さなショー"
+        "トカットだけで、たどることはありません。リンク先がネットワークや接続されていな"
+        "いドライブにあるときは不明のままです。ここでは何も変更しません。ダブルクリック"
+        "するとツリーで項目を選択します。"
+    ),
+    "problem_files_reading": "確認中…",
+    "problem_files_summary": (
+        "{shown} 件を表示、問題は {count} 件です。判断できなかったリンク: {unknown}。"
+        "種類ごとに最初の 1,000 件を表示します。"
+    ),
 }

@@ -2024,4 +2024,27 @@ KO: dict[str, str] = {
         " 이상 지정하세요(글자나 숫자 3개 이상, 드라이브나 백슬래시 불가, 폴더는 일반"
         " 이름으로 끝나야 함)."
     ),
+    "action_problem_files": "문제 파일 확인…",
+    "action_problem_files_tip": (
+        "빈 파일, 끊어진 링크와 바로 가기, 너무 긴 경로, Windows에서 쓸 수 없는 이"
+        "름을 찾습니다"
+    ),
+    "problem_files_found": "발견한 문제",
+    "problem_files_target": "가리키는 곳",
+    "problem_files_all": "모든 문제",
+    "problem_files_empty": "빈 파일",
+    "problem_files_dead_link": "끊어진 링크",
+    "problem_files_long_path": "너무 긴 경로",
+    "problem_files_bad_name": "쓸 수 없는 이름",
+    "problem_files_hint": (
+        "화면의 스캔을 확인합니다. 디스크에서 읽는 것은 링크와 로컬의 작은 바로 가기뿐이"
+        "며 따라가지 않습니다. 대상이 네트워크나 연결되지 않은 드라이브에 있으면 알 수 "
+        "없음으로 남습니다. 여기서는 아무것도 바꾸지 않으며, 두 번 클릭하면 트리에서 항"
+        "목을 선택합니다."
+    ),
+    "problem_files_reading": "확인 중…",
+    "problem_files_summary": (
+        "항목 {shown}개를 표시하며 문제는 {count}개입니다. 판단할 수 없는 링크: {unknown}."
+        " 종류마다 처음 1,000개를 표시합니다."
+    ),
 }

@@ -1938,4 +1938,26 @@ EN: dict[str, str] = {
         " that says enough (three letters or digits, no drive or backslash; a folder ends"
         " in a plain name)."
     ),
+    "action_problem_files": "Check for problem files…",
+    "action_problem_files_tip": (
+        "Empty files, dead links and shortcuts, paths too long and names Windows does"
+        " not allow"
+    ),
+    "problem_files_found": "Found",
+    "problem_files_target": "Points to",
+    "problem_files_all": "All problems",
+    "problem_files_empty": "Empty file",
+    "problem_files_dead_link": "Dead link",
+    "problem_files_long_path": "Path too long",
+    "problem_files_bad_name": "Name not allowed",
+    "problem_files_hint": (
+        "From the scan on screen. Only links and small local shortcuts are looked at on"
+        " disk, without following them; targets on networks and absent drives stay unknown."
+        " Nothing is changed here: double-click selects an entry in the tree."
+    ),
+    "problem_files_reading": "Checking…",
+    "problem_files_summary": (
+        "Showing {shown} entries; {count} problems found. Links that could not be judged:"
+        " {unknown}. The first 1,000 of each kind are listed."
+    ),
 }

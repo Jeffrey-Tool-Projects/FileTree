@@ -33,6 +33,7 @@ Use arrow keys to select budget rows and Tab to reach the editor. Reopening sear
 - **Save reports**: export results to CSV, JSON or Excel. Large selected-list copies prepare rows and text in batches; a newer copy in any list replaces the pending one.
 - **Use your language**: switch between English, Traditional Chinese, Simplified Chinese, Japanese and Korean.
 - **Choose the text size**: View → Text size makes every text in FileTree larger or smaller, from 90% to 200%, and remembers it. The help opens in larger text, and light and dark colours keep text and controls at high contrast.
+- **Find problem files**: empty files, dead links and shortcuts, paths too long and names Windows does not allow.
 - **Write your own clean-up rules**: name folders or files to look for; what they find is always yours to review.
 - **Find every setting in one place**: Options → Settings… (Ctrl+,) has a search box, and exports and imports your choices.
 - **Explorer folder menu (Windows)**: add Scan with FileTree from Options. Settings stay responsive; an active Save finishes before closing.

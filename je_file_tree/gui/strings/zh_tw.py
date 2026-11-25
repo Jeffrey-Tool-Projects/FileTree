@@ -1740,4 +1740,23 @@ ZH_TW: dict[str, str] = {
         "這個規則無法使用：請給它不重複的名稱，以及至少一個夠明確的樣式（三個字母或數"
         "字，不含磁碟代號或反斜線；資料夾須以一般名稱結尾）。"
     ),
+    "action_problem_files": "檢查問題檔案…",
+    "action_problem_files_tip": "空檔案、失效的連結與捷徑、過長的路徑，以及 Windows 不允許的名稱",
+    "problem_files_found": "發現",
+    "problem_files_target": "指向",
+    "problem_files_all": "所有問題",
+    "problem_files_empty": "空檔案",
+    "problem_files_dead_link": "失效的連結",
+    "problem_files_long_path": "路徑過長",
+    "problem_files_bad_name": "不允許的名稱",
+    "problem_files_hint": (
+        "依畫面上的掃描檢查。只有連結與本機的小型捷徑會讀取磁碟，而且不會跟隨；目標在網"
+        "路或不存在的磁碟上時維持未知。這裡不會變更任何東西：按兩下可在資料夾樹中選取項"
+        "目。"
+    ),
+    "problem_files_reading": "檢查中…",
+    "problem_files_summary": (
+        "顯示 {shown} 個項目，共發現 {count} 個問題。無法判斷的連結：{unknown}。每一"
+        "種列出前 1,000 個。"
+    ),
 }
