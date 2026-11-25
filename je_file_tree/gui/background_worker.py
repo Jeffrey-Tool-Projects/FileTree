@@ -38,12 +38,15 @@ class CapacityWorker(QThread):
                 if self.cancel.is_set():
                     return
                 storage.refresh()
-                if (not storage.isValid() or not storage.isReady() or storage.bytesTotal() <= 0
-                        or storage.isReadOnly()):  # a disc image is always full
+                if not storage.isValid() or not storage.isReady() or storage.bytesTotal() <= 0:
+                    continue
+                available = storage.bytesAvailable()
+                # A disc image is read-only and full, and nothing can be written to it anyway. The macOS system
+                # volume is read-only too, but reports the free space of its container: that one counts.
+                if storage.isReadOnly() and available <= 0:
                     continue
                 if len(rows) >= MAX_VOLUMES:
                     raise ValueError("Too many mounted background capacity scopes")
-                available = storage.bytesAvailable()
                 rows.append(CapacityObservation(storage.rootPath(), storage.bytesTotal(),
                                                 available if available >= 0 else None))
             if not self.cancel.is_set():

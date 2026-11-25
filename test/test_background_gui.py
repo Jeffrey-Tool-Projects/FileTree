@@ -460,10 +460,10 @@ def test_closing_a_visible_window_leaves_ending_to_the_toolkit(monitored, qapp, 
 
 
 def test_a_read_only_volume_is_not_short_of_space(monitored, qapp, monkeypatch, tmp_path):
-    disc, disk = str(tmp_path / "disc"), str(tmp_path / "disk")
+    disc, disk, system = (str(tmp_path / name) for name in ("disc", "disk", "system"))
     class Storage:
-        def __init__(self, root, read_only):
-            self._root, self._read_only = root, read_only
+        def __init__(self, root, read_only, available=0):
+            self._root, self._read_only, self._available = root, read_only, available
 
         def refresh(self):
             pass
@@ -480,12 +480,13 @@ def test_a_read_only_volume_is_not_short_of_space(monitored, qapp, monkeypatch, 
             return 4_000_000_000
 
         def bytesAvailable(self):  # noqa: N802 - Qt API
-            return 0
+            return self._available
 
         def rootPath(self):  # noqa: N802 - Qt API
             return self._root
 
-    monkeypatch.setattr(workers.QStorageInfo, "mountedVolumes", lambda: [Storage(disc, True), Storage(disk, False)])
+    volumes = [Storage(disc, True), Storage(disk, False), Storage(system, True, 9)]
+    monkeypatch.setattr(workers.QStorageInfo, "mountedVolumes", lambda: volumes)
     worker = workers.CapacityWorker(monitored)
     _CAPACITY_RUN(worker)
-    assert not worker.error and [row.root for row in worker.rows] == [disk]
+    assert not worker.error and [row.root for row in worker.rows] == [disk, system]  # a sealed system volume
