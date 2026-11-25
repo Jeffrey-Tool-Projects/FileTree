@@ -215,7 +215,7 @@ def tree_signature(root: Node, *, cancel: threading.Event | None = None) -> str 
 
 
 def _candidates(root: Node, policy: CleanupPolicy, now: float, cancel) -> tuple[tuple[Candidate, ...], int]:
-    groups = find_cleanup(root, policy=policy, now=now, cancel=cancel)
+    groups = find_cleanup(root, policy=policy.built_in(), now=now, cancel=cancel)  # never user-written rules
     if groups is None:
         raise ProposalCancelledError
     heap, count = [], 0

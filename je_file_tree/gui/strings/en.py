@@ -1907,4 +1907,35 @@ EN: dict[str, str] = {
         "Each folder by its change since the saved scan; a file by the folder that holds"
         " it, because saved scans record folders"
     ),
+    "cleanup_custom": "Your rule: {name}",
+    "cleanup_custom_tip": "Matches a rule you wrote. FileTree cannot tell whether the contents are still needed.",
+    "cleanup_category_custom": "your own rule",
+    "cleanup_rebuild_custom": "Unknown; check every entry before moving it.",
+    "custom_rules_button": "Your rules ({count})…",
+    "custom_rules_title": "Your clean-up rules",
+    "custom_rules_hint": (
+        "What these rules find is always listed for review, never ticked for you and never"
+        " proposed by background scans. System, program and profile folders are left out."
+    ),
+    "custom_rules_add": "Add",
+    "custom_rules_update": "Update",
+    "custom_rules_remove": "Remove",
+    "custom_rules_name": "Name",
+    "custom_rules_name_tip": "Shown as the group title",
+    "custom_rules_folders": "Folders",
+    "custom_rules_folders_tip": "The end of a path, such as Cache or MyApp/logs; separate several with ;",
+    "custom_rules_files": "Files",
+    "custom_rules_files_tip": "Names such as *.bak; separate several with ;",
+    "custom_rules_in_folder": "Only in folder",
+    "custom_rules_in_folder_tip": (
+        "Files count only directly inside a folder of this name; leave empty for"
+        " any folder"
+    ),
+    "custom_rules_days": "Unchanged for days",
+    "custom_rules_days_tip": "Newer entries are left out",
+    "custom_rules_invalid": (
+        "This rule cannot be used: give it a name of its own and at least one pattern"
+        " that says enough (three letters or digits, no drive or backslash; a folder ends"
+        " in a plain name)."
+    ),
 }

@@ -2132,4 +2132,39 @@ JA: dict[str, str] = {
         "フォルダーは保存したスキャンからの変化で色分けします。保存したスキャンが記録する"
         "のはフォルダーだけなので、ファイルは入っているフォルダーの色になります"
     ),
+    "cleanup_custom": "自分のルール: {name}",
+    "cleanup_custom_tip": (
+        "自分で書いたルールに一致します。内容がまだ必要かどうかは FileTree には判断でき"
+        "ません。"
+    ),
+    "cleanup_category_custom": "自分のルール",
+    "cleanup_rebuild_custom": "不明です。移動する前に 1 件ずつ確認してください。",
+    "custom_rules_button": "自分のルール ({count})…",
+    "custom_rules_title": "自分のクリーンアップ ルール",
+    "custom_rules_hint": (
+        "これらのルールで見つかった項目は必ず確認用に表示し、自動で選択したりバックグラウ"
+        "ンド スキャンで提案したりしません。システム、プログラム、プロファイルのフォルダ"
+        "ーは除外します。"
+    ),
+    "custom_rules_add": "追加",
+    "custom_rules_update": "更新",
+    "custom_rules_remove": "削除",
+    "custom_rules_name": "名前",
+    "custom_rules_name_tip": "グループの見出しに表示します",
+    "custom_rules_folders": "フォルダー",
+    "custom_rules_folders_tip": "Cache や MyApp/logs のようなパスの末尾。複数は ; で区切ります",
+    "custom_rules_files": "ファイル",
+    "custom_rules_files_tip": "*.bak のような名前。複数は ; で区切ります",
+    "custom_rules_in_folder": "対象フォルダー",
+    "custom_rules_in_folder_tip": (
+        "この名前のフォルダーの直下にあるファイルだけを対象にします。空欄ならど"
+        "のフォルダーでも対象です"
+    ),
+    "custom_rules_days": "変更のない日数",
+    "custom_rules_days_tip": "これより新しい項目は含めません",
+    "custom_rules_invalid": (
+        "このルールは使えません。重複しない名前と、十分に具体的なパターンを 1 つ以上指"
+        "定してください（英数字などを 3 文字以上、ドライブ名や円記号は不可、フォルダー"
+        "は通常の名前で終わること）。"
+    ),
 }

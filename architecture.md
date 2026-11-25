@@ -751,6 +751,9 @@ drives `ShortLayout`, which folds the highlights, inlines the totals and hides t
 `ChangeColours` colours treemap and sunburst from the changes the Changes tab already holds.
 `SettingsDialog` shows the menu actions themselves (no second copy of a setting); `settings_file` holds the
 portable keys with their validators and reads or writes them all or nothing (`file-tree-settings/1`).
+`core.custom_rules` validates user-written clean-up rules (data in policy version 2). They run after the
+built-in rules, always as manual review; `Guard` refuses protected and Windows-managed places and folders
+holding one, and recurring proposals use `CleanupPolicy.built_in()`.
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

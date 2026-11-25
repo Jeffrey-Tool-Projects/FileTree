@@ -21,7 +21,7 @@ from je_file_tree.core.node import Node
 from je_file_tree.core.reclaim import (CLEANUP, DUPLICATES, PlanStep, ReclaimPlan, ReclaimSources, build_plan,
                                        free_share_target)
 from je_file_tree.gui.advice_text import dot
-from je_file_tree.gui.cleanup_text import explanation
+from je_file_tree.gui.cleanup_text import explanation, title
 from je_file_tree.gui.delegates import ShareBarDelegate
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.text_scale import text_scaled
@@ -266,7 +266,7 @@ class ReclaimDialog(QDialog):
 
     def _step_title(self, step: PlanStep) -> str:
         if step.category == CLEANUP:
-            return tr(f"cleanup_{step.key}")
+            return title(step.key)
         return tr("reclaim_duplicates") if step.category == DUPLICATES else tr("reclaim_options")
 
     def _step_tip(self, step: PlanStep) -> str:

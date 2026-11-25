@@ -1993,4 +1993,35 @@ KO: dict[str, str] = {
         "폴더는 저장된 스캔 이후의 변화로 색을 정합니다. 저장된 스캔은 폴더만 기록하므로"
         " 파일은 들어 있는 폴더의 색을 따릅니다"
     ),
+    "cleanup_custom": "내 규칙: {name}",
+    "cleanup_custom_tip": "직접 만든 규칙과 일치합니다. 내용이 아직 필요한지는 FileTree가 알 수 없습니다.",
+    "cleanup_category_custom": "내 규칙",
+    "cleanup_rebuild_custom": "알 수 없음. 옮기기 전에 하나씩 확인하세요.",
+    "custom_rules_button": "내 규칙({count})…",
+    "custom_rules_title": "내 정리 규칙",
+    "custom_rules_hint": (
+        "이 규칙으로 찾은 항목은 항상 검토 목록에만 표시하며, 미리 선택하거나 백그라운드"
+        " 스캔에서 제안하지 않습니다. 시스템, 프로그램, 프로필 폴더는 제외합니다."
+    ),
+    "custom_rules_add": "추가",
+    "custom_rules_update": "업데이트",
+    "custom_rules_remove": "제거",
+    "custom_rules_name": "이름",
+    "custom_rules_name_tip": "그룹 제목으로 표시됩니다",
+    "custom_rules_folders": "폴더",
+    "custom_rules_folders_tip": "Cache 또는 MyApp/logs처럼 경로의 끝부분. 여러 개는 ;로 구분합니다",
+    "custom_rules_files": "파일",
+    "custom_rules_files_tip": "*.bak 같은 이름. 여러 개는 ;로 구분합니다",
+    "custom_rules_in_folder": "이 폴더에서만",
+    "custom_rules_in_folder_tip": (
+        "이 이름의 폴더 바로 안에 있는 파일만 대상으로 합니다. 비워 두면 모든 폴"
+        "더가 대상입니다"
+    ),
+    "custom_rules_days": "변경 없는 일수",
+    "custom_rules_days_tip": "더 최근 항목은 제외합니다",
+    "custom_rules_invalid": (
+        "이 규칙은 사용할 수 없습니다. 겹치지 않는 이름과 충분히 구체적인 패턴을 하나"
+        " 이상 지정하세요(글자나 숫자 3개 이상, 드라이브나 백슬래시 불가, 폴더는 일반"
+        " 이름으로 끝나야 함)."
+    ),
 }

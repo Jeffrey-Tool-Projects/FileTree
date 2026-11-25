@@ -1713,4 +1713,31 @@ ZH_TW: dict[str, str] = {
         "資料夾依與儲存的掃描相比的變化上色；儲存的掃描只記錄資料夾，所以檔案依所在資料夾"
         "上色"
     ),
+    "cleanup_custom": "自訂規則：{name}",
+    "cleanup_custom_tip": "符合你寫的規則。FileTree 無法判斷內容是否還需要。",
+    "cleanup_category_custom": "自訂規則",
+    "cleanup_rebuild_custom": "未知；移動前請逐項確認。",
+    "custom_rules_button": "自訂規則（{count}）…",
+    "custom_rules_title": "自訂清理規則",
+    "custom_rules_hint": (
+        "這些規則找到的項目一律列為須手動審查，不會替你勾選，背景掃描也不會提出。系統、程"
+        "式與使用者設定資料夾會排除。"
+    ),
+    "custom_rules_add": "新增",
+    "custom_rules_update": "更新",
+    "custom_rules_remove": "移除",
+    "custom_rules_name": "名稱",
+    "custom_rules_name_tip": "顯示為分組標題",
+    "custom_rules_folders": "資料夾",
+    "custom_rules_folders_tip": "路徑的結尾，例如 Cache 或 MyApp/logs；好幾個用 ; 分開",
+    "custom_rules_files": "檔案",
+    "custom_rules_files_tip": "例如 *.bak 的名稱；好幾個用 ; 分開",
+    "custom_rules_in_folder": "只限資料夾",
+    "custom_rules_in_folder_tip": "只計算直接位於這個名稱的資料夾內的檔案；留空表示任何資料夾",
+    "custom_rules_days": "未變動天數",
+    "custom_rules_days_tip": "較新的項目不列入",
+    "custom_rules_invalid": (
+        "這個規則無法使用：請給它不重複的名稱，以及至少一個夠明確的樣式（三個字母或數"
+        "字，不含磁碟代號或反斜線；資料夾須以一般名稱結尾）。"
+    ),
 }

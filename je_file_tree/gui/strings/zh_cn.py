@@ -1714,4 +1714,31 @@ ZH_CN: dict[str, str] = {
         "文件夹按与保存的扫描相比的变化着色；保存的扫描只记录文件夹，所以文件按所在文件夹"
         "着色"
     ),
+    "cleanup_custom": "自定义规则：{name}",
+    "cleanup_custom_tip": "符合你写的规则。FileTree 无法判断内容是否还需要。",
+    "cleanup_category_custom": "自定义规则",
+    "cleanup_rebuild_custom": "未知；移动前请逐项确认。",
+    "custom_rules_button": "自定义规则（{count}）…",
+    "custom_rules_title": "自定义清理规则",
+    "custom_rules_hint": (
+        "这些规则找到的项目一律列为须手动审查，不会替你勾选，后台扫描也不会提出。系统、程"
+        "序与用户配置文件夹会排除。"
+    ),
+    "custom_rules_add": "添加",
+    "custom_rules_update": "更新",
+    "custom_rules_remove": "移除",
+    "custom_rules_name": "名称",
+    "custom_rules_name_tip": "显示为分组标题",
+    "custom_rules_folders": "文件夹",
+    "custom_rules_folders_tip": "路径的结尾，例如 Cache 或 MyApp/logs；多个用 ; 分开",
+    "custom_rules_files": "文件",
+    "custom_rules_files_tip": "例如 *.bak 的名称；多个用 ; 分开",
+    "custom_rules_in_folder": "仅限文件夹",
+    "custom_rules_in_folder_tip": "只计算直接位于此名称文件夹内的文件；留空表示任何文件夹",
+    "custom_rules_days": "未变动天数",
+    "custom_rules_days_tip": "较新的项目不列入",
+    "custom_rules_invalid": (
+        "这条规则无法使用：请给它不重复的名称，以及至少一个足够明确的模式（三个字母或"
+        "数字，不含盘符或反斜线；文件夹须以普通名称结尾）。"
+    ),
 }

@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-08 | 2026-11-26 | 新增自訂清理規則 | #done #feature #cleanup #safety #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-07 | 2026-11-26 | 圖表可依與儲存掃描相比的變化上色 | #done #feature #gui #charts #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-06 | 2026-11-26 | 新增可搜尋的設定視窗，並可匯出與匯入設定 | #done #feature #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-05 | 2026-11-26 | 高度不足的視窗先收合結果頁的附加資訊再捲動 | #done #gui #ux | [2026-11-b](2026-11-b.md) |
