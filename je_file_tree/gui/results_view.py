@@ -69,6 +69,7 @@ from je_file_tree.gui import advice_text, elevation
 from je_file_tree.gui.changes_panel import ChangesPanel
 from je_file_tree.gui.capacity_panel import CapacityPanel
 from je_file_tree.gui.age_colours import AGE_COLOURS, UNKNOWN_AGE_COLOUR
+from je_file_tree.gui.change_colours import CHANGE_COLOURS, SAME
 from je_file_tree.gui.charts import MODES as CHART_MODES
 from je_file_tree.gui.charts import SUNBURST, TREE, TREEMAP, ChartStack
 from je_file_tree.gui.chart_legend import ChartLegend
@@ -114,7 +115,7 @@ from je_file_tree.gui.tree_model import (
     MoreRows,
 )
 from je_file_tree.gui.tree_filter import TreeFilter
-from je_file_tree.gui.treemap_widget import BY_AGE, BY_FOLDER, CATEGORY_COLOURS, COLOUR_MODES, LEVELS
+from je_file_tree.gui.treemap_widget import BY_AGE, BY_CHANGE, BY_FOLDER, CATEGORY_COLOURS, COLOUR_MODES, LEVELS
 from je_file_tree.gui.tree_diagram import ORIENTATIONS
 from je_file_tree.gui.tree_columns import TreeColumns
 from je_file_tree.gui.type_locations import TypeLocationsModel, TypeLocationsWorker
@@ -257,6 +258,7 @@ class ResultsView(QWidget):
         self.cleanup.set_root(None)
         self.users.set_root(None)
         self.changes.set_root(None)
+        self.charts.set_changes(())
         self._live_ticks = 0
         self.tree_model.set_root(None)
         for model in (self.largest_model, self.types_model, self.problems_model, self.age_model):
@@ -1053,6 +1055,8 @@ class ResultsView(QWidget):
         self._legend.set_items(self._legend_items())
 
     def _changes_shown(self, shown: bool) -> None:
+        self.charts.set_changes(self.changes.changes)
+        self._legend.set_items(self._legend_items())
         self.tabs.setTabVisible(CHANGES_TAB, shown)
         self.navigation.refresh()
         if shown and self._reveal_changes:
@@ -1353,6 +1357,11 @@ class ResultsView(QWidget):
             self._legend.setToolTip(tr("age_colour_tip"))
             return ([(AGE_COLOURS[age], tr(f"age_{age}")) for age in AGES]
                     + [(UNKNOWN_AGE_COLOUR, tr("age_colour_unknown"))])
+        if self.charts.mode in (TREEMAP, SUNBURST) and self.charts.treemap.colour_mode == BY_CHANGE:
+            self._legend.setToolTip(tr("change_colour_tip"))
+            if self.changes.saved is None:
+                return [(CHANGE_COLOURS[SAME], tr("change_colour_none"))]
+            return [(colour, tr(f"change_colour_{kind}")) for kind, colour in CHANGE_COLOURS.items()]
         self._legend.setToolTip("")
         sizes = {stat.category: stat.size for stat in self._categories}
         parts = []

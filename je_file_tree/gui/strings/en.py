@@ -1895,4 +1895,16 @@ EN: dict[str, str] = {
     "settings_invalid": "This is not a usable FileTree settings file. Nothing was changed.",
     "settings_same": "These settings are already in use.",
     "settings_confirm": "Change {count} settings to the values in this file?",
+    "treemap_colours_change": "By change",
+    "change_colour_new": "New",
+    "change_colour_grew_lot": "Grew over 25%",
+    "change_colour_grew": "Grew",
+    "change_colour_same": "No change",
+    "change_colour_shrank": "Shrank",
+    "change_colour_shrank_lot": "Shrank over 25%",
+    "change_colour_none": "Compare with a saved scan to see what changed",
+    "change_colour_tip": (
+        "Each folder by its change since the saved scan; a file by the folder that holds"
+        " it, because saved scans record folders"
+    ),
 }

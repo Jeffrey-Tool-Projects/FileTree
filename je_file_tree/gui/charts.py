@@ -7,13 +7,17 @@ all. ``ChartStack`` offers the views' own interface (``set_view_root``, ``view_r
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from PySide6.QtCore import QPoint, Signal
 from PySide6.QtWidgets import QScrollArea, QStackedWidget, QWidget
 
+from je_file_tree.core.compare import FolderChange
 from je_file_tree.core.node import Node
 from je_file_tree.gui.bar_chart import BarChartWidget
+from je_file_tree.gui.change_colours import ChangeColours
 from je_file_tree.gui.sunburst_widget import SunburstWidget
-from je_file_tree.gui.treemap_widget import TreemapWidget
+from je_file_tree.gui.treemap_widget import BY_CHANGE, TreemapWidget
 from je_file_tree.gui.tree_diagram import TreeDiagramWidget
 from je_file_tree.gui.chart_accessibility import ChartAccessibility
 
@@ -123,6 +127,14 @@ class ChartStack(QStackedWidget):
         for chart in (self.treemap, self.sunburst):
             chart.age_reference = now
             chart.invalidate()
+
+    def set_changes(self, changes: Iterable[FolderChange]) -> None:
+        """Colour by these captured changes when that colouring is chosen; none means no comparison."""
+        colours = ChangeColours(changes)
+        for chart in (self.treemap, self.sunburst):
+            chart.change_colours = colours
+            if chart.colour_mode == BY_CHANGE:
+                chart.invalidate()
 
     def _follow(self, node: Node | None) -> None:
         """One view moved to ``node``: move the others along, then tell the page once."""

@@ -34,6 +34,7 @@ def capture_report_charts(root: Node, source: ChartStack, unit: str, now: float)
     charts.set_unit(unit)
     charts.set_colour_mode(source.treemap.colour_mode)
     charts.set_age_reference(now)
+    charts.treemap.change_colours = charts.sunburst.change_colours = source.treemap.change_colours
     charts.treemap.set_levels(source.treemap.levels)
     charts.set_view_root(root)
     charts.show()

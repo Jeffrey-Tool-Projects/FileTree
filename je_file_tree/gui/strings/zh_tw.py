@@ -1701,4 +1701,16 @@ ZH_TW: dict[str, str] = {
     "settings_invalid": "這不是可用的 FileTree 設定檔，沒有變更任何設定。",
     "settings_same": "目前已經是這些設定。",
     "settings_confirm": "要將 {count} 項設定改為這個檔案中的值嗎？",
+    "treemap_colours_change": "依變化",
+    "change_colour_new": "新增",
+    "change_colour_grew_lot": "變大超過 25%",
+    "change_colour_grew": "變大",
+    "change_colour_same": "沒有變化",
+    "change_colour_shrank": "變小",
+    "change_colour_shrank_lot": "變小超過 25%",
+    "change_colour_none": "與先前儲存的掃描比較後，就能看出哪裡有變化",
+    "change_colour_tip": (
+        "資料夾依與儲存的掃描相比的變化上色；儲存的掃描只記錄資料夾，所以檔案依所在資料夾"
+        "上色"
+    ),
 }

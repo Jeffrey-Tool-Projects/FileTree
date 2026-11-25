@@ -29,11 +29,12 @@ from je_file_tree.core.formatting import AUTO_UNIT, format_share, format_size
 from je_file_tree.core.node import Node
 from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.sunburst import Segment, layout, segment_at
+from je_file_tree.gui.change_colours import ChangeColours
 from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.age_colours import age_colour
 from je_file_tree.gui.colours import readable_ink
-from je_file_tree.gui.treemap_widget import BY_AGE, BY_FOLDER, BY_TYPE, COLOUR_MODES, colour_for
+from je_file_tree.gui.treemap_widget import BY_AGE, BY_CHANGE, BY_FOLDER, BY_TYPE, COLOUR_MODES, colour_for
 
 RINGS = 4  # at most; fewer when the tree is shallower, so the rings always fill the space
 _GOLDEN = 0.618033988749895
@@ -64,12 +65,13 @@ class SunburstWidget(QWidget):
         self._rings = 1
         self._colours = BY_FOLDER
         self.age_reference = time.time()
+        self.change_colours = ChangeColours()
 
     # --- the same interface as the treemap --------------------------------
 
     @property
     def colour_mode(self) -> str:
-        """File-type, top-folder or recorded modified-age colouring."""
+        """File-type, top-folder, recorded modified-age or change colouring."""
         return self._colours
 
     def set_colour_mode(self, mode: str) -> None:
@@ -289,6 +291,8 @@ class SunburstWidget(QWidget):
     def _colour(self, segment: Segment) -> QColor:
         if self._colours == BY_AGE:
             return age_colour(segment.node, self.age_reference)
+        if self._colours == BY_CHANGE:
+            return self.change_colours.colour(segment.node)
         if self._colours == BY_TYPE:
             return colour_for(segment.node, self.palette())
         top = segment.node

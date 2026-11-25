@@ -2120,4 +2120,16 @@ JA: dict[str, str] = {
     "settings_invalid": "FileTree の設定ファイルとして使えません。設定は変更していません。",
     "settings_same": "すでにこの設定になっています。",
     "settings_confirm": "{count} 件の設定をこのファイルの値に変更しますか？",
+    "treemap_colours_change": "変化別",
+    "change_colour_new": "新規",
+    "change_colour_grew_lot": "25% を超える増加",
+    "change_colour_grew": "増加",
+    "change_colour_same": "変化なし",
+    "change_colour_shrank": "減少",
+    "change_colour_shrank_lot": "25% を超える減少",
+    "change_colour_none": "保存したスキャンと比較すると、変化が色で表示されます",
+    "change_colour_tip": (
+        "フォルダーは保存したスキャンからの変化で色分けします。保存したスキャンが記録する"
+        "のはフォルダーだけなので、ファイルは入っているフォルダーの色になります"
+    ),
 }

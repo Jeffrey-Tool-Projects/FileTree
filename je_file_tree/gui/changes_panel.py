@@ -38,6 +38,7 @@ class ChangesPanel(QWidget):
         self._saved: SavedScan | None = None
         self._current: CompareWorker | None = None
         self._running: set[CompareWorker] = set()
+        self._changes: list[FolderChange] = []
         bar = QHBoxLayout()
         bar.setContentsMargins(0, 0, 0, 0)
         bar.addWidget(self.summary, 1)
@@ -58,6 +59,11 @@ class ChangesPanel(QWidget):
         """Whether a comparison is running whose result will be shown."""
         return self._current is not None
 
+    @property
+    def changes(self) -> list[FolderChange]:
+        """The changes on screen."""
+        return self._changes
+
     def open(self, file: str) -> None:
         """Read the saved scan ``file`` and compare the tree with it (``failed`` when it is not one)."""
         if self._root is not None:
@@ -73,6 +79,7 @@ class ChangesPanel(QWidget):
         self._root = root
         if root is None:
             self.stop()
+            self._changes = []
             self.model.set_rows([])
             self._update_summary()
             return
@@ -87,6 +94,7 @@ class ChangesPanel(QWidget):
         """Forget the saved scan and hide the comparison."""
         self.stop()
         self._saved = None
+        self._changes = []
         self.model.set_rows([])
         self._update_summary()
         self.shown.emit(False)
@@ -119,6 +127,7 @@ class ChangesPanel(QWidget):
             return
         self._current = None
         self._saved = saved
+        self._changes = changes
         self.model.set_rows(changes)
         self._update_summary()
         self.shown.emit(True)

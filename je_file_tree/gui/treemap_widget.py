@@ -38,6 +38,7 @@ from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, 
 from je_file_tree.core.node import Node
 from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.core.treemap import Rect, Tile, layout
+from je_file_tree.gui.change_colours import ChangeColours
 from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.text_scale import text_scaled
@@ -59,14 +60,15 @@ CATEGORY_COLOURS: dict[str, str] = {
 _FOLDER_SHADES = (.10, .16, .22)  # text colour laid over the surface, by folder depth
 LEVELS = (1, 2, 3, 4, 8)  # 8: every level worth drawing
 DEFAULT_LEVELS = 2
-BY_TYPE, BY_FOLDER, BY_AGE = "type", "folder", "age"
-COLOUR_MODES = (BY_TYPE, BY_FOLDER, BY_AGE)
+BY_TYPE, BY_FOLDER, BY_AGE, BY_CHANGE = "type", "folder", "age", "change"
+COLOUR_MODES = (BY_TYPE, BY_FOLDER, BY_AGE, BY_CHANGE)
 _GOLDEN = 0.618033988749895  # hue step that keeps neighbouring folders apart
 MIN_SIDE = 14  # px: a tile smaller than this is hard to see or point at, so it joins its folder's group
 _GROUP_HATCH_ALPHA = 40
 _GAP = 1.0  # surface showing between neighbouring tiles
 _ROUND_MIN_SIDE = 8  # tiles at least this wide and tall get rounded corners
 _RADIUS = 2.0
+_OPENED_FOLDER = 130  # per cent: how much darker a folder is than its files where both have one colour
 _LABEL_MIN_WIDTH = 48
 _LABEL_MIN_HEIGHT = 16
 
@@ -121,6 +123,7 @@ class TreemapWidget(QWidget):
         self._levels = DEFAULT_LEVELS
         self._colours = BY_TYPE
         self.age_reference = time.time()
+        self.change_colours = ChangeColours()
         self._hues: dict[int, float] = {}
 
     @property
@@ -136,7 +139,7 @@ class TreemapWidget(QWidget):
 
     @property
     def colour_mode(self) -> str:
-        """File-type, top-folder or recorded modified-age colouring."""
+        """File-type, top-folder, recorded modified-age or change colouring."""
         return self._colours
 
     def set_colour_mode(self, mode: str) -> None:
@@ -337,6 +340,9 @@ class TreemapWidget(QWidget):
             return self._shades[node.depth % len(self._shades)] if node.is_dir else colour_for(node)
         if self._colours == BY_AGE:
             return age_colour(node, self.age_reference)
+        if self._colours == BY_CHANGE:
+            colour = self.change_colours.colour(node)
+            return colour.darker(_OPENED_FOLDER) if node.is_dir else colour  # its files show against it
         top = node
         while top.parent is not None and top.parent is not self._view_root:
             top = top.parent

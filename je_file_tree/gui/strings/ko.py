@@ -1981,4 +1981,16 @@ KO: dict[str, str] = {
     "settings_invalid": "사용할 수 있는 FileTree 설정 파일이 아닙니다. 아무 설정도 바꾸지 않았습니다.",
     "settings_same": "이미 이 설정을 사용하고 있습니다.",
     "settings_confirm": "설정 {count}개를 이 파일의 값으로 바꾸시겠습니까?",
+    "treemap_colours_change": "변화별",
+    "change_colour_new": "새로 생김",
+    "change_colour_grew_lot": "25% 넘게 커짐",
+    "change_colour_grew": "커짐",
+    "change_colour_same": "변화 없음",
+    "change_colour_shrank": "작아짐",
+    "change_colour_shrank_lot": "25% 넘게 작아짐",
+    "change_colour_none": "저장된 스캔과 비교하면 변화가 색으로 표시됩니다",
+    "change_colour_tip": (
+        "폴더는 저장된 스캔 이후의 변화로 색을 정합니다. 저장된 스캔은 폴더만 기록하므로"
+        " 파일은 들어 있는 폴더의 색을 따릅니다"
+    ),
 }
