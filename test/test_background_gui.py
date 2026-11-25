@@ -17,11 +17,15 @@ from je_file_tree.core.history import ScanHistory, load_recurring
 from je_file_tree.core.recurring import ProposalCancelledError
 from je_file_tree.gui.busy_notice import busy_text
 from je_file_tree.gui import app as gui_app, background_monitor as service, background_worker as workers
+from je_file_tree.gui import workspace as workspace_module
 from je_file_tree.gui.background_dialog import BackgroundDialog
 from je_file_tree.gui.app import create_workspace
 from je_file_tree.gui.history import configured_history
 from je_file_tree.gui.recurring_dialog import RecurringDialog
 from je_file_tree.gui.scan_worker import wait_for
+
+
+_CAPACITY_RUN = workers.CapacityWorker.run  # the fixture replaces it
 
 
 class _Tray(QSystemTrayIcon):
@@ -432,3 +436,55 @@ def test_invalid_scheduled_policy_refuses_dispatch_before_claim(monitored, tmp_p
     monitor.tick()
     assert monitor.scan is None and not monitored.settings.contains(service.ATTEMPTS_KEY)
     assert monitor.error and not monitor.reports
+
+
+def test_quitting_from_the_tray_ends_the_event_loop(monitored, qapp, monkeypatch):
+    quits = []
+    monkeypatch.setattr(workspace_module.QApplication, "quit", lambda: quits.append(monitored._close_ready))
+    monitored.show()
+    monitor = _enable(monitored)
+    monitored.close()
+    assert monitored.isHidden()
+    monitor.quit_action.trigger()
+    _wait(qapp, lambda: monitored._close_ready)
+    assert quits == [True]
+
+
+def test_closing_a_visible_window_leaves_ending_to_the_toolkit(monitored, qapp, monkeypatch):
+    quits = []
+    monkeypatch.setattr(workspace_module.QApplication, "quit", lambda: quits.append(1))
+    monitored.show()
+    monitored.quit_application()
+    _wait(qapp, lambda: monitored._close_ready)
+    assert not quits and monitored.isHidden()
+
+
+def test_a_read_only_volume_is_not_short_of_space(monitored, qapp, monkeypatch):
+    class Storage:
+        def __init__(self, root, read_only):
+            self._root, self._read_only = root, read_only
+
+        def refresh(self):
+            pass
+
+        def isValid(self):  # noqa: N802 - Qt API
+            return True
+
+        isReady = isValid  # noqa: N815 - Qt API
+
+        def isReadOnly(self):  # noqa: N802 - Qt API
+            return self._read_only
+
+        def bytesTotal(self):  # noqa: N802 - Qt API
+            return 4_000_000_000
+
+        def bytesAvailable(self):  # noqa: N802 - Qt API
+            return 0
+
+        def rootPath(self):  # noqa: N802 - Qt API
+            return self._root
+
+    monkeypatch.setattr(workers.QStorageInfo, "mountedVolumes", lambda: [Storage("D:/", True), Storage("C:/", False)])
+    worker = workers.CapacityWorker(monitored)
+    _CAPACITY_RUN(worker)
+    assert not worker.error and [row.root for row in worker.rows] == ["C:/"]

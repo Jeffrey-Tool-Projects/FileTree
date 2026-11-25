@@ -1899,4 +1899,7 @@ ZH_TW: dict[str, str] = {
     "remote_counts": "{folders} 個資料夾、{files} 個檔案、{size}；無法讀取的資料夾：{unread}",
     "remote_done": "{label}\n{counts}；{duration}。大小是檔案大小，SFTP 不提供磁碟佔用量。",
     "remote_saved": "已儲存到 {path}",
+    "namespace_reason_folder_required": "只能將一般資料夾移到其他磁碟",
+    "namespace_reason_copy_unsupported": "含有連結、只存在雲端的檔案或特殊檔案，或是掛載點",
+    "namespace_reason_directory_streams": "有資料夾帶有其他資料串流，複製會遺失",
 }

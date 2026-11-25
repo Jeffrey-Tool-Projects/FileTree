@@ -1900,4 +1900,7 @@ ZH_CN: dict[str, str] = {
     "remote_counts": "{folders} 个文件夹、{files} 个文件、{size}；无法读取的文件夹：{unread}",
     "remote_done": "{label}\n{counts}；{duration}。大小是文件大小，SFTP 不提供磁盘占用量。",
     "remote_saved": "已保存到 {path}",
+    "namespace_reason_folder_required": "只能将普通文件夹移到其他磁盘",
+    "namespace_reason_copy_unsupported": "含有链接、仅存在云端的文件或特殊文件，或是挂载点",
+    "namespace_reason_directory_streams": "有文件夹带有其他数据流，复制会丢失",
 }

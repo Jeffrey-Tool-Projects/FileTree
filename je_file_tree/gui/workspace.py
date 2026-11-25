@@ -6,7 +6,17 @@ import os
 
 from PySide6.QtCore import QByteArray, QSettings, QThread, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
-from PySide6.QtWidgets import QDialog, QHBoxLayout, QLabel, QMainWindow, QMessageBox, QTabWidget, QToolButton, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QTabWidget,
+    QToolButton,
+    QWidget,
+)
 
 from je_file_tree.gui.i18n import current_language, tr
 from je_file_tree.gui.locale_font import apply_language_font
@@ -382,4 +392,7 @@ class ScanWorkspace(QMainWindow):
         self.background.shutdown()
         self.settings.setValue("workspace_geometry", self.saveGeometry())
         self._close_ready = True
+        hidden = not self.isVisible()
         self.close()
+        if hidden:  # in the tray: closing a hidden window does not count as closing the last one, so nothing would end
+            QApplication.quit()

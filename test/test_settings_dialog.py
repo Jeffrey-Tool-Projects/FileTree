@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from PySide6.QtCore import QSignalBlocker
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from test_gui import window as window  # noqa: PLC0414 - explicit pytest fixture re-export
@@ -11,6 +12,8 @@ from je_file_tree.gui.change_watch import ENABLED_KEY as FOLLOW_KEY
 from je_file_tree.gui.settings_dialog import SettingsDialog, apply_settings
 from je_file_tree.gui.text_scale import text_percent
 from je_file_tree.gui.themes import theme_controller
+
+pytestmark = pytest.mark.usefixtures("closed_windows_gone")
 
 
 @pytest.fixture
@@ -161,3 +164,19 @@ def test_applied_settings_reach_the_window_and_are_remembered(window, dialog):
     assert not window._actions["hidden"].isChecked() and window.exclusions() == ["cache"]
     assert window._scan_options().workers == 2 and theme_controller().choice == "light" and text_percent() == 110
     assert i18n.current_language() == "ko" and window.settings.value("language") == "ko"
+
+
+def test_a_preset_loaded_from_the_window_is_shown_and_never_inverted(window, dialog, monkeypatch):
+    box, action = dialog.boxes["hidden"], window._actions["hidden"]
+    assert box.isChecked() and action.isChecked()
+
+    def load():
+        with QSignalBlocker(action):
+            action.setChecked(False)
+
+    monkeypatch.setattr(window, "_run_action", lambda key, _run: load() if key == "scan_presets" else None)
+    dialog.buttons["scan_presets"].click()
+    assert not box.isChecked()
+    box.setChecked(True)  # out of step for any other reason: a click still means what it shows
+    box.click()
+    assert not box.isChecked() and not action.isChecked()

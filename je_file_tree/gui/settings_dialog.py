@@ -157,7 +157,7 @@ class SettingsDialog(QDialog):
             button.setProperty("role", "list")
             button.setToolTip(actions[key].toolTip())
             button.setEnabled(actions[key].isEnabled())
-            button.clicked.connect(actions[key].trigger)
+            button.clicked.connect(lambda _checked=False, action=actions[key]: self._open(action))
             self.buttons[key] = button
             self._add_row(box, button, _words(actions[key]))
 
@@ -165,7 +165,7 @@ class SettingsDialog(QDialog):
         box = QCheckBox(action.text())
         box.setChecked(action.isChecked())
         box.setEnabled(action.isEnabled())
-        box.clicked.connect(action.trigger)
+        box.clicked.connect(lambda checked: action.isChecked() == checked or action.trigger())
         box.setAccessibleDescription(action.toolTip())
         hint = QLabel(action.toolTip())
         hint.setWordWrap(True)
@@ -179,6 +179,12 @@ class SettingsDialog(QDialog):
         column.addWidget(hint)
         self.boxes[key] = box
         return row
+
+    def _open(self, action: QAction) -> None:
+        """Open a command's own window; a scan preset chosen there changes the boxes shown here."""
+        action.trigger()
+        for key, box in self.boxes.items():
+            box.setChecked(self.window_._actions[key].isChecked())
 
     def _filter(self, text: str) -> None:
         words = text.casefold().split()

@@ -25,6 +25,7 @@ from je_file_tree.core.permanent_delete import DeleteResult
 from je_file_tree.core.protected import protected_places, protection_of
 from je_file_tree.core.system_files import system_file
 from je_file_tree.gui import elevation, file_actions, shell_integration
+from je_file_tree.gui.bin_dialog import BinDialog
 from je_file_tree.gui.bin_labels import BinLabels
 from je_file_tree.gui.busy_notice import show_busy
 from je_file_tree.gui.change_watch import FollowChanges
@@ -173,6 +174,7 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
     def _init_operation_workers(self) -> None:
         self._trash_worker: TrashWorker | None = None
         self._delete_worker: PermanentDeleteWorker | None = None
+        self._unreported: list[Callable[[], object]] = []  # noticed while closing, shown before the window goes
 
     def _init_scan_state(self) -> None:
         self._budget_store = None
@@ -598,6 +600,18 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         if wait:
             wait_for(worker)
             self._delete_worker = None
+            result = worker.result
+            if result is not None:
+                self._unreported.append(lambda: self._report_delete(worker, result))
+
+    def _report_delete(self, worker: PermanentDeleteWorker, result: DeleteResult) -> None:
+        """Every refusal, failure and unrecorded outcome stays visible."""
+        rows = report_rows(result)
+        if rows:
+            self._show_entry_report(PermanentReportDialog(rows, report_summary(result, self._unit), self))
+        if worker.journal_errors:
+            QMessageBox.warning(self, tr("action_recent_actions"),
+                                tr("journal_write_failed", reason="\n".join(worker.journal_errors)))
 
     def _discard_delete(self, worker: PermanentDeleteWorker) -> None:
         """A batch stopped before it started deleted nothing; report every entry as left in place."""
@@ -612,6 +626,7 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         self._delete_worker = None
         self.refresh_bin_labels()
         if self._closing:
+            self._unreported.append(lambda: self._report_delete(worker, result))
             return
         self.results.setEnabled(True)
         self._update_actions()
@@ -619,14 +634,8 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         shown = False  # whether the results already show everything this batch did
         if result.removed and self._drop_removed(result.removed, worker.removed_summary, worker.counted_plan):
             shown = not (result.failed or result.refused or result.kept)
-        summary = report_summary(result, self._unit)
-        rows = report_rows(result)
-        if rows:
-            self._show_entry_report(PermanentReportDialog(rows, summary, self))
-        if worker.journal_errors:
-            QMessageBox.warning(self, tr("action_recent_actions"),
-                                tr("journal_write_failed", reason="\n".join(worker.journal_errors)))
-        self.statusBar().showMessage(summary, STATUS_TIMEOUT_MS)
+        self._report_delete(worker, result)
+        self.statusBar().showMessage(report_summary(result, self._unit), STATUS_TIMEOUT_MS)
         self._update_actions()
         self._follow.resume()  # the results show the removals; anything else is offered just below
         self._tell_peers(changed)
@@ -712,7 +721,7 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         self._trash_worker = None
         self.refresh_bin_labels()
         if self._closing:
-            self._report_copy_errors(result)
+            self._unreported.append(lambda: self._report_trash(result))
             return
         self.results.setEnabled(True)
         self._update_actions()
@@ -730,14 +739,7 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         if moved and self._drop_removed(moved, worker.removed_summary if worker is not None else None,
                                         worker.counted_plan if worker is not None else None):
             shown = not (failed or result.skipped or result.copy_errors)
-        if failed:
-            self._show_failed(result)
-        if result.skipped:
-            self._show_skipped(result.skipped)
-        if result.journal_errors:
-            QMessageBox.warning(self, tr("action_recent_actions"),
-                                tr("journal_write_failed", reason="\n".join(result.journal_errors)))
-        self._report_copy_errors(result)
+        self._report_trash(result, skipped=True)
         done = tr("trash_batch_done", moved=format_count(len(moved)), skipped=format_count(len(result.skipped)),
                   failed=format_count(len(failed)), size=moved_size)
         unavailable = self._undo.offer(worker)
@@ -747,6 +749,18 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         self._tell_peers(changed)
         if not shown:
             self._mark_changed(result.parents)
+
+    def _report_trash(self, result: MoveResult | None, *, skipped: bool = False) -> None:
+        """Failed moves, unrecorded outcomes and copies that could not be finished."""
+        if result is None:
+            return
+        self._show_failed(result)
+        if skipped and result.skipped:
+            self._show_skipped(result.skipped)
+        if result.journal_errors:
+            QMessageBox.warning(self, tr("action_recent_actions"),
+                                tr("journal_write_failed", reason="\n".join(result.journal_errors)))
+        self._report_copy_errors(result)
 
     def _show_failed(self, result: MoveResult) -> None:
         """Keep brief warnings; retain all large/limited diagnostic details in a lazy report."""
@@ -1021,8 +1035,16 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
 
     def _finish_close(self) -> None:
         self._shutdown(wait=True)
+        while self._unreported:
+            self._unreported.pop(0)()
         self._close_ready = True
         self.shutdown_finished.emit()
+
+    def _report_bin(self, reason: str) -> None:
+        report = QMessageBox(QMessageBox.Icon.Warning, tr("bin_empty"), "", QMessageBox.StandardButton.Ok, self)
+        report.setTextFormat(Qt.TextFormat.PlainText)
+        report.setText(tr("bin_failed", reason=reason))
+        report.exec()
 
     def _shutdown(self, *, wait: bool) -> None:
         """Invalidate all replies; optional joins are used only after the closing fence has completed."""
@@ -1038,6 +1060,8 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
         for dialog in (*self._path_dialogs, *self._settings_dialogs):
             dialog.shutdown(wait=wait)
             if wait:
+                if isinstance(dialog, BinDialog) and dialog.last_error:
+                    self._unreported.append(lambda reason=dialog.last_error: self._report_bin(reason))
                 dialog.reject()
         self._bin_labels.shutdown(wait=wait)
         if self._trash_worker is not None:
@@ -1046,7 +1070,7 @@ class MainWindow(ScanControls, ExportActions, DialogActions, WindowMenus, QMainW
             if wait:
                 wait_for(worker)
                 self._trash_worker = None
-                self._report_copy_errors(worker.result)
+                self._unreported.append(lambda: self._report_trash(worker.result))
         self._stop_delete(wait=wait)
         self.stop_scan(wait=wait)
         for worker in self._scan_workers.copy():

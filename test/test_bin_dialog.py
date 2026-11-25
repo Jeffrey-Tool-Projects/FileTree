@@ -226,3 +226,41 @@ def test_finder_mount_provider_refuses_unavailable_or_omitted_roots(monkeypatch)
     monkeypatch.setattr(bins, "MAX_ROOTS", 1)
     with pytest.raises(ValueError, match="complete"):
         bins.finder_roots()
+
+
+def test_an_error_after_closing_is_kept_for_the_window(qapp, monkeypatch):
+    dialog = _dialog(qapp, monkeypatch)
+    entered, release = threading.Event(), threading.Event()
+
+    def fail(*_args):
+        entered.set()
+        release.wait(10)
+        raise OSError("partly emptied")
+
+    monkeypatch.setattr(bins, "ask_bin", lambda *_args: QMessageBox.StandardButton.Yes)
+    monkeypatch.setattr(bins, "empty_windows_bin", fail)
+    dialog.empty_selected()
+    _wait(qapp, entered.is_set)
+    dialog.shutdown(wait=False)
+    release.set()
+    dialog.shutdown(wait=True)
+    assert dialog.last_error == "partly emptied" and dialog._empty_worker is None
+    dialog.reject()
+    dialog.deleteLater()
+
+
+def test_closing_before_the_call_empties_nothing_and_can_go(qapp, monkeypatch):
+    dialog = _dialog(qapp, monkeypatch)
+    queued = []
+    monkeypatch.setattr(bins, "ask_bin", lambda *_args: QMessageBox.StandardButton.Yes)
+    monkeypatch.setattr(bins, "empty_windows_bin", lambda *_args: pytest.fail("emptied"))
+    monkeypatch.setattr(bins, "queue_worker", lambda *args: queued.append(args))
+    dialog.empty_selected()
+    assert dialog._empty_worker is not None
+    dialog.shutdown(wait=False)
+    _worker, current, _parent, discarded = queued[0]
+    assert not current()
+    discarded()
+    assert dialog._empty_worker is None
+    dialog.reject()
+    dialog.deleteLater()

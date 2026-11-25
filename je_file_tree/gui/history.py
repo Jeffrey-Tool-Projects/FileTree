@@ -648,9 +648,10 @@ class HistoryDialog(WorkerDialog):
     def stop(self) -> None:
         """Cancel reading; partial replies never replace the chart or enable comparison."""
         self.worker.cancel.set()
-        self.compare_button.setEnabled(False)
+        self._running = False
         self.stop_button.setEnabled(False)
         self.status.setText(tr("scan_cancelled"))
+        self._selection()
 
     def shutdown(self, *, wait: bool = True) -> None:
         """Reject queued replies and join the owned worker before destroying this dialog."""

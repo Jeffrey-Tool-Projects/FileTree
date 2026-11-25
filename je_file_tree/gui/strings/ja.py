@@ -2365,4 +2365,13 @@ JA: dict[str, str] = {
         "分かりません。"
     ),
     "remote_saved": "{path} に保存しました",
+    "namespace_reason_folder_required": "別のドライブへ移動できるのは通常のフォルダーだけです",
+    "namespace_reason_copy_unsupported": (
+        "リンク、オンラインのみのファイル、特殊なファイルを含むか、マウン"
+        "ト ポイントです"
+    ),
+    "namespace_reason_directory_streams": (
+        "追加のデータ ストリームを持つフォルダーがあり、コピーでは失われ"
+        "ます"
+    ),
 }

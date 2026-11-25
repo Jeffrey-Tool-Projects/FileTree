@@ -98,11 +98,12 @@ class MultiScanDialog(WorkerDialog):
 
     def _buttons(self) -> None:
         self.add.setEnabled(self.list.count() + len(self._pending) < MAX_ROOTS)
-        self.buttons.button(QDialogButtonBox.StandardButton.Ok).setEnabled(self.list.count() > 0)
+        self.buttons.button(QDialogButtonBox.StandardButton.Ok).setEnabled(
+            self.list.count() > 0 and not self._pending)
 
     def accept(self) -> None:
-        """Freeze actual source names; no scan starts from an empty list."""
-        if self.list.count():
+        """Freeze actual source names; no scan starts from an empty list or while a folder is still being checked."""
+        if self.list.count() and not self._pending:
             self.roots = tuple(self.list.item(index).text() for index in range(self.list.count()))
             super().accept()
 

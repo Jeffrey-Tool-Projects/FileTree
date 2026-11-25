@@ -38,7 +38,8 @@ class CapacityWorker(QThread):
                 if self.cancel.is_set():
                     return
                 storage.refresh()
-                if not storage.isValid() or not storage.isReady() or storage.bytesTotal() <= 0:
+                if (not storage.isValid() or not storage.isReady() or storage.bytesTotal() <= 0
+                        or storage.isReadOnly()):  # a disc image is always full
                     continue
                 if len(rows) >= MAX_VOLUMES:
                     raise ValueError("Too many mounted background capacity scopes")

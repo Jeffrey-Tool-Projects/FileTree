@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-26 | 2026-11-26 | 全專案審查第五輪：對話框與服務 | #done #fix #review #gui #i18n | [2026-11-b](2026-11-b.md) |
 | U-20261126-25 | 2026-11-26 | 全專案審查第四輪：原生讀取與變更追蹤 | #done #fix #review #native | [2026-11-b](2026-11-b.md) |
 | U-20261126-24 | 2026-11-26 | 全專案審查第三輪：核心模組 | #done #fix #review | [2026-11-b](2026-11-b.md) |
 | U-20261126-23 | 2026-11-26 | 全專案審查第二輪：測試防護、工具與發行流程 | #done #fix #review #test #ci #security | [2026-11-b](2026-11-b.md) |
