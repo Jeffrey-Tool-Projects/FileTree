@@ -731,7 +731,12 @@ scan/live-monitor readers while settings are open; shutdown retains both kinds u
 colour scheme (re-applied when it changes), use `fluent_style`: Fluent tokens fitted to the platform
 accent captured at start-up, a complete palette, `FluentStyle` (Fusion with drawn close/clear glyphs)
 and one application style sheet; widgets opt in through `role` properties or object names and carry
-no style sheet of their own. System under high contrast keeps the native style and an empty palette.
+no style sheet of their own. The contrast each token keeps (`TEXT_CONTRAST`, `DISABLED_CONTRAST`,
+`EDGE_CONTRAST`, `DIVIDER_CONTRAST`) is declared beside the surfaces and tested for every accent;
+controls are outlined with `stroke_strong`, containers with `stroke`. `glyphs` draws the marks of check
+boxes, radio buttons, menus and arrows once and registers them as an in-memory Qt resource the sheet
+addresses: an override of `drawPrimitive` would cost every painted cell. `delegates.bar_colour` fades
+share bars until the number on them is readable. System under high contrast keeps the native style and an empty palette.
 Explicit themes also request the matching platform colour scheme (Qt 6.8+) for the title bar.
 ThemeMenu persists the choice and startup restores it before constructing windows. Palette/style events discard chart caches.
 `text_scale` holds the chosen interface text size (no dependencies, so layout code can ask it);

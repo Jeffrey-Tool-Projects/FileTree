@@ -32,7 +32,7 @@ Use arrow keys to select budget rows and Tab to reach the editor. Reopening sear
 - **Track a folder over time**: choose a loaded folder and a recent or custom period in Scan history. Select chart points or rows to read sizes, signed changes and unknown reasons. In the loaded-folder picker, Enter opens a folder; Use this folder confirms the current folder.
 - **Save reports**: export results to CSV, JSON or Excel. Large selected-list copies prepare rows and text in batches; a newer copy in any list replaces the pending one.
 - **Use your language**: switch between English, Traditional Chinese, Simplified Chinese, Japanese and Korean.
-- **Choose the text size**: View → Text size makes every text in FileTree larger or smaller, from 90% to 200%, and remembers it. The help opens in larger text.
+- **Choose the text size**: View → Text size makes every text in FileTree larger or smaller, from 90% to 200%, and remembers it. The help opens in larger text, and light and dark colours keep text and controls at high contrast.
 - **Explorer folder menu (Windows)**: add Scan with FileTree from Options. Settings stay responsive; an active Save finishes before closing.
 
 Applied search conditions stay above the results. Remove one condition or clear them all, and choose dates from a calendar.

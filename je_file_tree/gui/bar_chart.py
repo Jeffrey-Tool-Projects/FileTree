@@ -31,7 +31,7 @@ _NAME_MAX = 280
 _VALUE_WIDTH = 150
 _GAP = 8
 _FOLDER_COLOUR = "#5b8def"
-_REST_COLOUR = "#9a9a9a"
+_REST_COLOUR = "#8f8f8f"
 
 
 def bar_colour(node: Node) -> QColor:

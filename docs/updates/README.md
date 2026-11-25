@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261125-02 | 2026-11-25 | 提高淺色與深色主題的對比，重畫核取方塊與箭頭 | #feature #gui #theme #accessibility | [2026-11-b](2026-11-b.md) |
 | U-20261125-01 | 2026-11-25 | 新增「文字大小」設定，使用說明改用較大的文字 | #feature #gui #i18n #accessibility | [2026-11-b](2026-11-b.md) |
 | U-20261120-04 | 2026-11-20 | 修正兩個偶爾失敗的測試，以及只在 Windows 能通過的名稱查詢測試 | #test #ci | [2026-11](2026-11.md) |
 | U-20261120-03 | 2026-11-20 | 「跟隨變更」在操作期間不中斷、硬連結只讀相關資料夾，並支援 macOS | #feature #perf #gui #macos | [2026-11](2026-11.md) |

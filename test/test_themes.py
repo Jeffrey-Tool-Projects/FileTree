@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QApplication, QLabel, QStyle, QWidget
 
 from test_gui import window as window  # noqa: PLC0414 - explicit pytest fixture re-export
 from je_file_tree.core.scanner import scan
+from je_file_tree.gui.advice_text import ADVICE_COLOURS
 from je_file_tree.gui.age_colours import AGE_COLOURS, UNKNOWN_AGE_COLOUR
 from je_file_tree.gui.app import create_window
 from je_file_tree.gui.charts import BARS
@@ -14,7 +15,14 @@ from je_file_tree.gui.colours import contrast, readable_ink
 from je_file_tree.gui.main_window import RESULTS_PAGE
 from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui import themes
-from je_file_tree.gui.fluent_style import FluentStyle, tokens_for
+from je_file_tree.gui.fluent_style import (
+    DISABLED_CONTRAST,
+    DIVIDER_CONTRAST,
+    EDGE_CONTRAST,
+    TEXT_CONTRAST,
+    FluentStyle,
+    tokens_for,
+)
 from je_file_tree.gui.themes import NATIVE, theme_controller, theme_palette
 from je_file_tree.gui.treemap_widget import CATEGORY_COLOURS
 
@@ -94,15 +102,29 @@ def test_platform_scheme_changes_reapply_only_the_system_theme(window, qapp, mon
 def test_tokens_keep_wcag_contrast_for_any_platform_accent(scheme, accent) -> None:
     tokens = tokens_for(scheme, accent)
     colour = {name: QColor(getattr(tokens, name)) for name in tokens.__slots__ if name != 'scheme'}
-    assert contrast(colour['accent'], colour['card']) >= 3  # controls and selection markers
-    assert contrast(colour['link'], colour['card']) >= 4.5
+    assert contrast(colour['accent'], colour['card']) >= 4.5  # selection markers and checked boxes
     assert contrast(colour['on_accent'], colour['accent']) >= 4.5
-    for surface in ('window', 'card', 'control', 'selection'):
-        assert contrast(colour['text'], colour[surface]) >= 4.5, surface
+    for surface in ('window', 'card', 'subtle', 'control', 'control_hover', 'control_pressed', 'selection'):
+        assert contrast(colour['text'], colour[surface]) >= TEXT_CONTRAST, surface
+    for surface in ('window', 'card', 'subtle', 'control', 'control_hover'):
+        assert contrast(colour['text_secondary'], colour[surface]) >= TEXT_CONTRAST, surface
     for surface in ('window', 'card', 'subtle'):
-        assert contrast(colour['text_secondary'], colour[surface]) >= 4.5, surface
         for status in ('success', 'caution', 'link'):  # state chips sit on the subtle surface
-            assert contrast(colour[status], colour[surface]) >= 4.5, (status, surface)
+            assert contrast(colour[status], colour[surface]) >= TEXT_CONTRAST, (status, surface)
+    for surface in ('window', 'card', 'subtle', 'control'):
+        assert contrast(colour['text_disabled'], colour[surface]) >= DISABLED_CONTRAST, surface
+    for surface in ('window', 'card', 'control'):
+        for edge in ('stroke_strong', 'scrollbar'):
+            assert contrast(colour[edge], colour[surface]) >= EDGE_CONTRAST, (edge, surface)
+    for surface in ('window', 'card'):
+        assert contrast(colour['stroke'], colour[surface]) >= DIVIDER_CONTRAST, surface
+    assert contrast(colour['selection'], colour['card']) >= DIVIDER_CONTRAST
+
+
+@pytest.mark.parametrize('scheme', ['light', 'dark'])
+@pytest.mark.parametrize('colour', [*CATEGORY_COLOURS.values(), *ADVICE_COLOURS.values()])
+def test_file_type_and_advice_colours_stand_out_from_the_surface(scheme, colour) -> None:
+    assert contrast(QColor(colour), QColor(tokens_for(scheme).card)) >= EDGE_CONTRAST
 
 
 def test_widgets_carry_no_style_sheet_of_their_own(window, qapp, sample_tree) -> None:

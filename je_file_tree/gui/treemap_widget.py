@@ -48,13 +48,13 @@ from je_file_tree.gui.colours import blend, readable_ink
 # that read on light and dark surfaces alike; labels pick black or white by contrast.
 CATEGORY_COLOURS: dict[str, str] = {
     "images": "#3fa34d",
-    "video": "#e0a526",
+    "video": "#be8912",
     "audio": "#8e6cc8",
     "documents": "#3b82c4",
-    "archives": "#e07a3a",
+    "archives": "#dc7434",
     "code": "#1fa2a8",
     "programs": "#d9534f",
-    "other": "#9a8f80",
+    "other": "#958a7b",
 }
 _FOLDER_SHADES = (.10, .16, .22)  # text colour laid over the surface, by folder depth
 LEVELS = (1, 2, 3, 4, 8)  # 8: every level worth drawing
