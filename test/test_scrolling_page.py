@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 from test_gui import window as window  # noqa: PLC0414 - explicit pytest fixture re-export
 from je_file_tree.core.scanner import scan
-from je_file_tree.gui.main_window import RESULTS_PAGE
+from je_file_tree.gui.window_settings import RESULTS_PAGE
 from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui.scrolling_page import ScrollingPage
 

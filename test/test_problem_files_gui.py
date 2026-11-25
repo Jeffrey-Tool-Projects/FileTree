@@ -6,7 +6,7 @@ from test_gui import _wait, window as window  # noqa: PLC0414 - explicit pytest 
 from je_file_tree.core.node import Node
 from je_file_tree.core.problem_files import BAD_NAME, EMPTY
 from je_file_tree.core.scanner import scan
-from je_file_tree.gui import i18n, main_window
+from je_file_tree.gui import i18n, window_dialogs
 from je_file_tree.gui.problem_files import ProblemFilesDialog
 from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui.tree_model import NODE_ROLE
@@ -52,7 +52,7 @@ def test_the_window_opens_it_for_a_finished_scan_and_selects_the_choice(window, 
         opened.append(dialog)
         dialog.selected.emit(window.results.tree_model.root.children[0])
         return 0
-    monkeypatch.setattr(main_window.ProblemFilesDialog, "exec", choose)
+    monkeypatch.setattr(window_dialogs.ProblemFilesDialog, "exec", choose)
     window.show_problem_files()
     assert opened == []
     window.results.show_outcome(analyse(scan(sample_tree)))

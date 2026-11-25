@@ -9,12 +9,12 @@ from PySide6.QtTest import QTest
 from je_file_tree.core.folder_budgets import BudgetBatch, BudgetObservation
 from je_file_tree.core.node import Node
 from je_file_tree.core.scanner import ScanResult
-from je_file_tree.gui import history, main_window
+from je_file_tree.gui import history, window_dialogs
 from je_file_tree.gui.app import create_workspace
 from je_file_tree.gui.folder_budget_dialog import FolderBudgetDialog
 from je_file_tree.gui.folder_budget_store import FolderBudgetStore
 from je_file_tree.gui.i18n import set_language, tr
-from je_file_tree.gui.main_window import RESULTS_PAGE
+from je_file_tree.gui.window_settings import RESULTS_PAGE
 from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui.search_ranges import exact_bytes
 from test_gui import _wait
@@ -206,7 +206,7 @@ def test_history_uses_one_query_and_retains_current_tab_selection_scroll(workspa
         assert dialog.folder.text() == os.path.relpath(folder.path, root.path)
         dialog.reject()
         return 0
-    monkeypatch.setattr(main_window.HistoryDialog, 'exec', inspect)
+    monkeypatch.setattr(window_dialogs.HistoryDialog, 'exec', inspect)
     before = second.results.tree.verticalScrollBar().value()
     details.history_requested.emit()
     assert len(dialogs) == len(queries) == 1

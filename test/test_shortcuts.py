@@ -9,7 +9,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QDialog
 
 from test_gui import window as window  # noqa: PLC0414 - explicit pytest fixture re-export
-from je_file_tree.gui import i18n, main_window
+from je_file_tree.gui import i18n, window_dialogs
 from je_file_tree.gui.app import create_window
 from je_file_tree.gui.command_palette import CommandPalette, ShortcutsDialog, commands, plain
 from je_file_tree.gui.shortcuts import FIXED, SHORTCUTS_KEY, TAKEN, load, shortcut_controller, usable
@@ -128,7 +128,7 @@ def test_typing_narrows_and_enter_runs_the_command_after_closing(window, monkeyp
         dialog.box.setText(plain(window._actions["gentle"].text()))
         QTest.keyClick(dialog.box, Qt.Key.Key_Return)
         return dialog.result()
-    monkeypatch.setattr(main_window.CommandPalette, "exec", choose)
+    monkeypatch.setattr(window_dialogs.CommandPalette, "exec", choose)
     before = window._actions["gentle"].isChecked()
     window.show_palette()
     assert window._actions["gentle"].isChecked() != before
@@ -137,7 +137,7 @@ def test_typing_narrows_and_enter_runs_the_command_after_closing(window, monkeyp
 
 
 def test_a_cancelled_finder_runs_nothing(window, monkeypatch):
-    monkeypatch.setattr(main_window.CommandPalette, "exec", lambda _dialog: QDialog.DialogCode.Rejected)
+    monkeypatch.setattr(window_dialogs.CommandPalette, "exec", lambda _dialog: QDialog.DialogCode.Rejected)
     monkeypatch.setattr(window._actions["gentle"], "trigger", lambda: pytest.fail("nothing runs"), raising=False)
     window.show_palette()
 

@@ -116,7 +116,7 @@ def test_invalid_option_metadata_is_refused_before_use(mutation):
 
 
 def test_restore_is_transient_and_explicit_edits_update_shared_runtime_defaults(workspace, qapp, monkeypatch, tmp_path):
-    from je_file_tree.gui import main_window
+    from je_file_tree.gui import window_dialogs, window_scans
     from PySide6.QtWidgets import QDialog
 
     settings = QSettings(str(tmp_path / "imported.ini"), QSettings.Format.IniFormat)
@@ -136,7 +136,7 @@ def test_restore_is_transient_and_explicit_edits_update_shared_runtime_defaults(
         assert settings.value("scan_workers") == 1 and settings.value("exclusions") == ["saved"]
         extra = restored.add_tab()
         assert extra._scan_options().workers == 3 and extra.exclusions() == ["imported"]
-        monkeypatch.setattr(main_window.QInputDialog, "getInt", lambda *_args: (7, True))
+        monkeypatch.setattr(window_scans.QInputDialog, "getInt", lambda *_args: (7, True))
         restored.current.configure_workers()
 
         class Editor:
@@ -149,7 +149,7 @@ def test_restore_is_transient_and_explicit_edits_update_shared_runtime_defaults(
             def patterns(self):
                 return ["changed"]
 
-        monkeypatch.setattr(main_window, "ExclusionsDialog", Editor)
+        monkeypatch.setattr(window_dialogs, "ExclusionsDialog", Editor)
         restored.current.edit_exclusions()
         assert all(window._scan_options().workers == 7 and window.exclusions() == ["changed"]
                    for window in restored.operations.windows)

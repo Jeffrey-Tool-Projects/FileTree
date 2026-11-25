@@ -131,7 +131,7 @@ shutdown. A queued finished callback is idempotent; closing readiness does not d
 | Layer | Path | Depends on | Holds |
 |---|---|---|---|
 | Core | `je_file_tree/core/` | standard library only | `node.py` (the tree), `scanner.py` (parallel scan), `allocation.py` (size on disk), `protected.py` (system and program folders), `advice.py` (whether an entry can go), `exclusions.py` (folders to skip), `analysis.py` (largest files, per-type and per-age totals), `search.py` (find by name), `duplicates.py` (same content), `cleanup.py` (clean-up suggestions), `reclaim.py` (free-up-space plan), `permanent_delete.py` (confirmed permanent removal), `compare.py` (against a saved scan), `pacing.py` (background work gives way to the window), `treemap.py` (layout), `sunburst.py` (rings), `tree_layout.py` (bounded hierarchy rows), `formatting.py`, `export.py` (CSV / JSON) |
-| GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `advice_text.py`, `reclaim_dialog.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings/` (one module per language), `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
+| GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py` + `window_*.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `advice_text.py`, `reclaim_dialog.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings/` (one module per language), `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
 | Entry script | `start_file_tree.py` | GUI | Starts the window from a source copy; the file Nuitka compiles |
 | Tools | `tools/` | GUI | `make_screenshots.py` (README pictures), `build_nuitka.py` (stand-alone builds, see `nuitka.md`) |
 | Tests | `test/` | both | one file per area; Qt tests on the offscreen platform |
@@ -777,6 +777,10 @@ candidates and reuses the similar-photo result, so they get no keeper, estimate 
 `core.remote_scan` runs the fixed system OpenSSH client (keys or agent only, known hosts only, no forwarding) and
 walks with several requests under way. Its tree stays private and is written as a saved scan, so remote paths
 never reach anything that acts on local entries.
+`MainWindow` is assembled from plain mixin classes without state of their own: `window_scans.ScanControls`,
+`window_exports.ExportActions`, `window_dialogs.DialogActions` and `window_menus.WindowMenus`; the setting keys
+they share are in `window_settings`. Moving to the Recycle Bin, permanent deletion, the context menu, start-up and
+closing stay in `main_window.py`, where the removal tests expect the single entry points.
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,
@@ -1687,7 +1691,7 @@ installs fonts; missing families retain normal system fallback across workspace 
   `qt_translation.CATALOGUES`, a README translation and a screenshot (`tools/make_screenshots.py`).
 - **A file-type group**: `analysis.CATEGORY_EXTENSIONS`, a colour in `treemap_widget.CATEGORY_COLOURS`
   and a `category_<name>` text in every language (tests check all five).
-- **An export format**: a function in `core/export.py` (atomic write) and an action in `main_window.py`.
+- **An export format**: a function in `core/export.py` (atomic write), its handler in `window_exports.py` and its action in `window_menus.py`.
 - **A result tab**: a widget added in `ResultsView._assemble`, fed from `ScanOutcome`.
 - **A chart view**: a widget with the treemap's interface, added to `charts.MODES` and `ChartStack`, with
   `chart_<mode>` and `chart_<mode>_tip` texts in every language (the mode button appears by itself).

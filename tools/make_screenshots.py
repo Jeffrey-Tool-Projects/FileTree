@@ -23,7 +23,7 @@ from je_file_tree.core.node import Node  # noqa: E402
 from je_file_tree.core.scanner import ScanResult  # noqa: E402
 from je_file_tree.gui.app import create_workspace  # noqa: E402
 from je_file_tree.gui.i18n import LANGUAGES  # noqa: E402
-from je_file_tree.gui.main_window import RESULTS_PAGE  # noqa: E402
+from je_file_tree.gui.window_settings import RESULTS_PAGE  # noqa: E402
 from je_file_tree.gui.scan_worker import analyse  # noqa: E402
 
 OUTPUT = ROOT / "docs" / "images"

@@ -10,7 +10,7 @@ from je_file_tree.core.scanner import scan
 from je_file_tree.gui import text_scale, window_fit
 from je_file_tree.gui.app import create_window
 from je_file_tree.gui.help_dialog import HelpDialog
-from je_file_tree.gui.main_window import RESULTS_PAGE
+from je_file_tree.gui.window_settings import RESULTS_PAGE
 from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui.text_size import neighbour, saved_text_size, text_size_controller
 from je_file_tree.gui.themes import theme_controller

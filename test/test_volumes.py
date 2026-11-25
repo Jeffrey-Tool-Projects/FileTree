@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QStyle, QStyleOptionViewItem
 
 from test_gui import _wait, window as window  # noqa: PLC0414 - explicit fixture re-export
 from je_file_tree.core.trash_size import TrashUsage
-from je_file_tree.gui import main_window as main_module
+from je_file_tree.gui import window_dialogs
 from je_file_tree.gui import volumes
 from je_file_tree.gui.tables import SORT_ROLE
 
@@ -122,7 +122,7 @@ def test_welcome_and_view_share_the_scan_root_controller(qapp, window, monkeypat
         _wait(qapp, lambda: dialog.proxy.rowCount() == 1)
         dialog._scan(dialog.proxy.index(0, 0))
         return 0
-    monkeypatch.setattr(main_module.VolumesDialog, "exec", execute)
+    monkeypatch.setattr(window_dialogs.VolumesDialog, "exec", execute)
     window._actions["volumes"].trigger()
     # A widget mouse event needs actual layout/viewport geometry, including after async drive discovery.
     window.setAttribute(Qt.WidgetAttribute.WA_DontShowOnScreen)

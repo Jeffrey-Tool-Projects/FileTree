@@ -41,11 +41,12 @@ from je_file_tree.core.protected import PROGRAMS, Protection
 from je_file_tree.core import scanner
 from je_file_tree.core.scanner import ScanCancelledError, ScanOptions, scan
 from je_file_tree.gui import file_actions, i18n, scan_worker
-from je_file_tree.gui import main_window as main_window_module
+from je_file_tree.gui import main_window as main_window_module, window_dialogs, window_scans, window_settings
 from je_file_tree.gui.app import create_window
 from je_file_tree.gui.elided_label import ElidedLabel
 from je_file_tree.gui.help_dialog import HelpDialog
-from je_file_tree.gui.main_window import RESULTS_PAGE, WELCOME_PAGE, MainWindow, _drop_paths
+from je_file_tree.gui.main_window import MainWindow, _drop_paths
+from je_file_tree.gui.window_settings import RESULTS_PAGE, WELCOME_PAGE
 from je_file_tree.gui.qt_translation import apply_qt_translation
 from je_file_tree.gui.results_view import (
     CHANGES_TAB,
@@ -385,7 +386,7 @@ def _gated_scan(monkeypatch: pytest.MonkeyPatch, root: Path) -> threading.Event:
         return real(folder, path, *rest)
 
     monkeypatch.setattr(scanner, "_read_folder", gated)
-    monkeypatch.setattr(main_window_module, "ScanOptions", functools.partial(ScanOptions, workers=1))
+    monkeypatch.setattr(window_scans, "ScanOptions", functools.partial(ScanOptions, workers=1))
     return gate
 
 
@@ -914,7 +915,7 @@ def test_exclusions_are_skipped_greyed_out_and_saved(window: MainWindow, qapp: Q
     assert index.data(Qt.ItemDataRole.ForegroundRole) is not None, "greyed out"
     assert window.results.problems_model.rowCount() == 0, "skipping is not a problem"
 
-    class Editing(main_window_module.ExclusionsDialog):
+    class Editing(window_dialogs.ExclusionsDialog):
         def exec(self) -> int:
             self.add("node_modules")
             self.add("NODE_MODULES")  # already listed, whatever the case
@@ -923,7 +924,7 @@ def test_exclusions_are_skipped_greyed_out_and_saved(window: MainWindow, qapp: Q
             self.remove_selected()  # photos goes
             return QDialog.DialogCode.Accepted
 
-    monkeypatch.setattr(main_window_module, "ExclusionsDialog", Editing)
+    monkeypatch.setattr(window_dialogs, "ExclusionsDialog", Editing)
     window.edit_exclusions()
     assert window.exclusions() == ["node_modules"]
     assert "1 exclusions saved" in window.statusBar().currentMessage()
@@ -1016,7 +1017,7 @@ def test_search_conditions_and_saved_searches(window: MainWindow, qapp: QApplica
     panel.delete_saved()
     assert json.loads(window.settings.value("saved_searches")) == {}
     window.settings.setValue("saved_searches", "not json")
-    assert main_window_module._saved_searches(window.settings) == {}, "a damaged setting counts as none"
+    assert window_settings.saved_searches(window.settings) == {}, "a damaged setting counts as none"
 
 
 def test_clean_up_suggestions_are_found_after_a_scan_and_follow_moves(

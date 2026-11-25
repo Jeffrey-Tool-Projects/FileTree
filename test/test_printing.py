@@ -13,7 +13,7 @@ from test_gui import _wait
 from test_gui import window as window  # noqa: PLC0414 - explicit pytest fixture re-export
 from je_file_tree.core.scanner import scan
 from je_file_tree.gui import printing
-from je_file_tree.gui import main_window as module
+from je_file_tree.gui import window_exports
 from je_file_tree.gui.printing import fit_view, save_view_pdf
 from je_file_tree.gui.scan_worker import ExportWorker, analyse, wait_for
 
@@ -75,12 +75,14 @@ def test_print_dialog_cancel_never_submits_a_job_and_accepted_job_uses_owned_pix
         window, tmp_path, monkeypatch) -> None:
     window.results.show_outcome(analyse(scan(tmp_path)))
     captured, printed = [], []
-    monkeypatch.setattr(module, "view_printer", lambda image: captured.append(image) or object())
-    monkeypatch.setattr(module, "print_view", lambda image, printer: printed.append(image))
-    monkeypatch.setattr(module, "QPrintDialog", lambda *args: SimpleNamespace(exec=lambda: QDialog.DialogCode.Rejected))
+    monkeypatch.setattr(window_exports, "view_printer", lambda image: captured.append(image) or object())
+    monkeypatch.setattr(window_exports, "print_view", lambda image, printer: printed.append(image))
+    monkeypatch.setattr(window_exports, "QPrintDialog",
+                        lambda *args: SimpleNamespace(exec=lambda: QDialog.DialogCode.Rejected))
     window.print_current_view()
     assert captured and not printed
-    monkeypatch.setattr(module, "QPrintDialog", lambda *args: SimpleNamespace(exec=lambda: QDialog.DialogCode.Accepted))
+    monkeypatch.setattr(window_exports, "QPrintDialog",
+                        lambda *args: SimpleNamespace(exec=lambda: QDialog.DialogCode.Accepted))
     window.print_current_view()
     assert printed == [captured[-1]] and not printed[0].isNull()
 

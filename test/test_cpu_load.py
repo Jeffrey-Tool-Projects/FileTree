@@ -8,7 +8,8 @@ from test_gui import window as window  # noqa: PLC0414 - explicit fixture re-exp
 from je_file_tree.core import cpu_load, scanner
 from je_file_tree.core.cpu_load import SAMPLE_SECONDS, WorkerGovernor
 from je_file_tree.core.scanner import ScanOptions, scan
-from je_file_tree.gui import main_window as main
+from je_file_tree.gui import window_scans
+from je_file_tree.gui.window_settings import AUTO_CPU_KEY, read_flag
 
 
 class _Machine:
@@ -161,7 +162,7 @@ def test_window_adjusts_by_default_and_remembers_the_choice(window):
     assert action.isCheckable() and action.isChecked() and window._scan_options().adaptive
     assert action in window._menus["menu_options"].actions()
     action.trigger()
-    assert not window._scan_options().adaptive and not main.read_flag(window.settings, main.AUTO_CPU_KEY, True)
-    assert window._scan_options().workers == main.DEFAULT_WORKERS
+    assert not window._scan_options().adaptive and not read_flag(window.settings, AUTO_CPU_KEY, True)
+    assert window._scan_options().workers == window_scans.DEFAULT_WORKERS
     action.trigger()
-    assert window._scan_options().adaptive and main.read_flag(window.settings, main.AUTO_CPU_KEY, False)
+    assert window._scan_options().adaptive and read_flag(window.settings, AUTO_CPU_KEY, False)

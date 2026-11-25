@@ -10,7 +10,7 @@ from test_gui import _wait, window as window  # noqa: PLC0414 - explicit pytest 
 from je_file_tree.core.dev_tools import TOOLS, dev_tools
 from je_file_tree.core.node import Node
 from je_file_tree.core.scanner import scan
-from je_file_tree.gui import i18n, main_window
+from je_file_tree.gui import i18n, window_dialogs
 from je_file_tree.gui.dev_tools import DevToolsDialog
 from je_file_tree.gui.scan_worker import analyse
 
@@ -114,7 +114,7 @@ def test_nothing_found_is_said(qapp):
 
 def test_the_window_opens_it_for_a_finished_scan(window, sample_tree, monkeypatch):
     opened = []
-    monkeypatch.setattr(main_window.DevToolsDialog, "exec", lambda dialog: opened.append(dialog) or 0)
+    monkeypatch.setattr(window_dialogs.DevToolsDialog, "exec", lambda dialog: opened.append(dialog) or 0)
     window.show_dev_tools()
     assert not opened
     window.results.show_outcome(analyse(scan(sample_tree)))

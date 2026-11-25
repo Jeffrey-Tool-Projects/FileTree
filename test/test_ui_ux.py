@@ -18,7 +18,7 @@ from je_file_tree.gui.colours import contrast
 from je_file_tree.gui.delegates import PathTailDelegate, bar_colour
 from je_file_tree.gui.empty_hint import EmptyHint
 from je_file_tree.gui.fluent_style import tokens_for
-from je_file_tree.gui.main_window import RESULTS_PAGE
+from je_file_tree.gui.window_settings import RESULTS_PAGE
 from je_file_tree.gui.results_view import CHANGES_TAB, CHART_TAB, LARGEST_TAB, PROBLEMS_TAB, SEARCH_TAB
 from je_file_tree.gui.result_overview import ResultOverview
 from je_file_tree.gui.scan_bar import ScanBar

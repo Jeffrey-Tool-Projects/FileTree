@@ -13,7 +13,8 @@ from je_file_tree.gui.chart_palette import palette_controller, saved_palette
 from je_file_tree.gui.i18n import LANGUAGES, match_language, set_language, tr
 from je_file_tree.gui.icon import app_icon, claim_taskbar_button
 from je_file_tree.gui import elevation
-from je_file_tree.gui.main_window import ASK_ADMIN_KEY, MainWindow, read_flag
+from je_file_tree.gui.main_window import MainWindow
+from je_file_tree.gui.window_settings import ASK_ADMIN_KEY, read_flag
 from je_file_tree.gui.qt_translation import apply_qt_translation
 from je_file_tree.gui.scan_worker import pace_workers
 from je_file_tree.gui.text_size import saved_text_size, text_size_controller

@@ -8,7 +8,8 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
-from je_file_tree.gui.main_window import MainWindow, WELCOME_PAGE
+from je_file_tree.gui.main_window import MainWindow
+from je_file_tree.gui.window_settings import WELCOME_PAGE
 
 
 def pump(app: QApplication, child: subprocess.Popen, *, seconds: float = 10) -> None:

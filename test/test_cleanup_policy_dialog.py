@@ -12,7 +12,7 @@ from je_file_tree.core.cleanup_policy import CleanupPolicy, RuleSetting, load_po
 from je_file_tree.core.scanner import scan
 from je_file_tree.gui.app import create_window
 from je_file_tree.gui.cleanup_policy_dialog import CleanupPolicyDialog
-from je_file_tree.gui.main_window import CLEANUP_POLICY_KEY
+from je_file_tree.gui.window_settings import CLEANUP_POLICY_KEY
 
 
 def test_preview_requires_new_validation_after_every_edit(qapp, tmp_path) -> None:

@@ -15,7 +15,7 @@ from test_gui import window as window  # noqa: PLC0414 - explicit pytest fixture
 from je_file_tree.core.export import export_table_csv
 from je_file_tree.core.scanner import scan
 from je_file_tree.gui.list_transfer import ListCapture, ListStream, copy_table, install_copy
-from je_file_tree.gui.main_window import RESULTS_PAGE
+from je_file_tree.gui.window_settings import RESULTS_PAGE
 from je_file_tree.gui.results_view import AGE_TAB, LARGEST_TAB, SEARCH_TAB, TYPES_TAB
 from je_file_tree.gui.scan_worker import ExportWorker, analyse, wait_for
 

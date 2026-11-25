@@ -12,7 +12,7 @@ from je_file_tree.gui.age_colours import AGE_COLOURS, UNKNOWN_AGE_COLOUR
 from je_file_tree.gui.app import create_window
 from je_file_tree.gui.charts import BARS
 from je_file_tree.gui.colours import contrast, readable_ink
-from je_file_tree.gui.main_window import RESULTS_PAGE
+from je_file_tree.gui.window_settings import RESULTS_PAGE
 from je_file_tree.gui.scan_worker import analyse
 from je_file_tree.gui import themes
 from je_file_tree.gui.fluent_style import (

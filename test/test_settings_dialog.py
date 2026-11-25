@@ -6,7 +6,7 @@ import pytest
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from test_gui import window as window  # noqa: PLC0414 - explicit pytest fixture re-export
-from je_file_tree.gui import i18n, main_window, settings_dialog, settings_file, updates
+from je_file_tree.gui import i18n, settings_dialog, settings_file, updates, window_settings
 from je_file_tree.gui.change_watch import ENABLED_KEY as FOLLOW_KEY
 from je_file_tree.gui.settings_dialog import SettingsDialog, apply_settings
 from je_file_tree.gui.text_scale import text_percent
@@ -69,8 +69,8 @@ def test_buttons_open_the_existing_windows(window, dialog, monkeypatch):
 
 
 def test_every_portable_key_is_one_the_window_uses():
-    used = {main_window.ASK_ADMIN_KEY, main_window.AUTO_CPU_KEY, main_window.MFT_SCAN_KEY, main_window.EXCLUSIONS_KEY,
-            main_window.SCAN_WORKERS_KEY, updates.ENABLED_KEY, FOLLOW_KEY}
+    used = {window_settings.ASK_ADMIN_KEY, window_settings.AUTO_CPU_KEY, window_settings.MFT_SCAN_KEY,
+            window_settings.EXCLUSIONS_KEY, window_settings.SCAN_WORKERS_KEY, updates.ENABLED_KEY, FOLLOW_KEY}
     assert used <= set(settings_file.SETTINGS)
     assert set(settings_dialog._FLAGS) == {key for key, setting in settings_file.SETTINGS.items()
                                            if isinstance(setting.default, bool)} - {"history_enabled"}

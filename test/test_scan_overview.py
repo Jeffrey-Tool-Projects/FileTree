@@ -13,7 +13,7 @@ from je_file_tree.core.compare import SavedScanError
 from je_file_tree.core.export import JSON_FORMAT
 from je_file_tree.core.node import Node
 from je_file_tree.core.scan_overview import MAX_LABEL, MAX_SCANS, import_scan, overview, unique_label
-from je_file_tree.gui import i18n, main_window
+from je_file_tree.gui import i18n, window_dialogs
 from je_file_tree.gui.scan_overview import ScanOverviewDialog
 
 
@@ -180,6 +180,6 @@ def test_closing_joins_a_running_read(qapp, files):
 
 def test_the_window_opens_it_without_a_scan(window, monkeypatch):
     opened = []
-    monkeypatch.setattr(main_window.ScanOverviewDialog, "exec", lambda made: opened.append(made) or 0)
+    monkeypatch.setattr(window_dialogs.ScanOverviewDialog, "exec", lambda made: opened.append(made) or 0)
     window._actions["scan_overview"].trigger()
     assert len(opened) == 1

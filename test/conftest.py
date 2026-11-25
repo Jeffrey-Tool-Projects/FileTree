@@ -21,7 +21,7 @@ def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     Uninspected failed-entry reports are dismissed and reported at teardown instead of waiting for a user.
     """
     reached: list[str] = []
-    from je_file_tree.gui import main_window
+    from je_file_tree.gui import main_window, window_dialogs
     from je_file_tree.gui import history
     from je_file_tree.core import trash_size
     from je_file_tree.gui import bin_labels
@@ -58,7 +58,7 @@ def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
 
     monkeypatch.setattr(main_window, "journal_folder", lambda: tmp_path / "journal")
     monkeypatch.setattr(history, "history_folder", lambda: tmp_path / "history")
-    monkeypatch.setattr(main_window, "history_folder", lambda: tmp_path / "history")
+    monkeypatch.setattr(window_dialogs, "history_folder", lambda: tmp_path / "history")
     from je_file_tree.gui import forecast as forecast_view
     monkeypatch.setattr(forecast_view, "forecast_file", lambda: tmp_path / "forecast" / "volumes.json")
     # Automatic label refresh after fixture moves must never query the host user's bins.

@@ -130,7 +130,7 @@ def test_failed_read_stays_literal_and_never_enables_save(qapp, monkeypatch):
 
 @pytest.mark.parametrize("saving", [False, True])
 def test_owner_closing_retains_dialog_guard_and_native_worker(window, qapp, monkeypatch, saving):
-    from je_file_tree.gui import main_window
+    from je_file_tree.gui import window_dialogs
 
     entered, release = threading.Event(), threading.Event()
     changes, observed, errors = [], [], []
@@ -168,7 +168,7 @@ def test_owner_closing_retains_dialog_guard_and_native_worker(window, qapp, monk
         QTimer.singleShot(0, close_when_held)
         return original_exec(dialog)
 
-    monkeypatch.setattr(main_window.ShellIntegrationDialog, "exec", exec_with_close)
+    monkeypatch.setattr(window_dialogs.ShellIntegrationDialog, "exec", exec_with_close)
     try:
         window.edit_shell_integration()
         _pump(qapp, lambda: window._close_ready)

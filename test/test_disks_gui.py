@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QMessageBox
 from test_gui import _wait, window as window  # noqa: PLC0414 - explicit fixture re-export
 from je_file_tree.core.disks import DiskSurvey, Partition, PhysicalDisk
 from je_file_tree.gui import disks_dialog, i18n, system_files
-from je_file_tree.gui import main_window as main_module
+from je_file_tree.gui import window_dialogs
 from je_file_tree.gui.strings import STRINGS
 
 _GB = 1_000_000_000
@@ -183,7 +183,7 @@ def test_main_window_offers_disks_beside_volumes(qapp, window, monkeypatch) -> N
             events.append("shutdown")
         def deleteLater(self):  # noqa: N802 - Qt's name
             events.append("delete")
-    monkeypatch.setattr(main_module, "DisksDialog", FakeDialog)
+    monkeypatch.setattr(window_dialogs, "DisksDialog", FakeDialog)
     action.trigger()
     assert events == [("create", window._unit, window), "exec", "shutdown", "delete"]
     window._worker = object()
