@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from je_file_tree.core.formatting import format_count, format_size
+from je_file_tree.core.name_regex import NameRegexError
 from je_file_tree.core.node import Node
 from je_file_tree.core.search import Query, SearchResult, accepts
 from je_file_tree.gui.i18n import tr
@@ -71,6 +72,7 @@ class SearchPanel(QWidget):
         self._current: SearchWorker | None = None
         self._running: set[SearchWorker] = set()
         self._result: SearchResult | None = None
+        self._regex_error = False
         self._validation_error = False
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
@@ -170,7 +172,7 @@ class SearchPanel(QWidget):
         if not name:
             return
         try:
-            self.query()
+            accepts(self.query(), time.time())
         except ValueError:
             self.rerun()
             return
@@ -195,11 +197,17 @@ class SearchPanel(QWidget):
         self._validation_error = False
         try:
             query = self.query()
+            searchable = accepts(query, time.time()) is not None
+        except NameRegexError:
+            self._validation_error = self._regex_error = True
+            self._update_summary()
+            return
         except ValueError:
+            self._regex_error = False
             self._validation_error = True
             self._update_summary()
             return
-        if self._root is None or accepts(query, time.time()) is None:
+        if self._root is None or not searchable:
             self._result = None
             self.model.set_rows([])
             self._update_summary()
@@ -278,7 +286,7 @@ class SearchPanel(QWidget):
 
     def _summary_text(self) -> str:
         if self._validation_error:
-            return tr("search_range_invalid")
+            return tr("search_regex_invalid" if self._regex_error else "search_range_invalid")
         if self._current is not None:
             return tr("search_running")
         result = self._result

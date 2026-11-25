@@ -2190,4 +2190,27 @@ JA: dict[str, str] = {
         "{shown} 件を表示、問題は {count} 件です。判断できなかったリンク: {unknown}。"
         "種類ごとに最初の 1,000 件を表示します。"
     ),
+    "search_regex": "名前を正規表現として扱う",
+    "search_regex_tip": (
+        "名前のどこかに一致すれば見つかります。大文字と小文字は区別しません。時間がかかり"
+        "すぎるおそれのあるパターンは受け付けません。"
+    ),
+    "search_regex_invalid": (
+        "この正規表現は使えません。かっこを確認し、繰り返しの中の繰り返し、先読み・後"
+        "読み、後方参照は避けてください。"
+    ),
+    "search_exclude": "除外する名前",
+    "search_exclude_tip": (
+        "検索欄と同じ書き方です: node_modules; *.tmp。一致したフォルダーは中身ごと除外し"
+        "ます。"
+    ),
+    "search_owner": "所有者",
+    "search_owner_tip": "名前または識別子の一部。所有者を記録したスキャンのファイルだけが対象です。",
+    "search_min_depth": "この深さ以上",
+    "search_max_depth": "この深さ以下",
+    "search_depth_tip": "スキャンしたフォルダーの直下が深さ 1 です",
+    "search_depth_error": "最小の深さが最大より大きくなっています。",
+    "search_more_error": "名前または所有者の条件が長すぎるか、文字ではありません。",
+    "search_condition_regex": "名前が一致: {value}",
+    "search_condition_depth": "深さ: {least}～{most}",
 }

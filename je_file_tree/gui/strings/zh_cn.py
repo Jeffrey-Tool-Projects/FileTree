@@ -1760,4 +1760,21 @@ ZH_CN: dict[str, str] = {
         "显示 {shown} 个项目，共发现 {count} 个问题。无法判断的链接：{unknown}。每一"
         "种列出前 1,000 个。"
     ),
+    "search_regex": "把名称当作正则表达式",
+    "search_regex_tip": "在名称的任何位置查找，不区分大小写。可能耗时过久的模式会被拒绝。",
+    "search_regex_invalid": (
+        "FileTree 无法使用这个正则表达式：请检查括号，并避免重复中的重复、前后查找与反"
+        "向引用。"
+    ),
+    "search_exclude": "排除名称",
+    "search_exclude_tip": "写法和搜索框相同：node_modules; *.tmp。匹配的文件夹会连同里面的内容一起排除。",
+    "search_owner": "所有者",
+    "search_owner_tip": "名称或标识的一部分。只比对文件，且扫描时须记录所有者。",
+    "search_min_depth": "至少这么深",
+    "search_max_depth": "最多这么深",
+    "search_depth_tip": "直接位于扫描文件夹中的项目是第 1 层",
+    "search_depth_error": "最小深度大于最大深度。",
+    "search_more_error": "名称或所有者条件过长，或不是文本。",
+    "search_condition_regex": "名称匹配：{value}",
+    "search_condition_depth": "深度：{least} 到 {most}",
 }

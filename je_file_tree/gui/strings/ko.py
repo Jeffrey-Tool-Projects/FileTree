@@ -2047,4 +2047,27 @@ KO: dict[str, str] = {
         "항목 {shown}개를 표시하며 문제는 {count}개입니다. 판단할 수 없는 링크: {unknown}."
         " 종류마다 처음 1,000개를 표시합니다."
     ),
+    "search_regex": "이름을 정규식으로 해석",
+    "search_regex_tip": (
+        "이름의 어느 곳에서나 찾으며 대소문자를 구분하지 않습니다. 너무 오래 걸릴 수 있는"
+        " 패턴은 거부합니다."
+    ),
+    "search_regex_invalid": (
+        "FileTree에서 쓸 수 없는 정규식입니다. 괄호를 확인하고 반복 안의 반복, 전후방"
+        " 탐색, 역참조를 피하세요."
+    ),
+    "search_exclude": "제외할 이름",
+    "search_exclude_tip": (
+        "검색란과 같은 방식입니다: node_modules; *.tmp. 일치하는 폴더는 안의 내용과 함께"
+        " 제외합니다."
+    ),
+    "search_owner": "소유자",
+    "search_owner_tip": "이름이나 식별자의 일부입니다. 소유자를 기록한 스캔의 파일만 대상입니다.",
+    "search_min_depth": "이 깊이 이상",
+    "search_max_depth": "이 깊이 이하",
+    "search_depth_tip": "스캔한 폴더 바로 아래 항목이 깊이 1입니다",
+    "search_depth_error": "최소 깊이가 최대 깊이보다 큽니다.",
+    "search_more_error": "이름 또는 소유자 조건이 너무 길거나 텍스트가 아닙니다.",
+    "search_condition_regex": "이름 일치: {value}",
+    "search_condition_depth": "깊이: {least}~{most}",
 }

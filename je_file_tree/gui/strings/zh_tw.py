@@ -1759,4 +1759,21 @@ ZH_TW: dict[str, str] = {
         "顯示 {shown} 個項目，共發現 {count} 個問題。無法判斷的連結：{unknown}。每一"
         "種列出前 1,000 個。"
     ),
+    "search_regex": "把名稱當作正規表示式",
+    "search_regex_tip": "在名稱的任何位置尋找，不分大小寫。可能耗時過久的樣式會被拒絕。",
+    "search_regex_invalid": (
+        "FileTree 無法使用這個正規表示式：請檢查括號，並避免重複中的重複、前後查找與反"
+        "向參照。"
+    ),
+    "search_exclude": "排除名稱",
+    "search_exclude_tip": "寫法和搜尋框相同：node_modules; *.tmp。符合的資料夾會連同裡面的內容一起排除。",
+    "search_owner": "擁有者",
+    "search_owner_tip": "名稱或識別碼的一部分。只比對檔案，且掃描時須記錄擁有者。",
+    "search_min_depth": "至少這麼深",
+    "search_max_depth": "最多這麼深",
+    "search_depth_tip": "直接位於掃描資料夾中的項目是第 1 層",
+    "search_depth_error": "最小深度大於最大深度。",
+    "search_more_error": "名稱或擁有者條件過長，或不是文字。",
+    "search_condition_regex": "名稱符合：{value}",
+    "search_condition_depth": "深度：{least} 到 {most}",
 }

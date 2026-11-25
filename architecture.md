@@ -756,6 +756,8 @@ built-in rules, always as manual review; `Guard` refuses protected and Windows-m
 holding one, and recurring proposals use `CleanupPolicy.built_in()`.
 `core.problem_files` surveys recorded entries; on disk it reads only link texts and small local shortcuts
 (`core.shell_link`) and checks their targets with `lstat`, never a network or absent drive.
+`core.name_regex` prices a pattern before compiling it for search: Python's engine holds the interpreter while
+it backtracks, so anything that could grow exponentially is refused. `_Bounds` prunes excluded and too deep folders.
 Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
 so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,

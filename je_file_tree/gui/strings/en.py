@@ -1960,4 +1960,24 @@ EN: dict[str, str] = {
         "Showing {shown} entries; {count} problems found. Links that could not be judged:"
         " {unknown}. The first 1,000 of each kind are listed."
     ),
+    "search_regex": "Read the name as a regular expression",
+    "search_regex_tip": "Found anywhere in a name, ignoring case. Patterns that could take very long are refused.",
+    "search_regex_invalid": (
+        "This is not a regular expression FileTree can use: check the brackets, and avoid"
+        " repeats inside repeats, look-around and references."
+    ),
+    "search_exclude": "Leave out names",
+    "search_exclude_tip": (
+        "Like the search box: node_modules; *.tmp. A matching folder is left out with everything"
+        " in it."
+    ),
+    "search_owner": "Owner",
+    "search_owner_tip": "Part of a name or identifier. Files only, from scans that recorded owners.",
+    "search_min_depth": "At least this deep",
+    "search_max_depth": "At most this deep",
+    "search_depth_tip": "Entries directly in the scanned folder are at depth 1",
+    "search_depth_error": "The smallest depth is greater than the largest.",
+    "search_more_error": "A name or owner condition is too long or not text.",
+    "search_condition_regex": "Name matches: {value}",
+    "search_condition_depth": "Depth: {least} to {most}",
 }
