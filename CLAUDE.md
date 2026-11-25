@@ -144,7 +144,7 @@ tool default.
   Isolated validation tools may remove only disposable fixtures they created in a fresh owned scratch
   directory or its private test-volume image. They must refuse existing volumes/bins and the host mount
   namespace; this never authorizes removing scanned user entries.
-- **Every text goes through `tr()`**; add a key to all five tables in `je_file_tree/gui/strings.py`
+- **Every text goes through `tr()`**; add a key to all five modules in `je_file_tree/gui/strings/`
   (`test/test_i18n.py` checks keys and placeholders). Traditional Chinese uses Taiwanese wording
   (檔案、資料夾、設定、預設、資源回收筒); Simplified Chinese uses Mainland wording and characters.
 - Files are read and written with an explicit `encoding=`; exports are written to a temporary sibling and

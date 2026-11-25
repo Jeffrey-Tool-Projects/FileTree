@@ -1,0 +1,1769 @@
+"""Every text the window shows in Traditional Chinese (Taiwanese wording); see ``je_file_tree.gui.i18n``."""
+
+from __future__ import annotations
+
+from je_file_tree.gui.strings.joining import cjk
+
+ZH_TW: dict[str, str] = {
+    "busy_scanning": ("掃描進行中，「{action}」須等掃描完成才能執行。"
+        "請等掃描結束，或先停止掃描（Esc）。"),
+    "busy_operation": ("另一項檔案操作仍在進行，「{action}」須等它完成才能執行。"
+        "請在操作結束後再試一次。"),
+    "budget_filter": "顯示預算",
+    "budget_filter_all": "全部預算",
+    "budget_filter_over": "超過上限",
+    "budget_filter_unknown": "未知或尚未掃描",
+    "budget_filter_empty": "此篩選沒有符合的預算。選擇「全部預算」可查看所有規則。",
+    "budget_editing_hidden": "正在編輯「{name}」，此篩選已隱藏該規則。狀態：{status}。草稿仍保留。",
+    "budget_count_over": "{count} 個超過上限",
+    "budget_count_unknown": "{count} 個未知",
+    "folder_context_target": "目標資料夾",
+    "folder_context_ready": "選取檔案時，這些動作會使用其所在資料夾。",
+    "folder_context_history": "查看成長趨勢",
+    "folder_context_budget": "設定容量預算",
+    "folder_context_empty": "請先完成掃描，再使用資料夾動作。",
+    "folder_context_busy": "請等待掃描或目前操作完成。",
+    "folder_context_closing": "此掃描分頁正在關閉。",
+    "folder_context_virtual": "請開啟個別來源的掃描，再使用資料夾動作。",
+    "folder_context_stale": "請選取目前掃描中的資料夾。",
+    "folder_context_link": "連結無法使用資料夾動作。",
+    "trend_choose_folder": "選擇已載入資料夾…",
+    "trend_loaded_folders": "已載入的子資料夾",
+    "trend_full_path": "完整資料夾路徑",
+    "trend_root": "返回根目錄",
+    "trend_up": "上一層",
+    "trend_enter": "開啟資料夾",
+    "trend_previous": "上一頁",
+    "trend_next": "下一頁",
+    "trend_choose_current": "使用此資料夾",
+    "trend_folder_page": "資料夾 {first}–{last}，共 {total} 個。僅列出已載入資料夾。",
+    "trend_period": "期間",
+    "trend_period_all": "全部保留紀錄",
+    "trend_period_30": "最近 30 日",
+    "trend_period_90": "最近 90 日",
+    "trend_period_custom": "自訂日期",
+    "trend_date_order": "結束日期不得早於開始日期。",
+    "trend_point_details": "所選觀察點詳細資訊",
+    "trend_select_point": "選取圖表或表格的觀察點。方向鍵可逐筆移動。",
+    "trend_size_reason": "容量未知：{reason}",
+    "trend_change_reason": "變化未知：{reason}",
+    "trend_first_point": "此期間沒有上一筆觀察",
+    "trend_point_value": "{date} · 容量 {size}（{exact_size}）· 變化 {change}（{exact_change}）",
+    "templates_select": "選擇已儲存範本",
+    "templates_remove": "刪除範本",
+    "templates_save_section": "儲存開啟時的工作區",
+    "templates_save_source": "新增與更新儲存開啟此視窗時擷取的分頁與選項；不會儲存下方的預覽修改。",
+    "templates_add_current": "新增開啟時分頁",
+    "templates_update_current": "以開啟時分頁更新",
+    "templates_preview_hint": "載入預覽 · 路徑修改僅供此次載入，修改後請檢查。載入後按開始才掃描。",
+    "templates_preview_modified": "已修改，僅供此次載入 · 取代分頁前請重新檢查路徑。",
+    "templates_active": "作用中",
+    "templates_scanning": "掃描中",
+    "templates_impact": (
+        '取代將關閉 {tabs} 個分頁、停止 {scans} 個掃描並關閉 {re'
+        'sults} 份結果。預覽中不可用路徑：{unavailable}。'),
+    "templates_saved": '已儲存範本',
+    'workspace_templates': '工作區範本…',
+    'templates_tab': '分頁',
+    'templates_kind': '範圍',
+    'templates_status': '可用狀態',
+    'templates_single': '單一資料夾',
+    'templates_check': '檢查路徑',
+    'templates_replace': '取代分頁',
+    'templates_hint': (
+        '儲存目前分頁，或選擇範本預覽。可編輯路徑，檢查後再取代分頁。取代會關閉現有掃'
+        '描與結果；載入後須按開始才會掃描。無法使用的路徑會保留，可在此修正後重新檢查'
+        '。新增及更新會儲存目前工作區。'),
+    'templates_invalid': (
+        '範本資料無效。請使用不重複的名稱及絕對路徑。既有設定未變更。'),
+    'templates_unchecked': '尚未檢查',
+    'templates_checking': '正在檢查所有路徑…',
+    'templates_ready': '可使用',
+    'templates_checked': (
+        '路徑檢查完成。取代分頁會載入全部輸入，包含無法使用的路徑。有錯誤的分頁無法開'
+        '始掃描。'),
+    'templates_not_folder': '不是資料夾',
+    "completion_title": '上次清理結果',
+    "completion_undo": '復原可還原項目',
+    "completion_rescan": '重新掃描原資料夾',
+    "completion_dismiss": '關閉摘要',
+    "completion_source": '來源：{path}',
+    "completion_counts": (
+        '已移入：{moved}（{size}）；略過：{skippe'
+        'd}；失敗：{failed}'
+    ),
+    "completion_space": (
+        '掃描間觀測的可用空間變化：{change}（包含其他活動）'
+    ),
+    "completion_measurements": '掃描觀測時間：{before} → {after}',
+    "completion_space_pending": '尚無後續可比較的掃描觀測；未知不等於零。',
+    "completion_reason": '{reason}：{count}',
+    "completion_more": '完整原因可在操作紀錄中檢視。',
+    "completion_errors": (
+        '紀錄寫入錯誤：{journal}；複製收尾錯誤：{copie'
+        's}。'
+    ),
+    "completion_hint": (
+        '移入大小是邏輯資料量，不等於已釋出空間；清空資源回收筒需另行'
+        '操作。詳情請查看操作紀錄與失敗報告。'
+    ),
+    "action_scan_presets_tip": "儲存及載入具名路徑與掃描選項，不會自動開始掃描",
+    "action_scan_presets": '常用掃描設定…',
+    "presets_empty": '尚無常用設定',
+    "presets_hint": (
+        '新增與更新會儲存目前的掃描選項及輸入的路徑。載入只填入設定，請按「掃描路徑」開始'
+        '。執行緒數與排除規則適用於工作區。'
+    ),
+    "presets_saved": '已儲存設定',
+    "presets_name": '名稱',
+    "presets_add": '新增目前選項',
+    "presets_update": '更新所選',
+    "presets_rename": '重新命名',
+    "presets_remove": '刪除設定',
+    "presets_load": '載入',
+    "presets_options": '執行緒：{workers}；排除規則：{exclusions}；已啟用：{flags}',
+    "presets_no_flags": '無',
+    "presets_invalid": (
+        '請使用不重複的名稱（1–80 字）、絕對路徑及有效掃描選項。最多可儲存 32 組'
+        '設定。'
+    ),
+    "presets_read_failed": '無法讀取常用設定，原有資料已保留。',
+    "presets_loaded": '已載入 {name}，請按「掃描路徑」開始。',
+    "highlights_title": '掃描重點',
+    "highlights_waiting": '等待掃描分析…',
+    "highlights_folders": '最大的直屬資料夾；點選即可定位。',
+    "highlights_partial": '結果不完整；大小只包含已讀取的項目。',
+    "highlights_folder": '{name} — {size}',
+    "highlights_cleanup_waiting": '清理：等待分析…',
+    "highlights_cleanup": '審查 {count} 個候選項目（{size}）',
+    "highlights_cleanup_hint": '候選資料量需要審查，不代表可立即釋出的空間。',
+    "highlights_coverage_unknown": '尚無掃描範圍資料',
+    "highlights_coverage": '掃描限制：略過 {skipped}、無法讀取 {denied}、待掃描 {pending}',
+    "column_advice": '可否刪除',
+    "advice_low": '可清理',
+    "advice_review": '先確認',
+    "advice_personal": '自行決定',
+    "advice_protected": '勿刪除',
+    "advice_managed": '系統管理',
+    "advice_pending": '分析中…',
+    "advice_low_tip": '較低風險的清理建議：程式可以重新產生這些資料。移動前仍請先審查。',
+    "advice_review_tip": '需要您審查的清理建議：請確認其中沒有還要用的內容。',
+    "advice_personal_tip": '沒有規則涵蓋這個項目，只有您能判斷是否還需要。未經您確認不會移動任何項目。',
+    "advice_protected_tip": '請保留：{reason}。移除後可能使系統或已安裝的程式無法運作。',
+    "advice_managed_tip": '這些空間由作業系統管理，FileTree 不會移動它。「詳細資訊」會說明該使用的系統工具。',
+    "advice_pending_tip": '清理分析仍在進行。',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": '依據這次掃描的清理規則與這台電腦的受保護位置提供建議。僅供參考：每次移動前仍會先詢問。',
+    "highlights_folders_label": '最大的資料夾',
+    "highlights_files_label": '最大的檔案',
+    "highlights_files": '最大的檔案；點選即可定位。圓點代表可否刪除的建議。',
+    "reclaim_action": "釋放空間…",
+    "reclaim_action_tip": "依這次掃描找到的項目，規劃如何釋放指定的空間",
+    "reclaim_title": "釋放空間",
+    "reclaim_hint": (
+        "選擇您需要多少空間。FileTree 會列出這次掃描已找到的項目，最安全的排在最前面。不會替您勾選任何項目，在您審查"
+        "並回答「是」之前也不會移動任何項目。"
+    ),
+    "reclaim_target": "要釋放的空間：",
+    "reclaim_custom": "自訂大小",
+    "reclaim_share": "直到磁碟機有此比例的可用空間",
+    "reclaim_drive": "掃描時磁碟機共 {total}，可用 {free}。",
+    "reclaim_column_entry": "步驟或項目",
+    "reclaim_column_total": "累計",
+    "reclaim_step": "{risk}：{title}（{count}）",
+    "reclaim_duplicates": "重複檔案的多餘副本",
+    "reclaim_duplicates_tip": "與您在「重複檔案」分頁中選擇保留的副本內容相同的檔案。保留的副本絕不會列入。",
+    "reclaim_options": "沒有規則涵蓋的大型檔案——確定時才選",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target}（已超過目標）",
+    "reclaim_more": "另有 {count} 個未列出",
+    "reclaim_overlap": "本身為 {size}；其中一部分已計入前面的步驟。",
+    "reclaim_reached": "這些步驟約可釋放 {found}，足以達到您要求的 {target}。",
+    "reclaim_short": (
+        "這些步驟約只能釋放 {found}，距離 {target} 還差 {short}。"
+        "若確定不再需要，最後列出的大型檔案或許能補足。"
+    ),
+    "reclaim_empty": "這次掃描沒有找到可以建議的項目。",
+    "reclaim_waiting": "仍在尋找清理建議；完成後計畫會自動補上。",
+    "reclaim_undecided": "有 {count} 組重複檔案未列入：請先在「重複檔案」分頁選擇要保留的副本。",
+    "reclaim_selected": "已選取：{selected} / {target}",
+    "reclaim_note": (
+        "這些是依掃描結果的估計值，實際釋放的空間可能不同：硬連結、已壓縮的檔案與雲端檔案占用的空間比其大小少，而移到"
+        "資源回收筒的項目要等清空後才會釋放空間。"
+    ),
+    "reclaim_show": "在樹狀清單中顯示",
+    "reclaim_review": "審查並移到資源回收筒…",
+    "shell_reading": "正在讀取檔案總管登錄…",
+    "shell_saving": "正在儲存檔案總管登錄…",
+    "shell_waiting": "正在等待目前的檔案總管設定作業完成…已開始的儲存會繼續執行。",
+    "trash_failed_title": "未能移動的項目",
+    "trash_failed_summary": "有 {count} 個項目移動失敗。請檢視完整路徑與診斷資訊。",
+    "trash_holders_error": "開啟檔案的行程查詢錯誤：{reason}",
+    "trash_skipped_title": "已略過的項目",
+    "trash_skipped_summary": "已略過 {count} 個項目，請重新掃描其資料夾後再試。",
+    "trash_skipped_hint": "選取一列可查看完整路徑與原因。使用 {shortcut} 複製選取的資料列。",
+    "closing_workers": "正在關閉 FileTree：停止背景工作，等待目前的檔案系統呼叫完成…",
+    "elevate_python_tip": (
+        "目前由 Python 執行：Windows UAC 會顯示實際提升權限的 Python 執行檔。"
+        "使用 FileTree 執行檔時，提示才會顯示 FileTree。"),
+    'overview_empty': '選擇資料夾開始掃描',
+    'overview_live': '掃描中 · 統計仍持續增加',
+    'overview_complete': '掃描已完成',
+    'overview_partial': '結果不完整 · 部分項目未讀取',
+    'overview_size': '邏輯大小',
+    'overview_allocated': '記錄的磁碟配置',
+    'overview_files': '檔案',
+    'overview_folders': '資料夾',
+    'overview_problems': '查看無法讀取的項目（{count}）',
+    'overview_navigation': '分析檢視',
+    'overview_coverage_hint': '此狀態描述本次掃描；排除規則與掛載邊界仍適用。',
+    'overview_allocation_hint': '記錄的配置可能是估計值或共享空間，不代表可回收空間。',
+    'overview_live_hint': '可探索持續更新的樹狀清單與圖表；分析清單會在掃描結束後填入。',
+    'overview_result_hint': '選擇分析檢視；選取項目即可在樹狀清單中定位。',
+    'overview_path': '資料夾或磁碟路徑',
+    'overview_scan_path': '掃描路徑',
+    'overview_scan_path_tip': '掃描輸入的資料夾或磁碟（Enter）；會安全地取代進行中的掃描。',
+    'overview_workflow': '1  選擇資料夾或磁碟   →   2  探索空間用量   →   3  清理前先審閱',
+    'overview_scan_running': '正在背景讀取資料夾，可探索持續更新的結果。',
+    'overview_scan_paused': '已要求暫停；目前的檔案系統呼叫可能會先完成。可繼續或停止掃描。',
+    'overview_scan_analysing': '正在背景準備分析，仍可要求停止。',
+    'overview_scan_stopping': '正在等候目前的檔案系統工作結束；會保留已取得的部分結果。',
+    'overview_scan_elapsed': '已經過 {time}',
+    'recurring_review': '重新掃描並審查目前候選…',
+    'recurring_validating': '正在比對具日期建議、完整的新掃描與目前來源中繼資料…',
+    'recurring_refused': '無法繼續此建議：{status}。請執行新的排程掃描，以產生目前的觀察資料。',
+    'recurring_tabs_full': '十六個掃描分頁皆在使用中。請先關閉一個分頁，再審查排程建議。',
+    'trash_skip_proposal_changed': '來源路徑、建議設定或掃描紀錄已變更或無法驗證；保留來源。',
+    'trash_skip_proposal_expired': '移動前排程建議已到期；保留來源。',
+    'action_recurring': '排程掃描建議…',
+    'action_recurring_tip': '查看排程觀察的日期與涵蓋範圍；不會自動清理。',
+    'recurring_rule': '規則',
+    'recurring_unknown': '未知',
+    'recurring_new': '上次掃描後新增的垃圾候選',
+    'recurring_current': '目前的清理候選',
+    'recurring_growth': '容量成長最多的資料夾',
+    'recurring_empty': '本次執行尚無排程報告。請啟用背景監控並選擇掃描資料夾。',
+    'recurring_hint': ('僅供查看，不會自動移動檔案。每份清單最多顯示 100 筆。'
+                       '成長量是邏輯位元組，不代表可回收空間。比較未知不代表沒有新增垃圾。'
+                       '報告會在本次執行的排程掃描後出現；基準資料儲存在本機掃描歷史。'
+                       '審查會在新分頁重新掃描，再進入一般審查佇列與確認流程。'),
+    'recurring_summary': ('產生時間：{prepared}\n上次基準：{previous}\n到期時間：{expires}\n'
+                          '顯示候選：{retained} / {total}；涵蓋範圍：{coverage}；比較：{comparison}\n'
+                          '狀態：{status}'),
+    'recurring_status_current': '已觀察；審查前仍須重新驗證來源',
+    'recurring_status_expired': '已到期（包含錯過排程或時鐘倒退）',
+    'recurring_status_schedule_changed': '排程已變更或停用',
+    'recurring_status_stale_scan': '掃描紀錄已變更或無法取得',
+    'recurring_status_rule_changed': '清理規則已變更',
+    'recurring_status_incomplete': '涵蓋範圍不完整或檔案識別未知',
+    'recurring_status_paths_changed': '來源路徑已變更',
+    'recurring_status_unavailable': '無法驗證設定或掃描紀錄',
+    'recurring_prepare_failed': '歷史已儲存；無法產生排程建議：{detail}',
+    'workspace_new': '新增掃描分頁',
+    'workspace_new_tip': '開啟獨立的掃描分頁（Ctrl+T）；以 Ctrl+W 關閉目前分頁。',
+    'workspace_close': '關閉掃描分頁',
+    'workspace_empty': '選擇資料夾',
+    'trash_skip_recycle_unverified': (
+        '無法核對 Windows 回收設定、完整來源大小或原生回收筒資料；已保留來源。'
+    ),
+    'trash_skip_recycle_disabled': (
+        '此範圍的 Windows 回收功能已停用；已保留來源。'
+    ),
+    'trash_skip_recycle_capacity': (
+        '選取項目及目前回收筒內容超過觀察到的回收上限與預留空間；已保留來源。'
+    ),
+    'action_check_updates': '每天檢查更新',
+    'action_background_monitor': '背景監視器…',
+    'action_background_monitor_tip': '選擇啟用系統匣通知與低優先順序的排程資料夾歷史掃描。',
+    'background_enable': '啟用背景監視',
+    'background_startup': '登入時啟動此監視器',
+    'background_startup_hint': ('需另外選擇啟用，僅適用目前使用者。取消勾選會移除 FileTree 擁有的登入項目。'
+                                '適用下次登入，不會啟動另一個程式或結束目前監視器。'),
+    'background_startup_requires_monitor': '請先啟用背景監視，再新增登入項目。',
+    'background_startup_error': '無法變更登入啟動：{detail}',
+    'background_hint': ('預設關閉。系統匣可用時，關閉視窗會保留 FileTree，選擇「結束」才退出。'
+                        '每分鐘查詢系統可用容量，只低優先順序掃描明確選取的資料夾。'
+                        '排程掃描需要啟用本機歷史記錄，不自動清理或註冊開機啟動。'),
+    'background_threshold': '可用空間低於此值時通知',
+    'background_interval': '掃描間隔（小時）',
+    'background_roots': '排程掃描資料夾',
+    'background_add': '新增掃描資料夾…',
+    'background_remove': '移除選取資料夾',
+    'background_limit': '最多選取 32 個排程資料夾。',
+    'background_show': '顯示 FileTree',
+    'background_off': '背景監視已關閉',
+    'background_ready': '背景監視已啟用',
+    'background_no_tray': '系統匣無法使用；FileTree 保持顯示，背景監視暫停。',
+    'background_error': '背景監視：{detail}',
+    'background_history_disabled': '請先啟用本機掃描歷史記錄，才能執行排程掃描。',
+    'background_scanning': '排程掃描：{detail}',
+    'background_saved': '已儲存排程歷史：{detail}',
+    'background_saved_partial': '已儲存含未讀取範圍的排程歷史：{detail}',
+    'background_canceled': '排程掃描已取消，未儲存部分來源記錄：{detail}',
+    'background_warning': '{detail}',
+    'background_low_space': '{root} 可用空間不足：{free}（{percent}%）',
+    'action_follow_changes': '跟隨變更',
+    'action_follow_changes_tip': ('預設關閉。在 Windows、Linux 與 macOS 只重新讀取有變動的資料夾，'
+                                  '保留其中未變動的子資料夾。'),
+    'follow_refreshed': '已更新 {count} 個變動的資料夾',
+    'follow_refresh_failed': '無法更新變動的資料夾：{reason}',
+    'follow_waiting': '跟隨變更：等待掃描',
+    'follow_starting': '跟隨變更：啟動中…',
+    'follow_active': '跟隨變更（{detail}）',
+    'follow_failed': '跟隨變更已停止：{detail}',
+    'follow_incomplete': '跟隨變更需要完整的實際目錄掃描',
+    'follow_unsupported': '跟隨變更支援 Windows、Linux 與 macOS',
+    'follow_backend_usn': 'NTFS USN',
+    'follow_backend_directory_changes': '目錄通知',
+    'follow_backend_inotify': 'inotify',
+    'follow_backend_fsevents': 'FSEvents',
+    'action_check_updates_tip': '每天最多透過 HTTPS 向 PyPI 查詢一次；僅通知，不安裝更新。',
+    'update_available': 'FileTree {version} 已推出',
+    'multi_roots': '多個掃描來源',
+    'action_multi_scan': '掃描多個資料夾…',
+    'action_multi_scan_tip': '檢視明確選取的資料夾並合併掃描。',
+    'multi_choose': '掃描多個資料夾',
+    'multi_add': '加入資料夾…',
+    'multi_remove': '移除選取的來源',
+    'scan_all_drives': '掃描所有磁碟',
+    'multi_hint': '合併最多 256 個選取來源。結果為唯讀；檔案操作請另掃描該來源。OS 容量仍依各磁碟呈現。',
+    'capacity_multiple_roots': '多個來源：OS 容量依各磁碟呈現。',
+    'vc_title': (
+        '壓縮所選 VHD…'
+    ),
+    'vc_apply': (
+        '檢視並壓縮…'
+    ),
+    'vc_hint': (
+        '只接受固定本機 NTFS 上未載入的動態 VHD/VHDX。唯讀準備會核對身分、標頭'
+        '及保守的 WSL／Docker 執行狀態。客體用量與保證回收量仍未知。權限錯誤時，先'
+        '關閉此檢視，再使用 FileTree 既有的管理員重新啟動功能；必須重新掃描及核准。'
+    ),
+    'vc_preparing': (
+        '正在核對記錄磁碟與停機狀態…'
+    ),
+    'vc_ready': (
+        '請檢視確切來源，並確認所屬機器全程保持停機。'
+    ),
+    'vc_details': (
+        '來源：{path}\n名稱：{source}\n磁碟識別碼：{identifier}\n虛'
+        '擬容量：{capacity}\n提供者位元組：{physical}\n\n執行方式：Win'
+        'dows CompactVirtualDisk，在未載入狀態壓縮全零區塊。不掛載、啟'
+        '動或停止客體；客體已用量未知。'
+    ),
+    'vc_confirm': (
+        '壓縮這個確切的磁碟檔案？\n\n{path}\n\n選擇「是」表示確認其所屬機器已停機，且操'
+        '作期間全程保持停機。仍會重新核對執行狀態與身分。原生全零區塊壓縮可能不回收空間，也可'
+        '能在後續錯誤前已變更中繼資料。沒有自動復原。客體用量／可用空間回收量未知。停止／關閉'
+        '會等待目前原生呼叫，並回報實際結果。任何可寫入開啟前，會先持久記錄核准。'
+    ),
+    'vc_running': (
+        '正在重新核對並壓縮核准的磁碟…'
+    ),
+    'vc_waiting': (
+        '正在等待目前的原生呼叫，完成後會回報實際結果…'
+    ),
+    'vc_done': (
+        '{status}\n觀察到的磁碟檔案配置：{before} → {after}。這不保'
+        '證 OS 可用空間回收量。客體用量仍未知；嘗試寫入後必須重新掃描。'
+    ),
+    'vc_failed': (
+        '壓縮：{reason}'
+    ),
+    'vc_not_compacted': (
+        '未壓縮'
+    ),
+    'vc_stale': (
+        '已嘗試可寫入操作。掃描觀察已過期；請關閉此視窗重新掃描，再次檢視核准。'
+    ),
+    'vc_audit_refused': (
+        '無法記錄核准；未開始原生操作'
+    ),
+    'vc_audit_detail': (
+        '磁碟檔案配置，操作前：{before}；操作後：{after}。錯誤：{error}'
+    ),
+    'journal_status_compacted': (
+        '原生壓縮已完成'
+    ),
+    'journal_reason_compaction': (
+        '明確核准的虛擬磁碟壓縮'
+    ),
+    'vd_hint': (
+        '唯讀清單；來源標籤只是位置提示。磁碟檔案配置、提供者位元組與虛擬容量各自獨立，客體用'
+        '量仍未知。標頭查詢與壓縮檢視須明確操作。不支援的格式仍會顯示；不自動啟動、停止或掛載'
+        '客體。'
+    ),
+    "vd_name": '磁碟名稱',
+    "vd_source": '來源',
+    'vd_issue_unverified': '身分尚未核對',
+    'vd_issue_unavailable': '連結、雲端或不可用',
+    'vd_issue_changed': '檔案已變更',
+    'vd_issue_duplicate_hard_links': '有多個硬連結名稱',
+    "action_virtual_disks_tip": '檢視記錄的虛擬磁碟，並明確查詢唯讀原生 VHD 資訊',
+    'action_virtual_disks': '虛擬磁碟…',
+    'vd_kind': '格式',
+    'vd_length': '磁碟檔案長度',
+    'vd_allocation': '記錄的配置量',
+    'vd_capacity': '虛擬容量',
+    'vd_physical': '提供者實體位元組',
+    'vd_guest': '客體已用量',
+    'vd_source_scan': '掃描記錄',
+    'vd_source_wsl': 'WSL 註冊',
+    'vd_source_docker': 'Docker 預設（推定）',
+    'vd_unsupported': '不支援原生 VHD 工具',
+    'vd_not_queried': '尚未查詢原生標頭',
+    'vd_fixed': '固定',
+    'vd_dynamic': '動態',
+    'vd_differencing': '差異',
+    'vd_loaded': '已掛載／使用中',
+    'vd_detached': '未載入（觀察值）',
+    'vd_inspect': '查詢所選 VHD 標頭',
+    'vd_select': '顯示掃描記錄項目',
+    'vd_reading': '正在尋找虛擬磁碟檔案…',
+    'vd_querying': '正在讀取原生標頭：{path}',
+    'vd_summary': '顯示 {count} 筆中的 {shown} 筆；{issues} 個問題／略過項目。涵蓋範圍：{coverage}。',
+    'vd_failed': '虛擬磁碟資訊：{reason}',
+    'vd_information_hint': (
+        '原生觀察不授予壓縮權限，也不證明機器已停機。提供者實體位元組不代表客體已用量。磁碟識別碼列於該列的工具提示。'
+    ),
+    "link_summary": "{total} 個多餘副本：{ready} 個可執行，{skipped} 個拒絕。",
+    "link_title": "將多餘副本改為硬連結…",
+    "link_hint": (
+        "檢閱明確選定保留副本的精確重複檔案（最多 1,000 個多餘副本）。受保護、"
+        "已變更、雲端、連結或不支援的檔案會拒絕。可回收容量無法保證。"
+    ),
+    "link_copy": "要替換的多餘副本",
+    "link_keeper": "保留檔案",
+    "link_apply": "將已檢閱的多餘副本改為硬連結…",
+    "link_confirm": (
+        "要將 {count} 個多餘副本替換為硬連結嗎？{skipped} 個拒絕列"
+        "會略過。\n\n舊資料不保留在資源回收筒。全部連結名稱共用後續內容、中繼資料與安"
+        "全性／權限變更。此操作沒有自動復原。失敗或取消可能保留已發布的連結及舊副本備"
+        "份，確切路徑會顯示。停止／關閉會等待目前原生呼叫完成。完整內容及具名串流會重"
+        "新核對；同時變更仍僅能觀察。請在詳細資料檢閱每個配對與拒絕原因。"
+    ),
+    "link_progress": "正在重新核對／建立硬連結：{path}",
+    "link_done": (
+        "硬連結：{linked} 個已發布，{other} 個未連結。請重新掃描以更"
+        "新記錄；回收容量未知。"
+    ),
+    "link_not_linked": "未連結",
+    "link_retained": "保留路徑：\n{paths}",
+    "journal_status_linked": "已發布硬連結",
+    "journal_reason_duplicate_links": "明確要求替換重複檔案為硬連結",
+    "undo_button": "復原（{count}）",
+    "undo_running": "正在復原已記錄的資源回收筒項目…",
+    "undo_done": "復原：{restored} 個已復原，{failed} 個失敗",
+    "undo_title": "資源回收筒復原",
+    "undo_result": "{status}\n原位置：{source}\n資源回收筒：{trashed}\n{reason}",
+    "undo_unavailable": "部分項目無法復原：{reason}",
+    "journal_status_restored": "已從資源回收筒復原",
+    "journal_reason_undo": "明確要求復原資源回收筒項目",
+    "menu_move_drive": "移到另一個磁碟…",
+    "copy_hint": ("選擇另一個磁碟上的現有資料夾。另行確認移入資源回收筒前，保留原始資料。"
+                  "核對檔案數、長度及小於 64 MiB 內容的 SHA-256；較大內容僅核對長度。"
+                  "失敗／取消會保留部分目的地。最多選取 1,000 個資料夾。"),
+    "copy_apply": "複製並驗證已檢視的資料夾…",
+    "copy_redirect": "成功移入資源回收筒後，在每個原始路徑留下 junction／符號連結",
+    "copy_finish": "將已驗證的原始資料移到資源回收筒…",
+    "copy_confirm": ("要複製並驗證已檢視的 {count} 個資料夾嗎？其餘 {skipped} 組將略過。"
+                     "不覆寫現有名稱。另行確認移入資源回收筒前會保留原始資料；錯誤或取消會保留部分目的地。"),
+    "copy_progress": "正在複製／驗證 {path}：此資料夾 {done}／{total} 個檔案",
+    "copy_done": "已驗證副本：{copied}；略過：{skipped}；失敗：{failed}。原始資料已保留。",
+    "copy_partial": "保留的部分目的地：{path}",
+    "copy_trash_confirm": ("每個原始資料夾移入資源回收筒前，會再次驗證副本。核對數量及長度；"
+                           "小於 64 MiB 的內容以 SHA-256 核對，較大內容僅核對長度。"
+                           "驗證失敗會停止剩餘批次。並行變更不具交易保證。"),
+    "copy_errors": "複製驗證或原始路徑連結失敗。請檢視詳細資料中的實際路徑。",
+    "copy_verify_failed": "原始資料已保留：{source}\n副本：{destination}\n驗證遭拒：{reason}",
+    "copy_redirect_failed": ("原始資料已移入資源回收筒：{source}\n已驗證副本已保留：{destination}\n"
+                             "連結失敗（原始路徑可能留下空資料夾）：{reason}"),
+    "namespace_reason_same_volume": "同一磁碟；請使用移到資料夾",
+    "namespace_source_name": "來源名稱",
+    "namespace_destination_name": "目的地名稱",
+    "namespace_closed_errors": "已停止／關閉的作業回報錯誤。請檢查詳細資料中的來源／目的地路徑。",
+    "namespace_refreshed": "已重掃 {path}：{files} 個檔案；{errors} 個掃描錯誤。",
+    "namespace_refresh_failed": "重掃失敗，路徑 {path}：{reason}",
+    "namespace_refreshing": "正在重掃受影響的目的地：{path}",
+    'menu_move_folder': '移至資料夾…',
+    'menu_rename': '重新命名…',
+    'namespace_source': '來源',
+    'namespace_destination': '目的地',
+    'namespace_status': '狀態',
+    'namespace_pattern': '檔名模式',
+    'namespace_rename_hint': ('檢視每個來源與目的地。字面代換：{name}、{stem}、{ext}、{n}。'
+                            '僅限同磁碟，不覆寫。最多選取 1,000 個項目。'),
+    'namespace_move_hint': ('選擇現有目的地資料夾，檢視每組路徑。僅限同磁碟，不覆寫。'
+                          '拒絕受保護、連結、無法取得或記錄不完整的項目。最多選取 1,000 個項目。'),
+    'namespace_collision_skip': '名稱已存在：略過',
+    'namespace_collision_rename': '名稱已存在：預覽編號尾碼',
+    'namespace_preview': '預覽路徑',
+    'namespace_apply': '套用已檢視的路徑…',
+    'namespace_reading': '正在檢查來源與目的地中繼資料…',
+    'namespace_preview_needed': '選項已變更；套用前請重新預覽路徑。',
+    'namespace_summary': '{total} 組最外層路徑；{ready} 組可執行；{skipped} 組拒絕／未變更。',
+    'namespace_confirm': ('要套用預覽中 {count} 組可執行的來源／目的地嗎？其餘 {skipped} '
+     '組將略過。詳細資料列出每組可執行路徑。不覆寫現有名稱。停止／關閉須等目前重新命名完成，已完成的變更會保留。'),
+    'namespace_progress': '已處理 {done}／{total} 組路徑',
+    'namespace_done': '已移動／重新命名：{moved}；略過：{skipped}；失敗：{failed}。關閉後更新掃描。',
+    'namespace_failed': '作業失敗：{reason}',
+    'namespace_reason_ready': '可執行',
+    'namespace_reason_unverified': '身分未知',
+    'namespace_reason_link': '拒絕連結',
+    'namespace_reason_special': '拒絕特殊項目',
+    'namespace_reason_unavailable': '無法取得／雲端項目',
+    'namespace_reason_cancelled': '已停止',
+    'namespace_reason_outside': '目前掃描範圍外／根目錄',
+    'namespace_reason_missing': '來源不存在',
+    'namespace_reason_kind': '項目類型已變更',
+    'namespace_reason_identity': '來源已被取代',
+    'namespace_reason_changed': '來源已變更',
+    'namespace_reason_incomplete': '來源記錄不完整',
+    'namespace_reason_unreadable': '無法讀取來源',
+    'namespace_reason_system_managed': '系統管理的來源',
+    'namespace_reason_protected': '受保護的來源',
+    'namespace_reason_unchanged': '名稱未變更',
+    'namespace_reason_descendant': '目的地位於選取的來源內',
+    'namespace_reason_protected_destination': '受保護的目的地',
+    'namespace_reason_volume': '不同磁碟；須驗證複製',
+    'namespace_reason_collision': '名稱已存在',
+    "photos_exact": "精確重複檔案",
+    "photos_find": "尋找相似照片",
+    "photos_similar": "相似照片",
+    "photos_distance": "雜湊距離（0–16）：",
+    "photos_hint": ("僅為視覺候選：請比較縮圖與原圖。雜湊可能碰撞；"
+                    "不自動選擇保留副本、多餘副本或估計回收量。動畫只看第一格。"),
+    "photos_group": "{count} 張圖片；與第一張的距離在 {distance} 位元內",
+    "photos_running": "正在讀取圖片：{read}；略過／失敗：{skipped}",
+    "photos_summary": "{groups} 組相似圖片；已讀取 {read} 張；略過／失敗 {skipped} 張。",
+    "photos_limited": "清單或顯示範圍受限；最多顯示 {count} 個圖片列／縮圖。",
+    "archive_loading": "正在讀取壓縮檔中繼資料…",
+    "archive_virtual_name": "{name}［虛擬］",
+    "tree_more_rows": "還有 {count} 個項目，按一下顯示接下來的 {page} 個",
+    "tree_more_rows_hint": ("大型資料夾每次顯示 {page} 個項目，讓視窗保持流暢。"
+        "按一下這一列或按 Enter 顯示下一頁；在圖表或清單中選取的項目會自動顯示所在的頁面。"),
+    "archive_virtual_hint": "壓縮檔內容：宣告的未壓縮大小，不計入磁碟總量。不提供檔案操作或解壓縮。",
+    "archive_failed": "無法預覽：{reason}",
+    "archive_rejected": "已略過 {count} 個不安全、連結或衝突的項目",
+    "archive_empty": "沒有可預覽的項目",
+    "archive_stopped": "壓縮檔預覽已停止；內容清單不完整",
+    "archive_busy": "已有兩個壓縮檔讀取工作；重新掃描後可重試",
+    "archive_stop": "停止讀取此壓縮檔",
+    "action_count_hard_links": (
+        "觀察到的硬連結只計一次"
+    ),
+    "action_count_hard_links_tip": (
+        "預設關閉；後續掃描保留具名大小並新增計入總量。分支／資源回收筒移動後會重掃完整範圍。"
+    ),
+    "column_accounted_size": (
+        "計入大小"
+    ),
+    "column_accounted_allocated": (
+        "計入磁碟大小"
+    ),
+    "hard_links_hint": (
+        "啟用硬連結計量時，觀察到的路徑排序第一個名稱計入位元組，其他名稱在此計為零。具名大小仍是實際檔案長度。未知／不一致記錄保留估計值，共用資料區"
+        "段仍未知。"
+    ),
+    "hard_links_summary": (
+        "計入：{size}（磁碟估計 {allocated}）；觀察到 {aliases} 個別名；未知記錄 {unknown} 個。圖表使用計入總"
+        "量，檔案／類型／檔齡列表保留具名大小。"
+    ),
+    "compression_mode_ntfs": "NTFS 壓縮",
+    "compression_mode_xpress8k": "XPRESS8K 壓縮（少修改的檔案）",
+    "compression_mode_uncompress": "解壓縮（NTFS 及執行檔模式）",
+    "compression_apply": "處理列表中的檔案…",
+    "compression_restore_summary": "{count}/{total} 個已記錄檔案可供檢查；顯示 {shown} 個。壓縮狀態可能未知。",
+    "compression_confirm": (
+        "範圍：{path}\n模式：{mode}\n僅處理列表中的 {count} 個檔案（邏輯大小 {size}），"
+        "候選項目共 {total} 個。\n\n會重新核對目前 NTFS "
+        "範圍與未變更的檔案。拒絕連結、雲端／離線、稀疏、隱藏／系統、硬連結及受保護檔案。"
+        "不變更資料夾預設值及列表外檔案。壓縮可能降低寫入速度；XPRESS "
+        "適合少修改的資料。解壓縮需要足夠可用空間。停止或失敗可能留下部分變更。\n\n關閉此視窗會取消目前命令、等待結束，再以逐檔磁碟大小量測重新掃描此資料夾。是否繼續？"
+    ),
+    "compression_progress": "正在處理列表中的 {done}/{total} 個檔案…",
+    "compression_done": (
+        "{done}/{attempted} 個命令完成；失敗 {failures} 個。"
+        "核對成功的已知檔案分配：{before} → {after}；未知量測 {unknown} "
+        "個。關閉後重新掃描；總計不保證可釋出空間。顯示前 20 筆錯誤。"
+    ),
+    "compression_canceled": "已停止；先前或目前檔案可能已變更。關閉後重新掃描。",
+    "compression_failed": "操作失敗：{reason}。可能有部分變更，關閉後重新掃描。",
+    "action_exact_allocation": "量測 Windows 逐檔磁碟大小",
+    "action_exact_allocation_tip": (
+        "預設關閉，後續掃描增加中繼資料查詢，包含 XPRESS／WOF 檔案。啟用後請重新掃描。"
+        "已知雲端／離線檔案不會查詢，失敗結果仍使用估計值。"
+    ),
+    "menu_compression": "NTFS 壓縮…",
+    "compression_reading": "正在檢查已記錄的壓縮候選項目…",
+    "compression_summary": (
+        "{count}/{total} 個檔案為類型候選，顯示 {shown} 個；邏輯大小 {logical}，具名磁碟分配 {allocated}。"
+        "可能節省 0–{allocated}，不預測固定壓縮率。{unknown} 個檔案的中繼資料未知。"
+    ),
+    "compression_volume": "檔案系統：{filesystem}；分配單位：{unit}",
+    "compression_unknown": "未知",
+    "compression_ntfs_only": "無法確認 NTFS，此範圍不能進行原生壓縮。",
+    "compression_partial": "掃描不完整：略過／無法讀取的資料不在此估算範圍。",
+    "compression_hint": (
+        "唯讀類型估算：日誌、文字、程式碼與可能未壓縮的影像格式。副檔名不能證明可壓縮程度。"
+        "不含隱藏／系統、壓縮／稀疏、重新解析／雲端／離線或中繼資料未知的項目。"
+        "具名磁碟分配可能是估計值或由硬連結共用，不保證可回收空間；不讀取檔案內容。"
+        "按兩下選取已記錄的檔案，Ctrl+C 複製列表。"
+    ),
+    "action_capture_owners": "記錄 Windows 檔案擁有者",
+    "action_capture_owners_tip": "預設關閉；後續掃描增加擁有者中繼資料查詢，啟用後請重新掃描",
+    "tab_users": "使用者",
+    "column_owner": "擁有者",
+    "column_owner_id": "擁有者識別碼",
+    "owner_unknown": "擁有者未知",
+    "owners_refresh": "更新記錄總計",
+    "owners_reading": "正在加總擁有者記錄並查詢帳號名稱…",
+    "owners_unqueried": "掃描完成後開啟「使用者」，即可查詢已記錄的擁有者總計。",
+    "owners_partial": "掃描不完整：略過／無法讀取的大小與擁有者保持未知。",
+    "owners_summary": (
+        "{count} 組擁有者，顯示 {shown} 組；{files} 個檔案，{size}。"
+        "擁有者未知：{unknown_files} 個檔案，{unknown_size}。"
+    ),
+    "owners_hint": (
+        "使用整份掃描，僅按檔案擁有者加總；資料夾擁有者不會套用至內含檔案。"
+        "POSIX uid 來自掃描已讀取的 stat；Windows 請啟用「選項 → 記錄 Windows 檔案擁有者」並重新掃描。"
+        "未啟用、失敗、路徑已變或雲端／離線查詢保持未知，名稱可能改顯示 uid／SID。"
+        "具名磁碟分配仍是估計值，硬連結按各名稱計算。擁有者不能證明實際使用或移除權限；此處不會準備清理操作。"
+    ),
+    "bin_labels_refresh": "更新回收筒大小",
+    "bin_labels_hint": (
+        "唯讀快照，最多查詢 256 個就緒磁碟，優先查詢掃描所在磁碟。"
+        "POSIX 大小為內容的邏輯位元組；無法取得或不完整的總計不代表零。"
+        "範圍可能重疊，請勿加總。按更新才會查詢，此處不會準備清理操作。"
+    ),
+    "bin_label_scope_unknown": "此掃描所在磁碟的資源回收筒：尚未查詢範圍",
+    "bin_label_unqueried": "{root} 資源回收筒：尚未查詢",
+    "bin_label_total": "{root} 資源回收筒：{size}，{count} 個項目",
+    "bin_label_partial": "{root} 資源回收筒：總計未知；已知 {size}，{count} 個項目",
+    "action_file_times": "檔案時間…",
+    "action_file_times_tip": "依本次掃描記錄的存取與建立時間篩選",
+    "action_capture_file_times": "記錄檔案存取／建立時間",
+    "action_capture_file_times_tip": "預設關閉；之後掃描每個一般檔案增加 16 bytes；開啟後請重新掃描",
+    "column_accessed": "記錄的存取時間",
+    "column_created": "建立時間",
+    "file_times_hint": (
+        "請開啟「選項 → 記錄檔案存取／建立時間」後重新掃描。只記錄一般檔案；資料夾、連結"
+        "及無法取得的建立時間保持未知。存取時間可能停用、延遲更新，或受背景工具影響，無法"
+        "證明實際使用時間。POSIX ctime 不是建立時間。此檢視不會準備清理操作。"
+    ),
+    "file_times_accessed": "多久未開啟…（依記錄的存取日期）",
+    "file_times_created": "建立至少多久…",
+    "file_times_mode": "記錄時間的篩選模式",
+    "file_times_days": "天數",
+    "file_times_reading": "正在篩選已記錄的檔案時間…",
+    "file_times_summary": (
+        "符合 {count} 個檔案，共 {size}；顯示 {shown} 個。{total} 個檔案中有 {unknown} 個"
+        "時間未知或在未來。"
+    ),
+    "file_times_policy_disabled": (
+        "NTFS 回報已停用存取時間更新，無法依存取時間篩選；仍可依建立時間篩選。登錄設定可"
+        "能需重新啟動，且不代表所有檔案系統。"
+    ),
+    "file_times_policy_unknown": "無法確認 NTFS 存取時間更新設定，無法依存取時間篩選；仍可依建立時間篩選。",
+    "file_times_policy_enabled": (
+        "NTFS 登錄設定回報已啟用存取時間更新；待重新啟動、檔案系統／提供者設定及延遲更新"
+        "仍可能影響日期。"
+    ),
+    "file_times_policy_platform": "檔案系統／提供者設定可能延遲或停用存取時間更新，請將日期視為已記錄的中繼資料。",
+    "action_programs": "已安裝程式…",
+    "action_programs_tip": "核對安裝程式／遊戲中繼資料與此掃描中的安裝資料夾",
+    "program_name": "程式／遊戲",
+    "program_source": "中繼資料來源",
+    "program_version": "版本／組建",
+    "program_publisher": "發行者",
+    "program_reported": "回報的估計大小",
+    "program_scanned": "掃描的邏輯大小",
+    "program_allocated": "掃描依名稱計算的配置量",
+    "program_coverage": "記錄的資料夾涵蓋範圍",
+    "program_location": "安裝資料夾",
+    "program_registry": "Windows 登錄資料庫",
+    "program_steam": "Steam 清單",
+    "program_epic": "Epic 清單",
+    "program_outside": "沒有完全相符的掃描資料夾",
+    "program_hint": "Windows 解除安裝登錄項目與辨識到的 Steam／Epic 清單，僅核對此掃描中完全相符的資料夾，"
+                    "也會讀取 Epic 在 ProgramData 的固定清單目錄。回報大小是估計，缺少資料保持未知。共用或巢狀"
+                    "資料夾可能重疊，請勿加總列或視為可回收空間。可攜式／封裝應用程式可能未列出。按兩下選取"
+                    "記錄的資料夾，Ctrl+C 複製列。請透過 Windows 或遊戲啟動器解除安裝。",
+    "program_reading": "正在讀取安裝中繼資料…",
+    "program_summary": "顯示 {shown}／{count} 個安裝項目；{issues} 個無法讀取、格式錯誤或略過的中繼資料項目",
+    "program_failed": "無法讀取安裝項目：{reason}",
+    "program_uninstall_page": "開啟 Windows 已安裝應用程式設定",
+    "program_open_failed": "Windows 無法開啟已安裝應用程式設定頁面",
+    "action_history": "掃描歷史…",
+    "action_history_tip": "查看此根目錄大小隨時間的變化，並與先前掃描比較",
+    "action_history_settings": "掃描歷史設定…",
+    "action_history_settings_tip": "啟用本機掃描中繼資料並設定整體保留上限",
+    "history_enable": "在本機保留已完成的整棵掃描",
+    "history_settings_hint": "歷史保留資料夾名稱、路徑、容量與涵蓋範圍，不含檔案內容。預設啟用，所有根目錄合計 "
+                             "1 GiB。只依時間移除辨識為歷史的中繼資料。關閉後仍可查看既有歷史。變更適用於未來的"
+                             "整棵掃描；降低上限會在下次儲存時套用。",
+    "history_limit": "歷史總容量上限",
+    "history_time": "掃描時間",
+    "history_logical": "邏輯大小",
+    "history_allocated": "依名稱計算的配置量",
+    "history_coverage": "涵蓋範圍",
+    "history_incomplete": "不完整；僅含已知資料",
+    "history_complete": "記錄範圍完整",
+    "history_chart": "資料夾邏輯大小隨時間的變化",
+    "history_chart_range": "{first}：{before}；{last}：{after}",
+    "history_empty": "此根目錄沒有保留的掃描",
+    "trend_folder": "根目錄相對資料夾",
+    "trend_folder_hint": "留空代表根目錄",
+    "trend_start": "起始日期（含）",
+    "trend_end": "結束日期（含）",
+    "trend_apply": "套用趨勢",
+    "trend_change": "變化",
+    "trend_child": "直屬子資料夾",
+    "trend_before": "起始容量",
+    "trend_after": "結束容量",
+    "trend_direct_files": "直屬檔案",
+    "trend_unknown": "未知",
+    "trend_net": "期間淨變化：{change}",
+    "trend_net_unknown": "期間淨變化未知",
+    "trend_summary": "顯示 {shown}/{count} 筆日期有效的掃描；無效標頭 {invalid} 筆。"
+                     "直屬項目 {children}/{child_count}。{cap}",
+    "trend_capped": "期間資料已截斷，無法計算完整期間淨變化",
+    "trend_invalid": "趨勢查詢無效：{reason}",
+    "trend_reason_legacy": "舊紀錄的掃描規則未知",
+    "trend_reason_incomplete": "掃描不完整",
+    "trend_reason_incompatible": "掃描規則或根目錄不相容",
+    "trend_reason_missing": "資料夾不存在",
+    "trend_reason_corrupt": "掃描內容損壞",
+    "trend_chart_known": "已知容量 {known}/{total}；未知處斷線",
+    "trend_chart_unknown": "沒有可比較的資料夾容量",
+    "trend_net_reason": "期間淨變化未知：{reason}",
+    "trend_reason_truncated": "期間資料已截斷",
+    "trend_reason_insufficient": "少於兩筆觀察",
+    "trend_tab_sizes": "資料夾容量",
+    "trend_tab_sources": "直屬來源",
+    "trend_tab_compare": "完整根目錄比較",
+    "history_compare": "將所選掃描與目前結果比較",
+    "history_reading": "正在讀取本機掃描歷史…",
+    "history_hint": "顯示此根目錄最近 1,000 筆保留的整棵掃描，不儲存停止的掃描及局部重掃。不完整掃描僅描述"
+                    "已知資料，缺少資料夾不代表已刪除。總量分別計入硬連結名稱；差異是中繼資料，不是內容驗證。",
+    "history_summary": "顯示 {shown}／{count} 筆掃描；{invalid} 個無效或無法讀取的中繼資料檔",
+    "history_failed": "無法讀取歷史：{reason}",
+    "history_save_failed": "掃描已完成，但無法儲存歷史：{reason}",
+    "action_scan_workers": "掃描執行緒數…",
+    "action_scan_workers_tip": "選擇新掃描的並行數，較高不一定較快",
+    "workers_prompt": "新掃描執行緒數（1–32），預設為 {default}。慢速網路共用可能受益於較多執行緒；"
+                      "過高並行數可能使磁碟／伺服器負荷過重。進行中的掃描保留既有執行緒數，"
+                      "UNC 效能取決於實際共用環境。",
+    "action_auto_cpu": "依 CPU 使用量調整掃描執行緒",
+    "action_auto_cpu_tip": "其他程式正在使用 CPU 時，新掃描會減少讀取執行緒；CPU 空閒時恢復到設定的執行緒數",
+    "action_mft_scan": "從檔案表讀取 NTFS 磁碟",
+    "action_mft_scan_tip": "以系統管理員身分執行並掃描 NTFS 磁碟上的資料夾時，直接讀取磁碟的主檔案表，"
+                           "不逐一列出資料夾；其他掃描照舊列出資料夾",
+    "action_bins": "資源回收筒…",
+    "action_bins_tip": "審查回收筒總量與明確範圍的系統清空動作",
+    "bin_finder_empty": "清空所有已掛載磁碟的 Finder 回收筒…",
+    "bin_finder_all": "所有已掛載磁碟（Finder 全域回收筒）",
+    "bin_finder_scopes": "目前使用者的回收筒範圍：\n{scopes}\n\n已掛載磁碟：\n{roots}",
+    "bin_finder_first": "清空目前使用者在所有已掛載磁碟上的 Finder 回收筒？\n\n{root}\n\n"
+                        "內容邏輯大小：{size}\n項目數：{count}",
+    "bin_finder_irreversible": "永久清空目前使用者在所有已掛載磁碟上的 Finder 回收筒？\n\n{root}\n\n"
+                               "內容邏輯大小：{size}\n項目數：{count}\n\n此動作無法復原。"
+                               "Finder 也可能移除作業期間新增的項目。"
+                               "此動作影響所有已掛載磁碟的回收筒，與選取哪一列無關，開始後不能取消。"
+                               "自動化或權限錯誤可能導致僅完成一部分，Finder 也可能仍在執行。",
+    "bin_preparing": "正在盤點 {root} 的確切回收筒範圍…",
+    "bin_no_approval": "沒有完整且非空的回收筒盤點，請更新後重新檢視。",
+    "bin_scope_first": "清空目前使用者的這些回收筒內容／收據範圍？\n\n{root}\n\n內容邏輯大小：{size}\n項目數：{count}",
+    "bin_scope_irreversible": "永久移除這些確切範圍內已檢視的內容？\n\n{root}\n\n"
+                              "內容邏輯大小：{size}\n項目數：{count}\n\n"
+                              "此動作無法復原。內容中的連結只移除連結本身，不跟隨其目標。已變動項目會拒絕處理；"
+                              "失敗時可能只完成一部分。開始清空後無法取消。",
+    "bin_partial": "已移除 {count} 個已檢視項目；其餘失敗原因：{reason}",
+    "bin_empty": "清空選取磁碟的資源回收筒…",
+    "bin_first": "清空 {root} 的資源回收筒？\n\n回報大小：{size}\n項目數：{count}",
+    "bin_irreversible": "永久移除 {root} 資源回收筒目前的全部項目？\n\n回報大小：{size}\n項目數：{count}\n\n"
+                        "此動作無法復原。系統作業期間新增的項目也可能被移除；原生作業開始後不能取消。",
+    "bin_running": "正在清空 {root} 的資源回收筒，等待系統作業完成…",
+    "bin_failed": "未完成清空：{reason}",
+    "bin_hint": "選取一個已掛載磁碟。Windows 清空目前使用者的系統回收筒；Linux 盤點已識別的 files／info 範圍。"
+                "永久移除前以兩次詢問列出確切範圍與總量。停止可取消盤點；開始清空後必須等待完成。"
+                "macOS 經全域檢視後清空所有已掛載磁碟的 Finder 回收筒，原生驗證待完成。"
+                "完成後更新容量／回收筒數值；重新掃描可更新主樹狀圖。",
+    "forecast_column": "剩餘空間預測",
+    "forecast_record": "記錄已用空間以預測",
+    "forecast_record_tip": (
+        "每次開啟此總覽時，FileTree 會在本機資料夾保存各磁碟的時間、已用與總容量位元組：每個磁碟最多每 {hours} "
+        "小時一筆、最多 {count} 筆。不保存任何檔案資訊。"
+    ),
+    "forecast_growing": "每天約 {rate}，約 {date} 用滿",
+    "forecast_not_soon": "每天約 {rate}，{years} 年內不會用滿",
+    "forecast_stable": "沒有成長",
+    "forecast_not_enough": "歷史資料不足（需要幾天）",
+    "forecast_off": "記錄已關閉",
+    "forecast_unknown": "未知（系統未回報已用空間）",
+    "forecast_off_tip": "開啟下方的記錄，即可為此磁碟累積已用空間的歷史。",
+    "forecast_unknown_tip": "系統未回報此磁碟的已用空間，因此沒有記錄。",
+    "forecast_not_enough_tip": (
+        "目前有 {count} 筆、涵蓋 {days} 天；預測至少需要 {needed} 筆、涵蓋 {needed_days} "
+        "天。每次開啟此總覽時記錄一筆，最多每幾小時一筆。"
+    ),
+    "forecast_estimate_tip": (
+        "根據 {count} 筆、涵蓋 {days} 天的已用空間估計（最多最近 {window} "
+        "天，且自上次總容量變更後）。假設近期速度持續，並非保證。"
+    ),
+    "forecast_newer": "剩餘空間歷史由較新版本的 FileTree 儲存，已保持不變。",
+    "forecast_save_failed": "無法儲存剩餘空間歷史：{reason}",
+    "forecast_unavailable": "無法使用剩餘空間歷史：系統未提供應用程式資料夾。",
+    "action_volumes": "磁碟總覽…",
+    "action_volumes_tip": "查看已掛載磁碟、容量、配置單位與資源回收筒總量",
+    "volume_root": "掛載根目錄",
+    "volume_name": "磁碟名稱",
+    "volume_fs": "檔案系統",
+    "volume_total": "總量",
+    "volume_used": "已用",
+    "volume_free": "可用空間",
+    "volume_cluster": "配置單位",
+    "volume_trash": "資源回收筒大小",
+    "volume_trash_count": "回收筒項目",
+    "volume_reading": "正在讀取已掛載磁碟與資源回收筒總量…",
+    "volume_summary": "共 {count} 個已掛載磁碟，顯示 {shown} 個。按兩下開始掃描。",
+    "volume_trash_partial": "總量未知（已知 {known}）",
+    "volume_hint": "作業系統容量快照；可用空間可能扣除保留量或配額。重複掛載可能共用容量，不要加總各列。"
+                   "Windows 配置單位是叢集；POSIX 單位是檔案系統片段，不是最佳傳輸大小。"
+                   "回收筒列出 Windows 回報總量或 POSIX 已知邏輯內容大小，非可回收空間，"
+                   "不含資料夾／收據中繼資料與共用配置。"
+                   "錯誤維持未知。停止會等待目前系統呼叫，取消時捨棄檢查結果。Ctrl+C 複製列；此處不提供清空動作。",
+    "action_disks": "實體磁碟…",
+    "action_disks_tip": "查看實體磁碟機、健康狀態與分割區配置（唯讀）",
+    "disks_title": "實體磁碟",
+    "disks_hint": "唯讀：FileTree 只顯示系統回報的各實體磁碟機資訊，不會變更磁碟上的任何內容。不顯示序號。",
+    "disks_reading": "正在讀取實體磁碟…",
+    "disks_summary": "找到的實體磁碟：{count} 個。",
+    "disks_none": "系統未回報任何實體磁碟。",
+    "disks_problem_unsupported": "無法在此系統上列出實體磁碟。",
+    "disks_problem_tool_missing": "找不到列出磁碟的系統工具。",
+    "disks_problem_timeout": "系統列出磁碟的時間過長，請按「重新整理」再試一次。",
+    "disks_problem_failed": "系統無法列出磁碟。",
+    "disks_problem_malformed": "無法讀取系統回報的磁碟清單。",
+    "disks_refresh": "重新整理",
+    "disks_select": "選取一個磁碟以查看健康狀態與分割區。",
+    "disks_col_disk": "磁碟",
+    "disks_col_model": "型號",
+    "disks_col_media": "類型",
+    "disks_col_bus": "連接介面",
+    "disks_col_style": "分割表",
+    "disks_col_size": "大小",
+    "disks_col_health": "健康狀態",
+    "disks_col_number": "#",
+    "disks_col_kind": "分割區類型",
+    "disks_col_label": "標籤",
+    "disks_col_mounts": "磁碟機代號／掛載點",
+    "disks_col_fs": "檔案系統",
+    "disks_col_offset": "起始位置",
+    "disks_media_ssd": "SSD",
+    "disks_media_hdd": "硬碟（HDD）",
+    "disks_media_unknown": "未知",
+    "disks_unknown": "未知",
+    "disks_state_healthy": "良好",
+    "disks_state_warning": "警告",
+    "disks_state_unhealthy": "即將故障",
+    "disks_state_unknown": "未知",
+    "disks_health_line": "健康狀態：{state}。{meaning}",
+    "disks_meaning_healthy": "磁碟機未回報任何問題。仍請保留備份：磁碟機可能毫無預警地故障。",
+    "disks_meaning_warning": "磁碟機回報了問題。請盡快備份重要檔案，並用製造商的工具檢查。",
+    "disks_meaning_unhealthy": "磁碟機回報即將故障。請立即備份重要檔案，並準備更換。",
+    "disks_meaning_unknown": "系統未回報這個磁碟機的健康狀態，FileTree 無法判斷。",
+    "disks_counters": "溫度：{temperature} · 耗損：{wear} · 通電時數：{hours}",
+    "disks_temperature_value": "{degrees} °C",
+    "disks_wear_value": "已使用額定壽命的 {percent}%",
+    "disks_hours_value": "{hours} 小時",
+    "disks_not_reported": "無法取得",
+    "disks_counters_denied": "在此系統上，溫度、耗損與通電時數需要系統管理員權限。"
+                             "請以系統管理員身分重新啟動 FileTree 來查看；此處不會要求權限。",
+    "disks_counters_missing": "這個磁碟機或其驅動程式不回報溫度、耗損或通電時數。",
+    "disks_counters_unsupported": "在此系統上，耗損與通電時數需要系統管理工具（例如 smartctl），"
+                                  "FileTree 不會執行這些工具。",
+    "disks_no_partitions": "沒有回報任何分割區。",
+    "disks_free_space": "未配置",
+    "disks_bar_name": "分割區配置",
+    "disks_tool_management": "磁碟管理…",
+    "disks_tool_optimize": "最佳化磁碟機…",
+    "disks_tool_volumes": "磁碟與磁碟區設定…",
+    "disks_tool_storage": "儲存體設定…",
+    "action_export_report_html": "掃描報告（HTML）…",
+    "action_export_report_html_tip": "儲存內嵌三張圖表圖片的獨立報告",
+    "action_export_report_xlsx": "掃描報告（Excel）…",
+    "action_export_report_xlsx_tip": "將報告清單儲存在各自的 Excel 工作表",
+    "html_filter": "HTML 報告 (*.html)",
+    "xlsx_filter": "Excel 活頁簿 (*.xlsx)",
+    "report_title": "FileTree 掃描報告",
+    "report_note": "僅含已知記錄範圍；磁碟配置是估計值。標題數量為顯示／全部。最大資料夾範圍重疊，不要加總各列。"
+                   "最大檔案與資料夾各限 1,000 筆，檔案類型限 10,000 筆。大小單位為位元組。檔齡依修改記錄，非最後存取；"
+                   "無可用日期歸入既有的最舊檔齡群組。HTML 圖表顯示整份掃描根目錄，圖形範圍有限。"
+                   "Excel 文字經逸出，控制字元顯示為十六進位，每格限 32,767 字元，16 位以上整數以精確文字儲存。",
+    "report_bytes": "邏輯位元組",
+    "report_allocated": "配置位元組（估計）",
+    "report_created": "報告建立時間",
+    "report_reference": "檔齡參照時間",
+    "report_skipped": "略過資料夾",
+    "report_denied": "無法讀取資料夾",
+    "report_pending": "待讀取資料夾",
+    "report_summary": "摘要",
+    "report_notes": "說明",
+    "report_field": "欄位",
+    "report_value": "值",
+    "report_top_folders": "最大資料夾（範圍重疊）",
+    "report_categories": "分類",
+    "action_projects": "專案與可重建資料…",
+    "action_projects_tip": "查看已掃描的專案、Git 與產生資料大小",
+    "project_path": "專案／管理儲存區",
+    "project_kind": "辨識類型",
+    "project_other": "來源／其他",
+    "project_git": ".git",
+    "project_generated": "可重建資料",
+    "project_coverage": "掃描範圍",
+    "project_partial": "不完整",
+    "project_recorded": "已記錄範圍",
+    "project_hint": "僅列已知邏輯大小；巢狀專案範圍重疊。Git 指標檔案不含外部中繼資料。產生資料可能含自訂檔案，"
+                    "移動前請審查。Maven、全域 Gradle 與 Docker 儲存區分開顯示，不假定其內容可丟棄。",
+    "project_reading": "正在查閱已掃描的專案資料…",
+    "project_summary": "共辨識 {count} 個專案／儲存區，顯示最大的 {shown} 個。",
+    "project_review": "審查符合條件的可重建項目…",
+    "project_review_count": "依目前年齡、掃描範圍與清理設定，{count} 個符合條件的項目最多審查 {shown} 個。"
+                            "已停止的掃描不提供清理提案。",
+    "project_git_kind": "Git",
+    "project_python": "Python",
+    "project_node": "Node.js",
+    "project_rust": "Rust",
+    "project_jvm": "JVM",
+    "project_conda": "Conda 專案",
+    "project_python_environment": "Python 環境",
+    "project_conda_environment": "Conda 環境",
+    "project_maven_store": "Maven 儲存區",
+    "project_gradle_store": "全域 Gradle 儲存區",
+    "project_docker_store": "Docker 資料",
+    "action_git_history": "Git 歷史…",
+    "action_git_history_tip": "查看所有 Git 參照可達的最大物件",
+    "git_oid": "物件識別碼",
+    "git_kind": "物件類型",
+    "git_length": "解壓後長度",
+    "git_type_blob": "檔案內容（blob）",
+    "git_type_tree": "資料夾清單（tree）",
+    "git_type_commit": "提交",
+    "git_type_tag": "註解標籤",
+    "git_hint": ("唯讀 Git 底層命令查閱所有參照，保留最大的 1,000 個物件。大小是解壓後長度，並非磁碟配置或可回收空間。"
+                 "Git 的物件名稱提示可能有歧義，因此不列名稱。Ctrl+C 複製識別碼／列。"
+                 "停用選用鎖定、自動維護與延遲網路下載；"
+                 "Git 必須支援 --no-lazy-fetch。不繞過存放庫擁有者檢查。可停止；不執行 gc。"),
+    "git_reading": "正在查閱 Git 歷史…",
+    "git_summary": "顯示 {count} 個可達物件中的 {shown} 個；解壓後總量 {size}。",
+    "git_gc_loose": ("Git gc 可能整併 {count} 個鬆散物件，但這些最大物件仍可由參照到達，不會被移除。"
+                     "實際節省量及其他不可達／參照日誌資料仍未知。"),
+    "git_gc_packed": ("沒有可整併的鬆散物件。參照保留這些物件時，Git gc 不會移除它們；"
+                      "其他不可達／參照日誌資料與實際節省量尚未量測。"),
+    "git_failed": "Git 查閱失敗：{reason}",
+    "tree_filter_placeholder": "篩選已展開的資料夾…",
+    "tree_filter_hint": ("僅在已展開的資料夾比對名稱（不分大小寫），保留上層路徑。不搜尋摺疊的內容。"
+                         "清除篩選即可恢復樹狀清單。從圖表／清單選取被隱藏的項目會清除篩選。掃描總量與匯出保持不變。"),
+    "action_live_compare": "比較兩個資料夾…",
+    "action_live_compare_tip": "比較即時相對路徑，僅驗證選取的檔案對",
+    "compare_choose_left": "選擇左側資料夾",
+    "compare_choose_right": "選擇右側資料夾",
+    "compare_relative": "相對路徑",
+    "compare_state": "比較結果",
+    "compare_left_size": "左側大小",
+    "compare_right_size": "右側大小",
+    "compare_left_time": "左側修改時間",
+    "compare_right_time": "右側修改時間",
+    "compare_roots": "左側：{left}\n右側：{right}",
+    "compare_hint": ("唯讀：依 Unicode 與大小寫完全相符的名稱配對，不跟隨連結。大小／時間相同不代表內容相同。"
+                     "選取檔案對後可完整雜湊驗證，並可停止；變更、無法讀取與已知雲端檔案保持無法驗證。"
+                     "結果對應此次掃描／驗證時間。不執行複製、移動或同步。Ctrl+C 複製列；"
+                     "CSV 僅匯出顯示的列，最多 10,000 列。"),
+    "compare_reading": "正在掃描兩個資料夾…",
+    "compare_error": "比較或匯出失敗：{reason}",
+    "compare_hashing": "正在驗證選取的檔案對…",
+    "compare_verify": "驗證選取的內容",
+    "compare_summary": "顯示 {count} 個相對路徑中的 {shown} 個（上限 10,000）。",
+    "compare_incomplete": "掃描範圍不完整；無法讀取範圍中的缺少路徑仍為未知。",
+    "compare_unavailable": "無法驗證或已變更",
+    "compare_link": "連結；未讀取內容",
+    "compare_only_left": "僅左側有",
+    "compare_only_right": "僅右側有",
+    "compare_different_kind": "項目類型不同",
+    "compare_folder": "兩側皆為資料夾",
+    "compare_different_size": "大小不同",
+    "compare_different_time": "時間不同；尚未驗證內容",
+    "compare_unchecked": "尚未驗證內容",
+    "compare_identical": "完整雜湊相符",
+    "compare_different_bytes": "內容不同",
+    "problem_mount_boundary": "掛載邊界：未掃描內容",
+    "action_special_files": "雲端與特殊檔案…",
+    "action_special_files_tip": "查看已記錄的召回、離線、壓縮及稀疏檔案狀態",
+    "special_states": "已記錄狀態",
+    "special_content_size": "完整內容大小",
+    "special_recall": "存取時可能召回",
+    "special_offline": "離線",
+    "special_compressed": "已壓縮",
+    "special_sparse": "稀疏",
+    "special_allocation_low": "配置較少，原因未知",
+    "special_reading": "正在讀取已記錄的檔案中繼資料…",
+    "special_hint": ("本清單只使用掃描中繼資料，不開啟或下載檔案。召回／離線屬性可能來自 OneDrive、Dropbox "
+                     "或其他服務，無法據此判斷提供者及已在本機的比例。完整內容大小是含線上內容的邏輯長度；"
+                     "下載後的磁碟配置未知。稀疏區段、壓縮及常駐資料都可能減少配置。召回／離線項目的磁碟大小 "
+                     "0 是掃描估計，不是實測雲端配置。按兩下可選取掃描項目；Ctrl+C 複製所選列。"),
+    "special_summary": ("顯示 {count} 個符合檔案中的 {shown} 個。完整內容 {size}；已記錄配置 {allocated}。"
+                        "無法取得檔案中繼資料：{unknown}。保留最大的 1,000 個。"),
+    "special_partial": "掃描範圍不完整；未讀取的檔案仍未知。",
+    "action_shell_integration": "檔案總管整合…",
+    "action_shell_integration_tip": "在檔案總管的資料夾選單新增或移除「使用 FileTree 掃描」",
+    "shell_enabled": "在檔案總管的資料夾選單加入「使用 FileTree 掃描」",
+    "shell_scan": "使用 FileTree 掃描",
+    "shell_hint": ("儲存只會變更您帳號的資料夾選單，不需要系統管理員權限。"
+                   "Windows 11 請查看「顯示其他選項」。在此取消勾選即可移除。"
+                   "移動執行檔或原始碼資料夾後，請重新登錄。已開始的儲存完成後才會關閉視窗。"),
+    "shell_failed": "無法變更檔案總管整合。\n{reason}",
+    "menu_properties": "內容",
+    "properties_failed": "Windows 無法開啟此項目的內容：\n{path}",
+    "menu_theme": "主題",
+    "theme_system": "系統",
+    "theme_light": "淺色",
+    "theme_dark": "深色",
+    "menu_text_size": "文字大小(&T)",
+    "text_size_larger": "放大(&L)",
+    "text_size_smaller": "縮小(&S)",
+    "text_size_reset": "恢復系統大小(&R)",
+    "text_size_percent": "{percent}%",
+    "text_size_default": "{percent}%（系統大小）",
+
+    "chart_access_keys": ("方向鍵選取已繪製項目；Enter 開啟資料夾，Backspace 返回上層。"
+                          "合併或未顯示的項目可使用資料夾樹查看。"),
+    "chart_access_tree_keys": "上／下選取卡片，右／左展開或收合資料夾。Enter 開啟資料夾，Backspace 返回上層。",
+    "chart_access_folder": "目前資料夾：{path}",
+    "chart_access_selected": "已選取：{path}。大小 {size}；磁碟大小 {allocated}；{files} 個檔案，{folders} 個資料夾。",
+
+    "system_file_hibernate": ("休眠與快速啟動狀態，由 Windows 管理。系統管理員可使用 powercfg /hibernate o"
+                              "ff 關閉休眠，這也會移除休眠功能，並可能影響快速啟動。FileTree 僅開啟電源設"
+                              "定。"),
+    "system_file_pagefile": ("虛擬記憶體的分頁檔，Windows 可自動管理大小。在進階系統設定的效能設定中查看"
+                             "虛擬記憶體；縮小可能影響應用程式與損毀傾印。"),
+    "system_file_swapfile": ("Windows 的交換檔，包含暫停的應用程式資料，由系統與虛擬記憶體一併管理。請查"
+                             "看系統記憶體設定，不要直接移除。"),
+    "system_file_old": ("先前的 Windows 安裝。在磁碟清理的「清理系統檔」中審查先前的 Windows 安裝；"
+                        "移除後將無法返回該安裝。"),
+    "system_file_recycle": "已刪除項目在清空資源回收筒前仍占用空間。請查看資源回收筒或儲存空間感知；清空是永久刪除。",
+    "system_file_restore": ("系統中繼資料、還原點與陰影複製。在系統保護的「設定」中調整還原點容量上限。"
+                            "備份工具管理的陰影複製可能需要各自的備份工具；未讀取的大小仍未知。"),
+    "system_file_winsxs": ("Windows 元件存放區。許多項目與 Windows 檔案共用硬式連結，因此逐名稱加總可能"
+                           "高估實際儲存空間。請使用磁碟清理的「清理系統檔」與 Windows Update 清理，不"
+                           "要手動移除元件。"),
+    "system_file_updates": ("Windows Update 下載資料。在磁碟清理的「清理系統檔」中審查更新及暫存檔案，進"
+                            "行中的下載交由更新服務管理。"),
+    "system_file_delivery": ("Windows 更新與應用程式的傳遞最佳化下載快取。請在磁碟清理中審查傳遞最佳化檔"
+                             "案，進行中的傳輸由 Windows 管理。"),
+    "system_tool_power": "開啟電源設定…",
+    "system_tool_memory": "開啟進階系統設定…",
+    "system_tool_cleanup": "開啟磁碟清理…",
+    "system_tool_storage": "開啟儲存空間感知…",
+    "system_tool_restore": "開啟系統保護…",
+    "system_tool_failed": "無法開啟 Windows 工具。",
+    "trash_skip_system_managed": "此項目由 Windows 管理，請使用詳細資訊中的系統工具",
+
+    "type_locations_title": "所在資料夾（最多 1,000 個）",
+    "type_location_size": "符合類型的大小",
+    "type_locations_tip": "統計各資料夾直接包含的符合類型檔案；子資料夾分開列出，不重複計算。",
+
+    "action_export_list": "目前清單（CSV）…",
+    "action_export_list_tip": "依目前的篩選與排序儲存作用中清單的所有列",
+    "list_changed": "擷取期間清單已變更，請重新匯出或複製。",
+
+    "details_title": "詳細資訊",
+    "details_empty": "選取項目以顯示詳細資訊",
+    "details_live": "掃描完成後可查看分布。",
+    "details_loading": "正在計算類型與檔齡分布…",
+    "details_recorded": "僅統計已讀取的檔案，未讀取項目不在分布內。資料夾修改時間為最新的已記錄日期。",
+    "details_bucket": "{label}：{size} · {count} 個檔案",
+
+    "breadcrumbs_back": "返回（Alt+Left）",
+    "breadcrumbs_forward": "前進（Alt+Right）",
+    "breadcrumbs_more": "…",
+    "breadcrumbs_more_tip": "顯示上層資料夾",
+
+    "action_print_view": "列印目前畫面…",
+    "action_print_view_tip": "透過系統列印對話框將可見結果印在一頁上",
+    "action_export_view_pdf": "目前畫面（PDF）…",
+    "action_export_view_pdf_tip": "將可見結果調整為一頁 PDF 儲存",
+    "pdf_filter": "PDF 文件 (*.pdf)",
+    "view_pdf_exported": "已儲存目前畫面：{path}",
+    "print_failed": "無法列印畫面：{reason}",
+    "print_submitted": "已將畫面送到印表機",
+    "action_export_chart_png": "畫面上的圖表（PNG）…",
+    "action_export_chart_png_tip": "儲存目前可見的圖表範圍",
+    "action_export_chart_svg": "長條圖或放射圖（SVG）…",
+    "action_export_chart_svg_tip": "將有數量上限的完整長條或圓弧儲存為向量圖形與文字",
+    "png_filter": "PNG 圖片 (*.png)",
+    "svg_filter": "SVG 圖片 (*.svg)",
+    "graphic_exported": "已儲存圖表：{path}",
+    "treemap_colours_age": "依修改檔齡",
+    "age_colour_unknown": "日期未知",
+    "age_colour_tip": "距離修改的時間。資料夾依最新的修改記錄著色，無可用日期時為灰色；合併的小項目保持灰色。",
+    "action_gentle": "低優先順序掃描",
+    "action_gentle_tip": "降低新掃描的 CPU 與 I/O 優先順序，可能花較久時間",
+    "scan_priority_warning": "掃描注意事項：{reason}",
+    "scan_pause": "暫停",
+    "scan_resume": "繼續",
+    "scan_pause_tip": "暫停取得新資料夾；目前讀取會完成。暫停時仍可停止。",
+    "scan_paused": "已暫停 — {progress}",
+    "scan_analysing": "資料夾讀取完成，正在分析結果…",
+    "column_drive_share": "占磁碟比例",
+    "columns_reset": "重設欄位",
+    "drive_share_tip": ("邏輯位元組除以磁碟總容量。硬連結名稱分別計算；不是配置或可回收空間。"
+                        "容量未知或已過期時不顯示比例。"),
+    "action_recent_actions": "最近操作…",
+    "action_recent_actions_tip": "查看保留的操作中繼資料，並匯出隱去個人路徑的稽核報告",
+    "journal_time": "時間（UTC）",
+    "journal_source": "原始路徑",
+    "journal_identity": "磁碟／檔案身分",
+    "journal_result": "結果",
+    "journal_detail": "明細",
+    "journal_destination": "資源回收筒位置",
+    "journal_reason_duplicates": "明確的重複檔案決策",
+    "journal_status_approved": "結果未知（只有確認紀錄）",
+    "journal_status_moved": "已移到資源回收筒",
+    "journal_status_skipped": "已略過",
+    "journal_status_failed": "系統移動失敗",
+    "journal_reading": "正在讀取保留的操作…",
+    "journal_hint": ("最近 500 個操作；僅中繼資料，保留 90 天／50 MB。"
+                     "只有確認紀錄的操作，其最終結果未知。記錄資源回收筒位置不保證可還原。"),
+    "journal_summary": "顯示 {count} 個操作；{invalid} 筆損壞紀錄，{unavailable} 個無法讀取的日誌區段。",
+    "journal_read_failed": "無法讀取操作日誌：{reason}",
+    "journal_write_failed": "日誌寫入或保留管理失敗，已盡可能停止剩餘移動；最近操作可能不完整。\n\n{reason}",
+    "trash_skip_journal": "無法記錄已確認的操作，未移動任何項目",
+    "journal_export": "匯出隱去個人路徑的 CSV…",
+    "journal_exported": "稽核報告已儲存，家目錄前綴已隱去。",
+    "duplicate_folder_match": "{copy} = {original}（{size}，{files} 個檔案；搜尋快照相符）",
+    "duplicate_folder_tip": "名稱、大小、已驗證雜湊與空資料夾結構相同。僅供比對，不代表可清理。",
+    "duplicates_keep_selected": "保留選取的副本",
+    "duplicates_kept_name": "保留：{name}",
+    "duplicates_kept_path": "保留副本：{path}。",
+    "duplicates_choose_keeper": "選取多餘副本前，請先選擇這組要保留的副本。",
+    "duplicates_group_blocked": "此組保持原樣，須重新掃描：{reason}",
+    "trash_skip_duplicate_choose": "請選擇保留副本，再次審查此組",
+    "trash_skip_duplicate_keep": "選到了保留副本，此組保持原樣；請重新掃描",
+    "trash_skip_duplicate_unverified": "此組沒有已驗證的雜湊；請重新掃描並搜尋",
+    "trash_skip_duplicate_hard_links": "副本還有硬連結名稱，此組保持原樣；請重新掃描",
+    "trash_skip_duplicate_content": "此組內容變更或無法重新雜湊；請重新掃描並搜尋",
+    "menu_options": "選項",
+    "action_cleanup_policy": "清理政策…",
+    "action_cleanup_policy_tip": "啟用規則、變更最低檔齡，或排除清理建議的路徑",
+    "policy_enabled": "啟用",
+    "policy_age": "最低檔齡（天）",
+    "policy_age_for": "{rule} 的最低檔齡",
+    "policy_enabled_for": "啟用 {rule}",
+    "policy_hint": "政策只影響建議。須手動審查的規則仍預設不勾選。儲存前請先預覽。",
+    "policy_exclusions": "不提出建議的路徑或名稱（每行一個；路徑須為絕對路徑）。不影響掃描。",
+    "policy_preview": "預覽變更",
+    "policy_import": "匯入政策 JSON…",
+    "policy_preview_needed": "儲存前請先預覽目前設定。",
+    "policy_preview_running": "正在比較候選數量與邏輯大小…",
+    "policy_preview_result": "增加 {added} 個候選（{size}）；移除 {removed} 個候選（{removed_size}）。未移動任何項目。",
+    "policy_preview_partial": "掃描不完整；未讀取的候選與容量仍未知。",
+    "policy_no_scan": "尚無完成的掃描，無法量測影響。設定將套用到往後的建議。",
+    "policy_invalid": "政策無效。請使用支援的規則、是／否開關、0–36500 天，以及絕對路徑或名稱樣式。",
+    "policy_saved": "清理政策已儲存，正在更新建議。",
+    "policy_saved_invalid": "已儲存的清理政策無效。請至「選項」審查政策；目前已停用清理建議。",
+    "cleanup_review_manual": "手動審查",
+    "cleanup_evidence": "分類：{category}；最低檔齡：{days} 天；風險：{risk}。依據：{evidence} 重建／後果：{rebuild}",
+    "cleanup_category_temporary": "暫存檔案",
+    "cleanup_category_cache": "下載／產生的快取",
+    "cleanup_category_application_state": "應用程式狀態",
+    "cleanup_category_build": "專案建置輸出",
+    "cleanup_category_downloads": "使用者下載",
+    "cleanup_risk_low": "較低風險；移動前仍須確認",
+    "cleanup_risk_manual": "手動審查；預設不勾選",
+    "cleanup_rebuild_temp": "先關閉使用它的應用程式；暫存資料不一定能重建。",
+    "cleanup_rebuild_browser_cache": "先關閉瀏覽器；快取網頁會重新下載。個人設定與書籤不列入。",
+    "cleanup_rebuild_thumbnails": "先關閉檔案總管；需要時會重新產生預覽。",
+    "cleanup_rebuild_crash_dumps": "保留需要的當機證據；過去的當機傾印無法重建。",
+    "cleanup_rebuild_package_caches": "以套件管理工具重新下載，先確認網路可用。套件儲存庫不列入。",
+    "cleanup_rebuild_build_output": "核對專案內容與相依套件鎖定檔，再依專案文件重建。自行撰寫的檔案應保留。",
+    "cleanup_rebuild_old_installers": "保留離線或已無法取得的安裝檔；仍可取得時向發行者重新下載。",
+    "cleanup_rebuild_empty_folders": "應用程式可能仍需要空資料夾；先確認用途。",
+    "trash_holder": "{name}（PID {pid}）",
+    "trash_holders": "{path}：觀察到 {programs} 開啟此檔案。請自行關閉相關程式後重試。",
+    "trash_holders_limited": "{path}：無法完整查詢行程；其他占用程式或失敗原因可能未知。",
+    "duplicates_savings": ("不重複配置估計 {allocated}；清空資源回收筒後可回收的檔案資料 "
+                           "{recoverable}。"),
+    "duplicates_estimating": ('正在估計不重複配置空間與可回收的檔案資料…'),
+    "duplicates_estimate_unavailable": ('配置估計無法取得。選取多餘副本前請重新搜尋。'),
+    "duplicates_estimate_assumption": ("估計依您選擇的保留副本，未決定的群組保持未知。"
+        "移動前會核對並完整重新雜湊整組檔案。有硬連結名稱時不執行決策。"
+        "共用區塊與資料夾中繼資料仍未知，移到資源回收筒不會釋放空間。"),
+    'capacity_details': '容量明細',
+    'capacity_summary': '系統已用 {used}；可用 {free}；不重複配置估計 {unique}。{status}',
+    'capacity_estimated': '整個磁碟的估計；未能歸帳的空間請見明細。',
+    'capacity_folder_only': '僅掃描資料夾：無法核對整個磁碟。',
+    'capacity_incomplete': '掃描不完整：無法核對整個磁碟。',
+    'capacity_identity_unknown': '缺少檔案識別資訊：無法核對整個磁碟。',
+    'capacity_capacity_unavailable': '無法取得系統容量：無法核對整個磁碟。',
+    'capacity_root_changed': '掃描根目錄已變更，請重新掃描後核對。',
+    'capacity_allocation_exceeds_used': '配置估計超過系統已用空間，無法核對。',
+    'capacity_coverage': '略過 {skipped}；無法讀取 {inaccessible}；尚未讀取 {pending}',
+    'capacity_bin_partial': '未完整識別或讀取資源回收筒，顯示的大小僅限已讀取的資料。',
+    "capacity_explanation": ('已知檔案配置包含讀取到的資源回收筒資料，硬連結的多個名稱只算一次。其他掛載磁碟不列入'
+                             '。略過的資料與檔案系統中繼資料是未知，而非 0。未能歸帳的空間可能包含無法讀取的資料'
+                             '、中繼資料、快照、共用區塊及配置估計誤差。系統容量與檔案不是同時量測，掃描期間檔案系'
+                             '統可能變動。不可用的剩餘空間是系統回報的總量、已用及可用量之差，不是量測得到的中繼資'
+                             '料總量。這些數字是估計，仍待 NTFS、ext4 與 APFS 測試磁碟驗證。'),
+    'capacity_row_total': '系統總容量',
+    'capacity_row_used': '系統已用空間',
+    'capacity_row_free': '系統可用空間',
+    'capacity_row_unavailable_free': '不可用的剩餘空間',
+    'capacity_row_named_allocated': '依名稱計算的配置估計',
+    'capacity_row_unique_allocated': '不重複配置估計',
+    'capacity_row_hard_link_overcount': '已扣除的硬連結重複量',
+    'capacity_row_recycle_bin_seen': '已讀取的資源回收筒配置（已包含）',
+    'capacity_row_foreign_allocated_seen': '已讀取的其他磁碟配置（不列入）',
+    'capacity_row_unaccounted': '未能歸帳',
+    'capacity_row_metadata_bytes': '檔案系統中繼資料／保留空間',
+    'capacity_row_omitted_bytes': '略過的資料',
+    'capacity_row_other_volumes_bytes': '其他掛載磁碟',
+    'capacity_row_mounts': '跨磁碟掛載邊界',
+    'capacity_row_coverage': '掃描涵蓋範圍',
+    "review_title": "審查清理建議",
+    'review_logical_size': '邏輯大小',
+    'review_risk': '風險',
+    'review_risk_low': '較低風險',
+    'review_risk_manual': '需手動審閱',
+    'review_details_label': '項目詳細資訊',
+    'review_scope': '掃描範圍',
+    'review_details': (
+        '{path}\n'
+        '規則：{rule}\n'
+        '修改時間：{modified}\n'
+        '邏輯大小：{logical}；配置空間估計：{allocated}\n'
+        '風險：{risk}\n'
+        '保護狀態：{protection}\n'
+        '\n'
+        '{consequence}'
+    ),
+    "review_hint": "請檢查每條路徑與移除後果，取消勾選即可保留項目；繼續後才會顯示確認問題。",
+    "review_select": "移動",
+    "review_rule": "規則",
+    "review_reason": "原因",
+    "review_protection": "保護狀態",
+    "review_consequence": "移除後果",
+    "review_manual": "手動選取",
+    "review_manual_reason": "使用者選取的項目，移除可能影響相依的檔案或程式。",
+    "review_not_protected": "未符合受保護路徑",
+    "review_open_folder": "開啟所在資料夾",
+    "review_continue": "繼續到確認步驟",
+    "review_estimating": "已選取 {count} 項，正在估計配置空間…",
+    "review_summary": ("{count} 項；邏輯大小 {logical}；配置空間估計 {allocated}；清空資源回收筒後可回收的檔案資料 "
+                       "{recoverable}；目前可用 {free}。共用區塊與資料夾中繼資料仍未知，"
+                       "移到資源回收筒不會立刻釋出空間。"),
+    "size_unknown": "未知",
+    "trash_running": "正在重新核對並移動已核准的項目…按停止可取消剩餘項目。",
+    "trash_batch_done": "已移動 {moved}、略過 {skipped}、失敗 {failed}；共 {size} 移到資源回收筒。",
+    "trash_skipped": "已略過下列項目，請重新掃描資料夾後再試：\n{names}",
+    "trash_skip_outside": "不在目前的掃描範圍",
+    "trash_skip_unverified": "沒有經核對的掃描身分",
+    "trash_skip_incomplete": "掃描涵蓋範圍不完整",
+    "trash_skip_missing": "項目或上層資料夾已不存在",
+    "trash_skip_unreadable": "無法讀取項目",
+    "trash_skip_link": "項目或上層資料夾變成連結",
+    "trash_skip_kind": "項目種類已變更",
+    "trash_skip_identity": "項目已被替換",
+    "trash_skip_changed": "大小、時間或資料夾內容已變更",
+    "trash_skip_protected": "解析後路徑的保護狀態不同",
+    "trash_skip_cancelled": "操作已取消",
+    "coverage_complete": ("涵蓋範圍：{known} 個資料夾，已知 {size}；"
+                          "略過 {skipped}、無法讀取 {denied}、未掃描 {pending}。"),
+    "coverage_partial": ("涵蓋範圍不完整：{known} 個資料夾，已知 {size}；略過 {skipped}、無法讀取 {denied}、"
+                         "未掃描 {pending}。略過的位元組數未知。清理前請重新掃描不完整的分支；已停用全部選取。"),
+    "problem_hidden_omitted": "已略過隱藏項目，大小未知。",
+    "problem_partial_folder": "部分項目無法讀取，資料夾內容不完整。",
+    "app_title": "FileTree",
+    "about_text": "<h3>FileTree {version}</h3><p>看看磁碟空間都用到哪裡去了。</p>"
+                  "<p>MIT 授權 · © 2026 JE-Chen</p>",
+    "menu_file": "檔案(&F)",
+    "menu_export": "匯出(&E)",
+    "menu_view": "檢視(&V)",
+    "menu_unit": "大小單位(&U)",
+    "menu_language": "語言(&L)",
+    "menu_help": "說明(&H)",
+    "action_open": "選擇資料夾…",
+    "action_open_tip": "選一個資料夾或磁碟來掃描",
+    "action_rescan": "重新掃描",
+    "action_rescan_tip": "再掃描一次同一個資料夾，取得最新的變動",
+    "action_stop": "停止",
+    "action_stop_tip": "停止正在進行的掃描",
+    "action_export_folders": "資料夾清單（CSV）…",
+    "action_export_folders_tip": "把每個資料夾和它的大小存成試算表，可用 Excel 開啟",
+    "action_export_largest": "最大的檔案（CSV）…",
+    "action_export_largest_tip": "把最大的檔案清單存起來",
+    "action_export_json": "資料夾樹（JSON）…",
+    "action_export_json_tip": "把資料夾樹存起來，給程式或其他軟體使用",
+    "action_trash": "移到資源回收筒",
+    "action_trash_tip": "把選取的檔案和資料夾移到資源回收筒（會先詢問）",
+    "action_find": "搜尋…",
+    "action_find_tip": "在整個掃描結果裡依名稱找檔案和資料夾",
+    "action_quit": "結束",
+    "action_quit_tip": "關閉 FileTree",
+    "action_hidden": "包含隱藏檔案",
+    "action_exclusions": "掃描時略過…",
+    "action_exclusions_tip": "掃描時要略過的資料夾與資料夾名稱，例如 node_modules",
+    "exclusions_title": "掃描時略過",
+    "exclusions_hint": ("掃描會略過這些資料夾：它們仍會列出來，以灰字顯示、大小為 0。"
+                        "像 node_modules 或 *.cache 這樣的名稱會略過所有同名的資料夾；"
+                        "資料夾路徑只略過那一個資料夾。下一次掃描開始生效。"),
+    "exclusions_add_name": "新增名稱…",
+    "exclusions_add_folder": "新增資料夾…",
+    "exclusions_remove": "移除",
+    "exclusions_name_prompt": "資料夾名稱，可用 * 和 ?：",
+    "exclusions_saved": "已儲存 {count} 項排除；下一次掃描開始生效。",
+    "tooltip_excluded": "{path}\n已略過：它在「檢視 → 掃描時略過」的清單中",
+    "action_hidden_tip": "把隱藏的檔案和資料夾也算進去（下次掃描時生效）",
+    "action_help": "使用說明",
+    "action_help_tip": "FileTree 的簡短使用說明",
+    "action_about": "關於 FileTree",
+    "action_about_tip": "版本與授權",
+    "app_title_admin": "FileTree（系統管理員）",
+    "action_elevate": "以系統管理員身分重新啟動",
+    "action_elevate_tip": "用系統管理員權限重新啟動 FileTree，才能讀取每一個資料夾",
+    "action_ask_admin": "啟動時要求系統管理員權限",
+    "action_ask_admin_tip": "FileTree 啟動時由 Windows 詢問權限，受保護的資料夾也能讀取",
+    "problems_hint": "有些資料夾需要系統管理員權限。以系統管理員身分重新啟動 FileTree 就能一起讀取。",
+    "elevate_declined": "FileTree 仍以一般權限執行。",
+    "startup_invalid": "無法恢復要求的工作區：{reason}",
+    "elevate_waiting": "請完成或關閉 Windows 權限提示。關閉此視窗時，仍會等待該請求完成。",
+    "elevate_failed": "FileTree 無法以系統管理員身分重新啟動：{reason}",
+    "unit_auto": "自動",
+    "path_placeholder": "輸入或貼上資料夾路徑，按 Enter 開始掃描",
+    "choose_folder_title": "選擇要掃描的資料夾",
+    "welcome_title": "看看磁碟空間都用到哪裡去了",
+    "welcome_subtitle": "選一個資料夾或整顆磁碟，FileTree 會把裡面每個檔案的大小加總，"
+                        "先列出最大的資料夾和檔案。",
+    "welcome_choose": "選擇資料夾…",
+    "welcome_drives": "磁碟",
+    "welcome_drive_tip": "掃描 {path}",
+    "welcome_drive_free": "可用 {free}，共 {total}",
+    "welcome_drive_used": "已使用 {percent}",
+    "welcome_recent": "最近掃描過",
+    "welcome_tip": "小技巧：也可以把資料夾從檔案總管拖曳到這個視窗。Windows 可貼上絕對 UNC 共用路徑"
+                   "（\\\\server\\share），使用目前帳戶存取。掃描執行緒數可在選項調整；權限不足／斷線的分支維持不完整，非空資料夾。",
+    "scan_starting": "準備中…",
+    "scan_progress": "正在掃描… {folders} 個資料夾中的 {files} 個檔案 · {size} · {time}",
+    "scan_stop": "停止",
+    "scan_stopping": "正在停止…",
+    "scan_cancelled": "已停止掃描。",
+    "scan_stopped_partial": "已停止掃描：結果只包含停止前讀到的部分。",
+    "scan_failed_title": "無法掃描",
+    "scan_mount_changed": "掛載邊界已變更或無法確認。請重新掃描，再使用掃描結果。",
+    "scan_failed": "FileTree 無法讀取 {path}。\n\n原因：{reason}",
+    "not_a_folder": "{path} 不是存在的資料夾。",
+    "duration_seconds": "{value} 秒",
+    "duration_minutes": "{minutes} 分 {seconds} 秒",
+    "summary": ("<b>{path}</b> — {size}（磁碟大小 {allocated}），共 {files} 個檔案、{folders} 個資料夾"
+                "（掃描耗時 {time}）"),
+    "summary_live": "<b>{path}</b> — 目前 {size}（磁碟大小 {allocated}），{files} 個檔案、{folders} 個資料夾",
+    "summary_partial": "<b>{path}</b> — {size}（磁碟大小 {allocated}），{files} 個檔案、{folders} 個資料夾 · "
+                       "<b>不完整</b>：掃描在 {time} 後停止",
+    "tab_chart": "圖表",
+    "chart_treemap": "方塊圖",
+    "treemap_levels": "層數",
+    "treemap_levels_all": "全部",
+    "treemap_colours": "顏色",
+    "treemap_colours_type": "依檔案類型",
+    "treemap_colours_folder": "依資料夾",
+    "chart_treemap_tip": "每個檔案都是一個方塊，大小代表佔用的空間",
+    "chart_bars": "長條圖",
+    "chart_sunburst": "放射圖",
+    "chart_tree": "樹狀圖",
+    "chart_tree_tip": "資料夾階層：展開分支、Ctrl＋滾輪縮放、連按兩下聚焦",
+    "tree_orientation": "方向",
+    "tree_orientation_horizontal": "由左到右",
+    "tree_orientation_vertical": "由上到下",
+    "tree_more": "其餘 {count} 個資料夾 · {size}",
+    "tree_unavailable": "未掃描",
+    "chart_sunburst_tip": "目前資料夾在中心，每深一層就是外面一圈；按中心回上一層",
+    "chart_bars_tip": "資料夾裡每個項目一條長條，由大到小，附大小與比例",
+    "bars_empty_folder": "這個資料夾是空的。",
+    "bars_more": "其餘 {count} 個：{size}",
+    "tab_largest": "最大的檔案",
+    "scope_folder": "只看選取的資料夾",
+    "scope_folder_named": "只看 {name}",
+    "scope_folder_tip": "改為列出資料夾樹中選取的資料夾（而不是整個掃描範圍）的最大檔案、類型與新舊",
+    "tab_search": "搜尋",
+    "tab_changes": "變化",
+    "action_compare": "與先前儲存的掃描比較…",
+    "action_compare_tip": "開啟用「匯出 → 資料夾樹（JSON）」儲存的掃描，看看之後哪裡變大了",
+    "compare_title": "與先前儲存的掃描比較",
+    "compare_failed": "這個檔案不是 FileTree 儲存的掃描：\n{reason}",
+    "column_before": "之前",
+    "column_now": "現在",
+    "column_change": "變化",
+    "changes_new": "新增",
+    "changes_gone": "已不存在",
+    "changes_whole_scan": "（掃描的資料夾）",
+    "changes_stop": "結束比較",
+    "changes_running": "比較中…",
+    "changes_waiting": "掃描結束後會再比較。",
+    "changes_unknown_time": "時間不明",
+    "changes_summary": ("與 {path}（儲存於 {when}）比較：之前 {before}，現在 {now}（{change}）；"
+                        "{count} 個資料夾有變化。"),
+    "tab_duplicates": "重複檔案",
+    "tab_cleanup": "清理",
+    "cleanup_suggestions": "建議",
+    "cleanup_select_all": "全部選取",
+    "cleanup_select_group": "選取這一組",
+    "cleanup_running": "正在找可以清理的東西…",
+    "cleanup_hint": "掃描完成後，這裡會列出內容通常可以刪掉的位置。",
+    "cleanup_none": "這次掃描沒有可以建議清理的東西。",
+    "cleanup_summary": ("共 {groups} 組，邏輯大小 {size}。移到資源回收筒前請先審查路徑與配置空間；"
+                        "移動不會立刻釋出空間。"),
+    "cleanup_group": "{title}：{count} 項，共 {size}",
+    "cleanup_temp": "暫存檔",
+    "cleanup_temp_tip": "程式暫時留下的檔案；仍在執行的程式可能還在使用其中一些。",
+    "cleanup_browser_cache": "瀏覽器快取",
+    "cleanup_browser_cache_tip": "網頁與圖片的副本；瀏覽器需要時會重新下載。",
+    "cleanup_thumbnails": "縮圖快取",
+    "cleanup_thumbnails_tip": "圖片的小型預覽；開啟資料夾時會重新產生。",
+    "cleanup_crash_dumps": "當機傾印檔",
+    "cleanup_crash_dumps_tip": "程式當機時存下的記憶體內容，只有回報當機時才用得到。",
+    "cleanup_package_caches": "套件下載快取（pip、npm…）",
+    "cleanup_package_caches_tip": "為下次安裝保留的已下載套件；需要時會重新下載。",
+    "cleanup_build_output": "編譯產物（可以重新建置）",
+    "cleanup_build_output_tip": "專案安裝的相依套件與編譯出來的檔案；重新建置專案就會再產生。",
+    "cleanup_old_installers": "下載資料夾裡的安裝檔",
+    "cleanup_old_installers_tip": "多半很久以前就執行過的安裝程式；之後還要拿來安裝的請留著。",
+    "cleanup_empty_folders": "空資料夾",
+    "cleanup_empty_folders_tip": "裡面什麼都沒有，或只有其他空資料夾的資料夾。",
+    "duplicates_min_size": "比對的最小檔案",
+    "duplicates_any_size": "任何大小",
+    "duplicates_find": "尋找重複檔案",
+    "duplicates_stop": "停止",
+    "duplicates_select_extra": "選取多餘的副本",
+    "duplicates_select_extra_tip": "選取已決定保留副本且核對成功群組的多餘副本，再按 Delete",
+    "duplicates_hint": ("在整個掃描範圍內找內容相同的檔案。只會讀取大小相同的檔案，"
+                        "但讀取需要時間，所以除非選了較小的大小，否則會略過小檔案。"),
+    "duplicates_starting": "正在找大小相同的檔案…",
+    "duplicates_running": "已讀取 {files} / {total} 個檔案（{read} / {bytes}）…",
+    "duplicates_stopped": "搜尋已停止。",
+    "duplicates_none": "沒有找到重複的檔案。",
+    "duplicates_summary": ('{groups} 組重複檔案：多餘副本的邏輯大小共 {extra}。'),
+    "duplicates_limited": "只列出多餘空間最大的 {shown} 組。",
+    "duplicates_skipped": "有 {count} 個檔案無法讀取。",
+    "duplicates_group": ('{count} 份 × {size}：多餘副本的邏輯大小 {extra}。'),
+    "search_placeholder": "名稱的一部分，或樣式：backup、*.mp4、*.iso;*.zip",
+    "search_hint": "輸入名稱的一部分或含 * 和 ? 的樣式、選擇條件，或兩者一起，在整個掃描結果裡找檔案和資料夾。",
+    "search_running": "搜尋中…",
+    'search_larger': '至少（含）',
+    'search_smaller': '至多（含）',
+    'search_custom_ranges': '自訂範圍…',
+    'search_changed_custom': '自訂日期',
+    'search_exact_bytes': '{value} B（精確）',
+    'search_date_format': 'YYYY-MM-DD',
+    'search_date_start': '起始日期（含）',
+    'search_date_through': '結束日期（含）',
+    'search_range_hint': '留空表示不限。大小使用精確位元組；日期使用本機時間（YYYY-MM-DD）。',
+    'search_range_size_error': ('請輸入非負整數位元組，最多 9223372036'
+        '854775807 B，不接受不足一位元組的數值。'),
+    'search_range_order_error': '大小下限不可超過上限。',
+    'search_range_date_error': ('請以 YYYY-MM-DD 輸入有效'
+        '的本機日期，起始日期不可晚於結束日期。'),
+    'search_range_invalid': '搜尋範圍無效。請修正大小或日期範圍後再搜尋或儲存。',
+    "search_no_limit": "不限",
+    "search_changed": "修改時間",
+    "search_changed_any": "不限",
+    "search_changed_week": "最近一週內",
+    "search_changed_month": "最近一個月內",
+    "search_changed_year": "最近一年內",
+    "search_changed_stale_year": "超過一年沒動",
+    "search_changed_stale_2y": "超過兩年沒動",
+    "search_changed_stale_5y": "超過五年沒動",
+    "search_type": "類型",
+    "search_type_any": "不限類型",
+    "search_show": "顯示",
+    "search_kind_any": "檔案和資料夾",
+    "search_kind_files": "只有檔案",
+    "search_kind_folders": "只有資料夾",
+    "search_saved": "已存的搜尋",
+    "search_saved_none": "（無）",
+    "search_save": "儲存…",
+    "search_delete": "刪除",
+    "search_save_title": "儲存這個搜尋",
+    "search_save_prompt": "名稱：",
+    "search_none": "沒有符合的項目。",
+    "problems_none": "這次掃描的每個項目都讀取成功，沒有需要檢查的問題。",
+    "largest_none": "沒有可列出的檔案。",
+    "search_summary": "{count} 個符合，共 {size}。",
+    "search_limited": "只列出最大的 {shown} 個。",
+    "tab_types": "檔案類型",
+    "tab_age": "檔案新舊",
+    "column_age": "最後修改",
+    "age_month": "一個月內",
+    "age_half_year": "1–6 個月前",
+    "age_year": "6–12 個月前",
+    "age_two_years": "1–2 年前",
+    "age_older": "超過 2 年",
+    "largest_focus": "只顯示：{what}",
+    "largest_show_all": "顯示全部",
+    "list_files_tip": "按兩下一列，列出它最大的檔案",
+    "tab_problems": "無法讀取",
+    "tab_problems_count": "無法讀取（{count}）",
+    "column_name": "名稱",
+    "column_size": "大小",
+    "column_allocated": "磁碟大小",
+    "column_share": "佔上層比例",
+    "column_share_total": "佔總量比例",
+    "column_files": "檔案數",
+    "column_folders": "資料夾數",
+    "column_modified": "修改時間",
+    "column_folder": "所在資料夾",
+    "column_extension": "副檔名",
+    "column_type": "類型",
+    "column_path": "路徑",
+    "column_problem": "原因",
+    "problem_access_denied": "拒絕存取",
+    "problem_not_found": "已經不存在",
+    "problem_path_too_long": "路徑太長",
+    "problem_not_scanned": "沒有掃描到：掃描在讀到這裡之前就停止了",
+    "no_extension": "（沒有副檔名）",
+    "tooltip_unreadable": "{path}\n無法讀取：{reason}",
+    "tooltip_link": "{path}\n連結：只列出，不會跟進去計算",
+    "tooltip_not_scanned": "{path}\n沒有掃描到：掃描在讀到這裡之前就停止了",
+    "treemap_empty": "沒有可以顯示的內容",
+    "treemap_up": "↑ 上一層",
+    "treemap_up_tip": "顯示上一層資料夾",
+    "treemap_tooltip": "<b>{name}</b><br>{size}（佔目前畫面的 {share}）<br>{path}",
+    "treemap_more": "其餘 {count} 個",
+    "treemap_more_tooltip": "<b>{name} 裡其餘 {count} 個較小的項目</b>，每個都小到畫不出來<br>"
+                            "{size}（佔目前畫面的 {share}）",
+    "treemap_more_open": "按兩下可以單獨顯示這個資料夾",
+    "largest_filter": "依名稱或資料夾篩選…",
+    "types_all": "所有類型",
+    "category_images": "圖片",
+    "category_video": "影片",
+    "category_audio": "音樂與音訊",
+    "category_documents": "文件",
+    "category_archives": "壓縮檔與映像檔",
+    "category_code": "程式碼與資料",
+    "category_programs": "應用程式",
+    "category_other": "其他",
+    "status_selected": "{name}：{size}（佔所在資料夾的 {share}）",
+    "status_selected_root": "{name}：{size}",
+    "menu_open_item": "開啟",
+    "menu_reveal": "在檔案總管中顯示",
+    "menu_copy_path": "複製路徑",
+    "menu_show_chart": "在圖表中顯示",
+    "menu_scan_here": "只掃描這個資料夾",
+    "menu_rescan_here": "重新掃描這個資料夾",
+    "rescan_done": "已重新掃描 {name}：{before} → {after}",
+    "refresh_notice": "這次掃描之後，有 {count} 個已掃描的資料夾內容變動過，那裡顯示的大小可能已經過時。"
+                      "除非您要求，FileTree 不會自行重新掃描。",
+    "refresh_now": "重新掃描變動的資料夾",
+    "refresh_now_tip": "只讀取有變動的資料夾並更新結果",
+    "trash_confirm_title": "移到資源回收筒",
+    "protected_title": "系統或程式資料夾",
+    "protected_question": ("其中 {count} 個是系統或程式的資料夾，移走可能讓系統或程式無法正常運作："
+                           "\n\n{names}\n\n仍要移走嗎？"),
+    "protected_system": "作業系統的一部分",
+    "protected_programs": "已安裝的程式",
+    "protected_settings": "程式的設定與資料",
+    "protected_profile": "使用者的個人資料夾",
+    "trash_confirm": "要把「{name}」（{size}）移到資源回收筒嗎？\n\n之後仍可以從資源回收筒還原。",
+    "trash_failed": "無法把「{name}」移到資源回收筒，可能正在使用中或是唯讀。",
+    "trash_done": "已把「{name}」移到資源回收筒，釋出 {size}。",
+    "action_trash_many": "把 {count} 個項目移到資源回收筒",
+    "trash_confirm_many": ("要把這 {count} 個項目（共 {size}）移到資源回收筒嗎？\n\n{names}\n\n"
+                           "之後仍可以從資源回收筒還原。"),
+    "trash_more": "……還有 {count} 個",
+    "trash_failed_many": "有 {count} 個項目無法移到資源回收筒，可能正在使用中或是唯讀：\n\n{names}",
+    "trash_done_many": "已把 {count} 個項目移到資源回收筒，釋出 {size}。",
+    "permanent_delete": "永久刪除",
+    "permanent_delete_tip": "永久刪除選取的檔案和資料夾，不經過資源回收筒（會先詢問，刪除後無法復原）",
+    "permanent_menu_many": "永久刪除 {count} 個項目",
+    "permanent_not_suggestions": ("永久刪除只用於您在資料夾樹狀結構、最大檔案或搜尋結果中挑選的項目，"
+                                  "不用於清理或重複檔案的建議。"),
+    "permanent_title": "永久刪除",
+    "permanent_confirm": ("要永久刪除「{name}」（{size}）嗎？\n\n{path}\n\n"
+                          "它不會移到資源回收筒，刪除後無法復原。"),
+    "permanent_confirm_many": ("要永久刪除這 {count} 個項目（共 {size}）嗎？\n\n{names}\n\n"
+                               "它們不會移到資源回收筒，刪除後無法復原。"),
+    "permanent_confirm_folders": ("資料夾會連同掃描時記錄的內容一起刪除；"
+                                  "掃描後新增或變更的項目會保留在原處。"),
+    "permanent_protected_question": ("其中 {count} 個是系統或程式的資料夾，永久刪除可能讓系統或程式"
+                                     "無法正常運作：\n\n{names}\n\n仍要刪除嗎？"),
+    "permanent_managed": ("這些項目由 Windows 管理，FileTree 不會刪除。"
+                          "請改用詳細資訊中列出的系統工具：\n\n{names}"),
+    "permanent_running": "正在永久刪除…已刪除 {count} 個項目。按 Esc 可停止。",
+    "permanent_done": "已永久刪除 {removed} 個項目（{size}）。保留在原處：{refused}；失敗：{failed}。",
+    "permanent_report_title": "永久刪除：保留在原處的項目",
+    "permanent_failed": "系統未刪除此項目：{reason}",
+    "permanent_pending": "刪除尚未完成：另一個程式仍開啟著它",
+    "permanent_journal_reason": "明確的永久刪除",
+    "permanent_journal_deleted": "已永久刪除",
+    "permanent_journal_partial": "部分刪除（保留資料夾）",
+    "permanent_skip_outside": "不在目前的掃描範圍，未刪除",
+    "permanent_skip_unverified": "沒有經核對的掃描身分，未刪除",
+    "permanent_skip_incomplete": "掃描無法讀取此資料夾的全部內容，未進入",
+    "permanent_skip_missing": "項目或所在資料夾已不存在",
+    "permanent_skip_unreadable": "無法讀取項目，未刪除",
+    "permanent_skip_link": "項目或上層資料夾變成連結，未刪除",
+    "permanent_skip_kind": "項目種類已變更，未刪除",
+    "permanent_skip_identity": "掃描後項目已被替換，未刪除",
+    "permanent_skip_changed": "掃描後大小或時間已變更，未刪除",
+    "permanent_skip_protected": "不在您確認範圍內的系統或程式資料夾，未刪除",
+    "permanent_skip_system_managed": "此項目由 Windows 管理，未刪除",
+    "permanent_skip_cancelled": "在處理此項目前已停止，未刪除",
+    "permanent_skip_journal": "無法記錄已確認的操作，未刪除任何項目",
+    "permanent_skip_read_only": "唯讀項目；FileTree 不會清除此屬性，因此未刪除",
+    "permanent_skip_mount_point": "已掛接的磁碟區或掛接點，未刪除",
+    "permanent_skip_other_volume": "位於其他磁碟區，未刪除",
+    "permanent_skip_arrived": "掃描後新增，保留在原處",
+    "permanent_skip_not_empty": "保留資料夾：其中仍有項目保留在原處",
+    "permanent_skip_failed": "系統拒絕刪除其中的項目",
+    "status_selected_many": "已選取 {count} 個項目：{size}",
+    "export_title": "匯出",
+    "export_running": "正在儲存到 {path}…",
+    "csv_filter": "CSV 檔案 (*.csv)",
+    "json_filter": "JSON 檔案 (*.json)",
+    "export_done": "已把 {count} 列存到 {path}",
+    "export_failed": "無法儲存檔案。\n\n原因：{reason}",
+    "help_title": "FileTree 使用說明",
+    "help_html": cjk("""
+<h2>三個步驟就會用</h2>
+<ol>
+<li><b>選擇要掃描的地方。</b>按<i>選擇資料夾…</i>或其中一顆磁碟，把資料夾拖曳到視窗上，
+或在上方的方框輸入路徑後按 Enter。</li>
+<li><b>邊掃邊看。</b>資料夾樹會立刻出現，FileTree 一邊加總，最大的資料夾一邊往上排；
+最大的檔案與檔案類型在掃描結束時補上。
+隨時可以按<i>停止</i>（或 Esc）：已經讀到的部分會留在畫面上，並標示為不完整。</li>
+<li><b>找出佔空間的東西。</b>最大的資料夾排在最上面，按資料夾旁的箭頭就能看裡面的內容。</li>
+</ol>
+<h2>看懂結果</h2>
+<ul>
+<li><b>資料夾樹</b>（左邊）：每個資料夾或檔案的大小、<i>磁碟大小</i>（實際佔用的磁碟空間：以整個叢集計算，
+通常比大小多一點；壓縮檔案較少，只存在雲端的檔案是 0）、<i>佔上層比例</i>長條（它佔上一層資料夾多少空間）、
+裡面有幾個檔案和資料夾，以及裡面最近一次變動的時間。按欄位標題可以依該欄排序。</li>
+<li><b>圖表</b>：在分頁角落切換同一個資料夾的四種圖（一開始是方塊圖，之後會記住你選的）。<i>方塊圖</i>把每個檔案畫成一個方塊，檔案越大、方塊越大，
+每個資料夾頂端有寫著名稱和大小的標題列；
+資料夾裡小到看不見的檔案會合成一個灰色斜線方塊（<i>其餘 12 個</i>），按兩下它可以單獨顯示那個資料夾。
+<i>層數</i>決定要畫幾層，<i>顏色</i>可以依檔案類型（圖例在下方）或依最上層的資料夾上色。
+<i>長條圖</i>替資料夾裡每個項目畫一條長條，由大到小，附大小與比例。
+<i>放射圖</i>把目前資料夾放在中心，每深一層就是外面一圈，按中心回上一層。
+<i>樹狀圖</i>畫出可展開的資料夾卡片，按加號或「其餘資料夾」顯示更多；可切換方向、
+按 Ctrl＋滾輪縮放並用捲軸移動。
+按一下可以在資料夾樹中找到它，按兩下資料夾可以進入，按<i>上一層</i>回去。</li>
+<li><b>最大的檔案</b>：整個掃描範圍內最大的 1,000 個檔案。在篩選框輸入文字可以縮小清單，
+按兩下某一列就會在資料夾樹中找到那個檔案。</li>
+<li><b>搜尋</b>（Ctrl+F）：整個掃描範圍內，名稱含有輸入文字的檔案和資料夾。
+<code>*.mp4</code> 這類樣式要符合完整名稱；好幾個樣式用 <code>;</code> 分開（<code>*.iso;*.zip</code>）。
+搜尋框下方的條件（大小、修改時間、檔案類型、檔案或資料夾）可以縮小範圍，也可以單獨搜尋；
+<i>儲存…</i>可以把搜尋取名存起來。會列出最大的 1,000 個符合項目，並顯示全部符合項目的數量和總大小。</li>
+<li><b>清理 → 建議</b>：每次掃描後列出內容通常可以刪掉的位置，每種一組
+（暫存檔、快取、當機傾印檔、可以重新建置的編譯產物、下載資料夾裡的舊安裝檔、空資料夾）；
+滑鼠停在組名上可以看刪掉它的影響，再按<i>選取這一組</i>或<i>全部選取</i>，然後按 Delete。</li>
+<li><b>清理 → 重複檔案</b>：按<i>尋找重複檔案</i>，把內容相同的檔案分組。只會讀取大小相同的檔案；因為讀取需要時間，
+除非選了較小的大小，否則會略過 1 MB 以下的檔案。每一組由舊到新列出副本；<i>選取多餘的副本</i>會選取最舊那份以外的全部，
+再按 Delete 就會移到資源回收筒。</li>
+<li><b>檔案類型</b>：各種檔案依副檔名各佔多少空間；在表格上方的清單選一種類型，就只顯示那一類；
+按兩下一列，會列出那種檔案裡最大的幾個。</li>
+<li><b>檔案新舊</b>：一個月內、1–6 個月前……一直到超過 2 年前最後修改的檔案各佔多少空間。
+舊資料常常就是可以封存或刪除的東西；按兩下一列，會列出那一段裡最大的檔案。</li>
+<li><b>無法讀取</b>：FileTree 沒有權限讀取的資料夾，裡面的內容不會算進去。</li>
+</ul>
+<h2>釋出空間</h2>
+<p>在任何項目上按右鍵，可以<i>開啟</i>、<i>在檔案總管中顯示</i>、<i>複製路徑</i>、<i>在方塊圖中顯示</i>、
+<i>重新掃描這個資料夾</i>（在 FileTree 以外改過東西之後用，其餘結果不變）、
+<i>只掃描這個資料夾</i>，或<i>移到資源回收筒</i>。
+要一次移走好幾個項目，在資料夾樹、<i>最大的檔案</i>或<i>搜尋</i>清單裡用 Ctrl+按一下或 Shift+按一下選取，
+只會詢問一次，並列出它們和總大小。
+FileTree 不會永久刪除任何東西：每次都會先詢問，
+移走的東西都能從資源回收筒（macOS 與 Linux 是「垃圾桶」）還原。數字會立刻更新，不必重新掃描。
+系統與程式的資料夾會說明原因並多問一次；暫存資料夾與快取不會。</p>
+<h2>看看哪裡變大了</h2>
+<p>用<i>檔案 → 匯出 → 資料夾樹（JSON）</i>把掃描存起來。之後重新掃描，選<i>檔案 → 與先前儲存的掃描比較…</i>
+開啟那個檔案，<b>變化</b>分頁就會列出每個有變化的資料夾之前和現在的大小，變大最多的排在最前面
+（<i>新增</i>與<i>已不存在</i>標示新出現或消失的資料夾）。在按<i>結束比較</i>之前，每次重新掃描都會繼續比較。</p>
+<h2>鍵盤快速鍵</h2>
+<table cellpadding="3">
+<tr><td><b>Ctrl+O</b></td><td>選擇資料夾</td></tr>
+<tr><td><b>F5</b></td><td>重新掃描</td></tr>
+<tr><td><b>Esc</b></td><td>停止掃描</td></tr>
+<tr><td><b>Ctrl+F</b></td><td>依名稱搜尋</td></tr>
+<tr><td><b>Delete</b></td><td>把選取的項目（可以好幾個）移到資源回收筒</td></tr>
+<tr><td><b>Ctrl++／Ctrl+−</b></td><td>放大／縮小文字</td></tr>
+<tr><td><b>Ctrl+0</b></td><td>文字恢復系統大小</td></tr>
+<tr><td><b>F1</b></td><td>這份說明</td></tr>
+<tr><td><b>Ctrl+Q</b></td><td>結束</td></tr>
+</table>
+<p>在 macOS 上請用 ⌘ 取代 Ctrl（⌘R 是重新掃描）。</p>
+<h2>小知識</h2>
+<ul>
+<li>大小是檔案的實際大小，以二進位單位計算（1 KB = 1,024 位元組），和 Windows 檔案總管相同；
+可以在<i>檢視 → 大小單位</i>改用固定的單位。</li>
+<li>文字太小或太大？用<i>檢視 → 文字大小</i>調整整個程式的文字，FileTree 會記住這個選擇。</li>
+<li>捷徑與連結（符號連結、目錄連接）會列出來，但不會跟進去計算，所以不會重複計算。</li>
+<li>在 Windows 上，FileTree 啟動時會像 TreeSize 一樣要求系統管理員權限，受保護的資料夾也能讀取。
+拒絕的話它照常以一般權限執行，讀不到的資料夾列在<i>無法讀取</i>分頁，那裡有<i>以系統管理員身分重新啟動</i>按鈕。
+不想每次被問，可以關掉<i>檢視 → 啟動時要求系統管理員權限</i>。</li>
+<li><i>最大的檔案</i>、<i>檔案類型</i>與<i>檔案新舊</i>預設統計整個掃描範圍；
+按這幾個分頁右上角的<i>只看選取的資料夾</i>，就會改為跟著資料夾樹中選取的資料夾。</li>
+<li>預設會計算隱藏檔案；關掉<i>檢視 → 包含隱藏檔案</i>，下次掃描就不會算進去。</li>
+<li>要讓某些資料夾每次都不掃描，把它們加進<i>檢視 → 掃描時略過</i>：
+像 <code>node_modules</code> 這樣的名稱會略過所有同名的資料夾，路徑只略過那一個資料夾。
+略過的資料夾會以灰字列出，大小為 0。</li>
+<li>用<i>檔案 → 匯出</i>儲存結果：CSV 可用 Excel 開啟，JSON 給程式使用。</li>
+</ul>
+"""),
+    "budget_close": "關閉",
+    "action_folder_budgets": "資料夾容量預算…", "action_folder_budgets_tip": "管理資料夾上限與上次掃描用量",
+    "budget_title": "資料夾容量預算", "budget_name": "名稱", "budget_path": "資料夾路徑",
+    "budget_limit": "上限", "budget_usage": "上次用量", "budget_excess": "超額量",
+    "budget_status": "狀態", "budget_add": "新增", "budget_update": "更新", "budget_delete": "刪除",
+    "budget_new": "新規則", "budget_waiting": "等待完整掃描", "budget_unknown": "未知",
+    "budget_over": "超過上限", "budget_within": "未超過上限", "budget_alerted": "{status}，已記錄提醒",
+    "budget_dated_usage": "{when}：{usage}", "budget_invalid_limit": "請輸入精確的位元組上限",
+    "budget_summary": "預算：{over} 項超額，{unknown} 項未知",
+    "budget_save_error": "無法儲存資料夾預算：{reason}",
+    "budget_unknown_reason": "未知：{reason}", "budget_reason_missing": "掃描中未找到資料夾",
+    "budget_reason_linked": "連結資料夾", "budget_reason_not_folder": "不是資料夾",
+    "budget_reason_incomplete": "涵蓋範圍不完整",
+    "budget_invalid_input": "請輸入有效名稱、絕對路徑及精確上限",
+    "budget_invalid_data": "已儲存的預算資料無效", "budget_duplicate_path": "此路徑已有預算",
+    "budget_missing_rule": "此預算已不存在", "budget_too_many": "預算數量過多",
+    "budget_settings_locked": "預算設定忙碌中", "budget_storage_unavailable": "無法使用預算儲存位置",
+    "budget_read_failed": "無法讀取預算設定", "budget_write_failed": "無法儲存預算設定",
+    "budget_observed": "觀察時間",
+    "budget_not_scanned": "尚未掃描",
+    "budget_changed_limit": "上限已變更，等待完整掃描",
+    "budget_input_unit": "上限單位（二進位）",
+    "budget_choose": "選擇資料夾…",
+    "budget_empty": "尚未設定資料夾容量預算。選擇資料夾，輸入名稱與上限，再按新增。",
+    "budget_edit_hint": (
+        '上限使用精確二進位單位。新增或編輯預算不會開始掃描。用量為上次觀察，並非即時用量；變更上限後須重新完整掃描。'
+    ),
+    "budget_keep_draft": "已保留尚未儲存的輸入。請先儲存或按新規則，再選擇其他目標。",
+    "budget_editing": "正在編輯選取的預算",
+    "budget_creating": "新增預算",
+    "budget_exact": "精確大小：{value}",
+    "budget_invalid_name": "請輸入預算名稱",
+    'search_edit_conditions': '調整條件',
+    'date_accept': '確定', 'date_cancel': '取消', 'date_choose': '選擇日期…',
+    'date_clear': '清除日期',
+    'search_fix_field': '請修正標示的欄位，再套用範圍。',
+    'search_size_unit': '大小單位（二進位）',
+    'search_condition_name': '名稱：{value}',
+    'search_condition_value': '{label}：{value}',
+    'search_condition_dates': '日期（含首末日）：{start} 至 {through}',
+    'search_scope_none': '搜尋範圍：尚無已完成的掃描',
+    'search_scope_root': '整份掃描：{path}',
+    'search_scope_multi': '整份掃描：全部合併來源',
+    'search_scope': '搜尋範圍',
+    'search_clear_all': '清除全部條件',
+    'search_no_conditions': '加入名稱或條件，即可搜尋整份掃描結果。',
+    'search_clear_condition': '解除',
+    'search_remove_condition': '解除條件：{condition}',
+}

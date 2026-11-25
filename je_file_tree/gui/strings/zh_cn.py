@@ -1,0 +1,1770 @@
+"""Every text the window shows in Simplified Chinese (Mainland wording); see ``je_file_tree.gui.i18n``."""
+
+from __future__ import annotations
+
+from je_file_tree.gui.strings.joining import cjk
+
+ZH_CN: dict[str, str] = {
+    "busy_scanning": ("扫描进行中，“{action}”须等扫描完成才能执行。"
+        "请等扫描结束，或先停止扫描（Esc）。"),
+    "busy_operation": ("另一项文件操作仍在进行，“{action}”须等它完成才能执行。"
+        "请在操作结束后再试一次。"),
+    "budget_filter": "显示预算",
+    "budget_filter_all": "全部预算",
+    "budget_filter_over": "超过上限",
+    "budget_filter_unknown": "未知或尚未扫描",
+    "budget_filter_empty": "此筛选没有匹配的预算。选择“全部预算”可查看所有规则。",
+    "budget_editing_hidden": "正在编辑“{name}”，此筛选已隐藏该规则。状态：{status}。草稿仍保留。",
+    "budget_count_over": "{count} 个超过上限",
+    "budget_count_unknown": "{count} 个未知",
+    "folder_context_target": "目标文件夹",
+    "folder_context_ready": "选择文件时，这些操作会使用其所在文件夹。",
+    "folder_context_history": "查看增长趋势",
+    "folder_context_budget": "设置容量预算",
+    "folder_context_empty": "请先完成扫描，再使用文件夹操作。",
+    "folder_context_busy": "请等待扫描或当前操作完成。",
+    "folder_context_closing": "此扫描标签页正在关闭。",
+    "folder_context_virtual": "请打开单个来源的扫描，再使用文件夹操作。",
+    "folder_context_stale": "请选择当前扫描中的文件夹。",
+    "folder_context_link": "链接无法使用文件夹操作。",
+    "trend_choose_folder": "选择已加载文件夹…",
+    "trend_loaded_folders": "已加载的子文件夹",
+    "trend_full_path": "完整文件夹路径",
+    "trend_root": "返回根目录",
+    "trend_up": "上一级",
+    "trend_enter": "打开文件夹",
+    "trend_previous": "上一页",
+    "trend_next": "下一页",
+    "trend_choose_current": "使用此文件夹",
+    "trend_folder_page": "文件夹 {first}–{last}，共 {total} 个。仅列出已加载文件夹。",
+    "trend_period": "期间",
+    "trend_period_all": "全部保留记录",
+    "trend_period_30": "最近 30 天",
+    "trend_period_90": "最近 90 天",
+    "trend_period_custom": "自定义日期",
+    "trend_date_order": "结束日期不得早于开始日期。",
+    "trend_point_details": "所选记录详情",
+    "trend_select_point": "选择图表或表格中的记录。方向键可逐条移动。",
+    "trend_size_reason": "容量未知：{reason}",
+    "trend_change_reason": "变化未知：{reason}",
+    "trend_first_point": "此期间没有上一条记录",
+    "trend_point_value": "{date} · 容量 {size}（{exact_size}）· 变化 {change}（{exact_change}）",
+    "templates_select": "选择已保存模板",
+    "templates_remove": "删除模板",
+    "templates_save_section": "保存打开时的工作区",
+    "templates_save_source": "添加和更新保存打开此窗口时记录的标签页和选项；不保存下方的预览修改。",
+    "templates_add_current": "添加打开时标签页",
+    "templates_update_current": "用打开时标签页更新",
+    "templates_preview_hint": "加载预览 · 路径修改仅用于此次加载，修改后请检查。加载后点击开始才扫描。",
+    "templates_preview_modified": "已修改，仅用于此次加载 · 替换标签页前请重新检查路径。",
+    "templates_active": "活动",
+    "templates_scanning": "扫描中",
+    "templates_impact": (
+        '替换将关闭 {tabs} 个标签页、停止 {scans} 个扫描并关闭 {r'
+        'esults} 份结果。预览中不可用路径：{unavailable}。'),
+    "templates_saved": '已保存模板',
+    'workspace_templates': '工作区模板…',
+    'templates_tab': '标签页',
+    'templates_kind': '范围',
+    'templates_status': '可用状态',
+    'templates_single': '单个文件夹',
+    'templates_check': '检查路径',
+    'templates_replace': '替换标签页',
+    'templates_hint': (
+        '保存当前标签页，或选择模板预览。可编辑路径，检查后再替换标签页。替换会关闭现'
+        '有扫描和结果；加载后须点击开始才会扫描。不可用的路径会保留，可在此修正后重新'
+        '检查。添加和更新会保存当前工作区。'),
+    'templates_invalid': (
+        '模板数据无效。请使用唯一名称和绝对路径。现有设置未更改。'),
+    'templates_unchecked': '尚未检查',
+    'templates_checking': '正在检查所有路径…',
+    'templates_ready': '可用',
+    'templates_checked': (
+        '路径检查完成。替换标签页会加载全部输入，包括不可用的路径。有错误的标签页无法'
+        '开始扫描。'),
+    'templates_not_folder': '不是文件夹',
+    "completion_title": '上次清理结果',
+    "completion_undo": '撤销可恢复项目',
+    "completion_rescan": '重新扫描原文件夹',
+    "completion_dismiss": '关闭摘要',
+    "completion_source": '来源：{path}',
+    "completion_counts": (
+        '已移入：{moved}（{size}）；跳过：{skippe'
+        'd}；失败：{failed}'
+    ),
+    "completion_space": (
+        '扫描间观测的可用空间变化：{change}（包含其他活动）'
+    ),
+    "completion_measurements": '扫描观测时间：{before} → {after}',
+    "completion_space_pending": '暂无后续可比较的扫描观测；未知不等于零。',
+    "completion_reason": '{reason}：{count}',
+    "completion_more": '完整原因可在操作记录中查看。',
+    "completion_errors": (
+        '记录写入错误：{journal}；复制收尾错误：{copie'
+        's}。'
+    ),
+    "completion_hint": (
+        '移入大小是逻辑数据量，不等于已释放空间；清空回收站需另行操作'
+        '。详情请查看操作记录与失败报告。'
+    ),
+    "action_scan_presets_tip": "保存及加载命名路径与扫描选项，不会自动开始扫描",
+    "action_scan_presets": '常用扫描设置…',
+    "presets_empty": '暂无常用设置',
+    "presets_hint": (
+        '新增与更新会保存当前扫描选项及输入的路径。加载只填入设置，请按“扫描路径”开始。'
+        '线程数与排除规则适用于工作区。'
+    ),
+    "presets_saved": '已保存设置',
+    "presets_name": '名称',
+    "presets_add": '新增当前选项',
+    "presets_update": '更新所选',
+    "presets_rename": '重命名',
+    "presets_remove": '删除设置',
+    "presets_load": '加载',
+    "presets_options": '线程：{workers}；排除规则：{exclusions}；已启用：{flags}',
+    "presets_no_flags": '无',
+    "presets_invalid": (
+        '请使用不重复的名称（1–80 字）、绝对路径及有效扫描选项。最多可保存 32 组'
+        '设置。'
+    ),
+    "presets_read_failed": '无法读取常用设置，原有数据已保留。',
+    "presets_loaded": '已加载 {name}，请按“扫描路径”开始。',
+    "highlights_title": '扫描重点',
+    "highlights_waiting": '等待扫描分析…',
+    "highlights_folders": '最大的直属文件夹；点击即可定位。',
+    "highlights_partial": '结果不完整；大小只包含已读取的项目。',
+    "highlights_folder": '{name} — {size}',
+    "highlights_cleanup_waiting": '清理：等待分析…',
+    "highlights_cleanup": '检查 {count} 个候选项目（{size}）',
+    "highlights_cleanup_hint": '候选数据量需要检查，不代表可立即释放的空间。',
+    "highlights_coverage_unknown": '暂无扫描范围数据',
+    "highlights_coverage": '扫描限制：跳过 {skipped}、无法读取 {denied}、待扫描 {pending}',
+    "column_advice": '能否删除',
+    "advice_low": '可清理',
+    "advice_review": '先确认',
+    "advice_personal": '自行决定',
+    "advice_protected": '勿删除',
+    "advice_managed": '系统管理',
+    "advice_pending": '分析中…',
+    "advice_low_tip": '较低风险的清理建议：程序可以重新生成这些数据。移动前仍请先检查。',
+    "advice_review_tip": '需要您检查的清理建议：请确认其中没有还要用的内容。',
+    "advice_personal_tip": '没有规则涵盖这个项目，只有您能判断是否还需要。未经您确认不会移动任何项目。',
+    "advice_protected_tip": '请保留：{reason}。移除后可能导致系统或已安装的程序无法运行。',
+    "advice_managed_tip": '这些空间由操作系统管理，FileTree 不会移动它。“详细信息”会说明应使用的系统工具。',
+    "advice_pending_tip": '清理分析仍在进行。',
+    "advice_summary": '{label} — {reason}',
+    "advice_legend_tip": '根据这次扫描的清理规则与这台电脑的受保护位置提供建议。仅供参考：每次移动前仍会先询问。',
+    "highlights_folders_label": '最大的文件夹',
+    "highlights_files_label": '最大的文件',
+    "highlights_files": '最大的文件；点击即可定位。圆点表示能否删除的建议。',
+    "reclaim_action": "释放空间…",
+    "reclaim_action_tip": "根据本次扫描找到的项目，规划如何释放指定的空间",
+    "reclaim_title": "释放空间",
+    "reclaim_hint": (
+        "选择你需要多少空间。FileTree 会列出本次扫描已找到的项目，最安全的排在最前面。不会替你勾选任何项目，在你审查"
+        "并回答“是”之前也不会移动任何项目。"
+    ),
+    "reclaim_target": "要释放的空间：",
+    "reclaim_custom": "自定义大小",
+    "reclaim_share": "直到驱动器有此比例的可用空间",
+    "reclaim_drive": "扫描时驱动器共 {total}，可用 {free}。",
+    "reclaim_column_entry": "步骤或项目",
+    "reclaim_column_total": "累计",
+    "reclaim_step": "{risk}：{title}（{count}）",
+    "reclaim_duplicates": "重复文件的多余副本",
+    "reclaim_duplicates_tip": "与你在“重复文件”标签页中选择保留的副本内容相同的文件。保留的副本绝不会列入。",
+    "reclaim_options": "没有规则涵盖的大文件——确定时才选",
+    "reclaim_running": "{total} / {target}",
+    "reclaim_beyond": "{total} / {target}（已超过目标）",
+    "reclaim_more": "另有 {count} 个未列出",
+    "reclaim_overlap": "本身为 {size}；其中一部分已计入前面的步骤。",
+    "reclaim_reached": "这些步骤约可释放 {found}，足以达到你要求的 {target}。",
+    "reclaim_short": (
+        "这些步骤约只能释放 {found}，距离 {target} 还差 {short}。"
+        "如果确定不再需要，最后列出的大文件或许能补足。"
+    ),
+    "reclaim_empty": "本次扫描没有找到可以建议的项目。",
+    "reclaim_waiting": "仍在查找清理建议；完成后计划会自动补上。",
+    "reclaim_undecided": "有 {count} 组重复文件未列入：请先在“重复文件”标签页选择要保留的副本。",
+    "reclaim_selected": "已选中：{selected} / {target}",
+    "reclaim_note": (
+        "这些是根据扫描结果的估计值，实际释放的空间可能不同：硬链接、已压缩的文件和云文件占用的空间比其大小少，而移到"
+        "回收站的项目要等清空后才会释放空间。"
+    ),
+    "reclaim_show": "在树状列表中显示",
+    "reclaim_review": "审查并移到回收站…",
+    "shell_reading": "正在读取资源管理器注册项…",
+    "shell_saving": "正在保存资源管理器注册项…",
+    "shell_waiting": "正在等待当前资源管理器设置操作完成…已开始的保存会继续执行。",
+    "trash_failed_title": "未能移动的项目",
+    "trash_failed_summary": "有 {count} 个项目移动失败。请查看完整路径与诊断信息。",
+    "trash_holders_error": "打开文件的进程查询错误：{reason}",
+    "trash_skipped_title": "已跳过的项目",
+    "trash_skipped_summary": "已跳过 {count} 个项目，请重新扫描其文件夹后再试。",
+    "trash_skipped_hint": "选择一行可查看完整路径与原因。使用 {shortcut} 复制选中的行。",
+    "closing_workers": "正在关闭 FileTree：停止后台工作，等待当前文件系统调用完成…",
+    "elevate_python_tip": (
+        "当前由 Python 运行：Windows UAC 会显示实际提升权限的 Python 可执行文件。"
+        "使用 FileTree 可执行文件时，提示才会显示 FileTree。"),
+    'overview_empty': '选择文件夹开始扫描',
+    'overview_live': '扫描中 · 统计仍在增加',
+    'overview_complete': '扫描已完成',
+    'overview_partial': '结果不完整 · 部分项目未读取',
+    'overview_size': '逻辑大小',
+    'overview_allocated': '记录的磁盘分配',
+    'overview_files': '文件',
+    'overview_folders': '文件夹',
+    'overview_problems': '查看无法读取的项目（{count}）',
+    'overview_navigation': '分析视图',
+    'overview_coverage_hint': '此状态描述本次扫描；排除规则与挂载边界仍然适用。',
+    'overview_allocation_hint': '记录的分配可能是估计值或共享空间，不代表可回收空间。',
+    'overview_live_hint': '可浏览持续更新的树状列表和图表；分析列表会在扫描结束后填入。',
+    'overview_result_hint': '选择分析视图；选中项目即可在树状列表中定位。',
+    'overview_path': '文件夹或磁盘路径',
+    'overview_scan_path': '扫描路径',
+    'overview_scan_path_tip': '扫描输入的文件夹或磁盘（Enter）；会安全地替换进行中的扫描。',
+    'overview_workflow': '1  选择文件夹或磁盘   →   2  浏览空间用量   →   3  清理前先审核',
+    'overview_scan_running': '正在后台读取文件夹，可浏览持续更新的结果。',
+    'overview_scan_paused': '已请求暂停；当前文件系统调用可能会先完成。可继续或停止扫描。',
+    'overview_scan_analysing': '正在后台准备分析，仍可请求停止。',
+    'overview_scan_stopping': '正在等待当前文件系统工作结束；会保留已取得的部分结果。',
+    'overview_scan_elapsed': '已过 {time}',
+    'recurring_review': '重新扫描并审核当前候选…',
+    'recurring_validating': '正在比对带日期建议、完整的新扫描与当前源元数据…',
+    'recurring_refused': '无法继续此建议：{status}。请执行新的计划扫描，以生成当前的观察数据。',
+    'recurring_tabs_full': '十六个扫描标签页均在使用中。请先关闭一个标签页，再审核计划建议。',
+    'trash_skip_proposal_changed': '源路径、建议设置或扫描记录已更改或无法验证；保留来源。',
+    'trash_skip_proposal_expired': '移动前计划建议已到期；保留来源。',
+    'action_recurring': '计划扫描建议…',
+    'action_recurring_tip': '查看计划观察的日期与覆盖范围；不会自动清理。',
+    'recurring_rule': '规则',
+    'recurring_unknown': '未知',
+    'recurring_new': '上次扫描后新增的垃圾候选',
+    'recurring_current': '当前的清理候选',
+    'recurring_growth': '容量增长最多的文件夹',
+    'recurring_empty': '本次运行尚无计划报告。请启用后台监控并选择扫描文件夹。',
+    'recurring_hint': ('仅供查看，不会自动移动文件。每份列表最多显示 100 条。'
+                       '增长量是逻辑字节，不代表可回收空间。比较未知不代表没有新增垃圾。'
+                       '报告会在本次运行的计划扫描后出现；基准数据保存在本地扫描历史。'
+                       '审核会在新标签页重新扫描，再进入普通审核队列与确认流程。'),
+    'recurring_summary': ('生成时间：{prepared}\n上次基准：{previous}\n到期时间：{expires}\n'
+                          '显示候选：{retained} / {total}；覆盖范围：{coverage}；比较：{comparison}\n'
+                          '状态：{status}'),
+    'recurring_status_current': '已观察；审核前仍须重新验证来源',
+    'recurring_status_expired': '已到期（包括错过计划或时钟倒退）',
+    'recurring_status_schedule_changed': '计划已更改或停用',
+    'recurring_status_stale_scan': '扫描记录已更改或无法获取',
+    'recurring_status_rule_changed': '清理规则已更改',
+    'recurring_status_incomplete': '覆盖范围不完整或文件标识未知',
+    'recurring_status_paths_changed': '源路径已更改',
+    'recurring_status_unavailable': '无法验证设置或扫描记录',
+    'recurring_prepare_failed': '历史已保存；无法生成计划建议：{detail}',
+    'workspace_new': '新建扫描标签页',
+    'workspace_new_tip': '打开独立的扫描标签页（Ctrl+T）；用 Ctrl+W 关闭当前标签页。',
+    'workspace_close': '关闭扫描标签页',
+    'workspace_empty': '选择文件夹',
+    'trash_skip_recycle_unverified': (
+        '无法核对 Windows 回收设置、完整来源大小或原生回收站数据；已保留来源。'
+    ),
+    'trash_skip_recycle_disabled': (
+        '此范围的 Windows 回收功能已禁用；已保留来源。'
+    ),
+    'trash_skip_recycle_capacity': (
+        '选中项目及当前回收站内容超过观察到的回收上限与预留空间；已保留来源。'
+    ),
+    'action_check_updates': '每天检查更新',
+    'action_background_monitor': '后台监视器…',
+    'action_background_monitor_tip': '选择启用托盘通知与低优先级的定期文件夹历史扫描。',
+    'background_enable': '启用后台监视',
+    'background_startup': '登录时启动此监视器',
+    'background_startup_hint': ('需另外选择启用，仅适用当前用户。取消勾选会移除 FileTree 拥有的登录项目。'
+                                '适用下次登录，不会启动另一个程序或结束当前监视器。'),
+    'background_startup_requires_monitor': '请先启用后台监视，再添加登录项目。',
+    'background_startup_error': '无法更改登录启动：{detail}',
+    'background_hint': ('默认关闭。托盘可用时，关闭窗口会保留 FileTree，选择“退出”才结束。'
+                        '每分钟查询系统可用容量，只低优先级扫描明确选择的文件夹。'
+                        '定期扫描需要启用本地历史记录，不自动清理或注册开机启动。'),
+    'background_threshold': '可用空间低于此值时通知',
+    'background_interval': '扫描间隔（小时）',
+    'background_roots': '定期扫描文件夹',
+    'background_add': '添加扫描文件夹…',
+    'background_remove': '移除选中文件夹',
+    'background_limit': '最多选择 32 个定期文件夹。',
+    'background_show': '显示 FileTree',
+    'background_off': '后台监视已关闭',
+    'background_ready': '后台监视已启用',
+    'background_no_tray': '托盘不可用；FileTree 保持显示，后台监视暂停。',
+    'background_error': '后台监视：{detail}',
+    'background_history_disabled': '请先启用本地扫描历史记录，才能运行定期扫描。',
+    'background_scanning': '定期扫描：{detail}',
+    'background_saved': '已保存定期历史：{detail}',
+    'background_saved_partial': '已保存包含未读取范围的定期历史：{detail}',
+    'background_canceled': '定期扫描已取消，未保存部分来源记录：{detail}',
+    'background_warning': '{detail}',
+    'background_low_space': '{root} 可用空间不足：{free}（{percent}%）',
+    'action_follow_changes': '跟随变更',
+    'action_follow_changes_tip': ('默认关闭。在 Windows、Linux 与 macOS 只重新读取有变化的文件夹，'
+                                  '保留其中未变化的子文件夹。'),
+    'follow_refreshed': '已更新 {count} 个变化的文件夹',
+    'follow_refresh_failed': '无法更新变化的文件夹：{reason}',
+    'follow_waiting': '跟随变更：等待扫描',
+    'follow_starting': '跟随变更：启动中…',
+    'follow_active': '跟随变更（{detail}）',
+    'follow_failed': '跟随变更已停止：{detail}',
+    'follow_incomplete': '跟随变更需要完整的实际目录扫描',
+    'follow_unsupported': '跟随变更支持 Windows、Linux 与 macOS',
+    'follow_backend_usn': 'NTFS USN',
+    'follow_backend_directory_changes': '目录通知',
+    'follow_backend_inotify': 'inotify',
+    'follow_backend_fsevents': 'FSEvents',
+    'action_check_updates_tip': '每天最多通过 HTTPS 向 PyPI 查询一次；仅通知，不安装更新。',
+    'update_available': 'FileTree {version} 已发布',
+    'multi_roots': '多个扫描来源',
+    'action_multi_scan': '扫描多个文件夹…',
+    'action_multi_scan_tip': '检查明确选取的文件夹并合并扫描。',
+    'multi_choose': '扫描多个文件夹',
+    'multi_add': '添加文件夹…',
+    'multi_remove': '移除选取的来源',
+    'scan_all_drives': '扫描所有磁盘',
+    'multi_hint': '合并最多 256 个选取来源。结果为只读；文件操作请另扫描该来源。OS 容量仍按各磁盘显示。',
+    'capacity_multiple_roots': '多个来源：OS 容量按各磁盘显示。',
+    'vc_title': (
+        '压缩所选 VHD…'
+    ),
+    'vc_apply': (
+        '检查并压缩…'
+    ),
+    'vc_hint': (
+        '只接受固定本机 NTFS 上未加载的动态 VHD/VHDX。只读准备会核对身份、头部'
+        '及保守的 WSL／Docker 运行状态。客户机用量与保证回收量仍未知。权限错误时，'
+        '先关闭此检查，再使用 FileTree 现有的管理员重新启动功能；必须重新扫描及批准'
+        '。'
+    ),
+    'vc_preparing': (
+        '正在核对记录磁盘与停机状态…'
+    ),
+    'vc_ready': (
+        '请检查确切来源，并确认所属机器全程保持停机。'
+    ),
+    'vc_details': (
+        '来源：{path}\n名称：{source}\n磁盘标识符：{identifier}\n虚'
+        '拟容量：{capacity}\n提供程序字节：{physical}\n\n执行方式：Win'
+        'dows CompactVirtualDisk，在未加载状态压缩全零块。不挂载、启动'
+        '或停止客户机；客户机已用量未知。'
+    ),
+    'vc_confirm': (
+        '压缩这个确切的磁盘文件？\n\n{path}\n\n选择“是”表示确认其所属机器已停机，且操'
+        '作期间全程保持停机。仍会重新核对运行状态与身份。原生全零块压缩可能不回收空间，也可能'
+        '在后续错误前已更改元数据。没有自动撤销。客户机用量／可用空间回收量未知。停止／关闭会'
+        '等待当前原生调用，并报告实际结果。任何可写入打开前，会先持久记录批准。'
+    ),
+    'vc_running': (
+        '正在重新核对并压缩批准的磁盘…'
+    ),
+    'vc_waiting': (
+        '正在等待当前的原生调用，完成后会报告实际结果…'
+    ),
+    'vc_done': (
+        '{status}\n观察到的磁盘文件分配：{before} → {after}。这不保'
+        '证 OS 可用空间回收量。客户机用量仍未知；尝试写入后必须重新扫描。'
+    ),
+    'vc_failed': (
+        '压缩：{reason}'
+    ),
+    'vc_not_compacted': (
+        '未压缩'
+    ),
+    'vc_stale': (
+        '已尝试可写入操作。扫描观察已过期；请关闭此窗口重新扫描，再次检查批准。'
+    ),
+    'vc_audit_refused': (
+        '无法记录批准；未开始原生操作'
+    ),
+    'vc_audit_detail': (
+        '磁盘文件分配，操作前：{before}；操作后：{after}。错误：{error}'
+    ),
+    'journal_status_compacted': (
+        '原生压缩已完成'
+    ),
+    'journal_reason_compaction': (
+        '明确批准的虚拟磁盘压缩'
+    ),
+    'vd_hint': (
+        '只读列表；来源标签只是位置提示。磁盘文件分配、提供程序字节与虚拟容量各自独立，客户机'
+        '用量仍未知。头部查询与压缩检查须明确操作。不支持的格式仍会显示；不自动启动、停止或挂'
+        '载客户机。'
+    ),
+    "vd_name": '磁盘名称',
+    "vd_source": '来源',
+    'vd_issue_unverified': '身份尚未核对',
+    'vd_issue_unavailable': '链接、云端或不可用',
+    'vd_issue_changed': '文件已变化',
+    'vd_issue_duplicate_hard_links': '有多个硬链接名称',
+    "action_virtual_disks_tip": '查看记录的虚拟磁盘，并显式查询只读原生 VHD 信息',
+    'action_virtual_disks': '虚拟磁盘…',
+    'vd_kind': '格式',
+    'vd_length': '磁盘文件长度',
+    'vd_allocation': '记录的分配量',
+    'vd_capacity': '虚拟容量',
+    'vd_physical': '提供程序物理字节',
+    'vd_guest': '客户机已用量',
+    'vd_source_scan': '扫描记录',
+    'vd_source_wsl': 'WSL 注册',
+    'vd_source_docker': 'Docker 默认（推定）',
+    'vd_unsupported': '不支持原生 VHD 工具',
+    'vd_not_queried': '尚未查询原生头部',
+    'vd_fixed': '固定',
+    'vd_dynamic': '动态',
+    'vd_differencing': '差分',
+    'vd_loaded': '已挂载／使用中',
+    'vd_detached': '未加载（观察值）',
+    'vd_inspect': '查询所选 VHD 头部',
+    'vd_select': '显示扫描记录项目',
+    'vd_reading': '正在查找虚拟磁盘文件…',
+    'vd_querying': '正在读取原生头部：{path}',
+    'vd_summary': '显示 {count} 行中的 {shown} 行；{issues} 个问题／跳过项目。覆盖范围：{coverage}。',
+    'vd_failed': '虚拟磁盘信息：{reason}',
+    'vd_information_hint': (
+        '原生观察不授予压缩权限，也不证明机器已关机。提供程序物理字节不代表客户机已用量。磁盘标识符显示在该行的工具提示中。'
+    ),
+    "link_summary": "{total} 个多余副本：{ready} 个可执行，{skipped} 个拒绝。",
+    "link_title": "将多余副本改为硬链接…",
+    "link_hint": (
+        "检查明确选定保留副本的精确重复文件（最多 1,000 个多余副本）。受保护、"
+        "已变化、云端、链接或不支持的文件会拒绝。可回收容量无法保证。"
+    ),
+    "link_copy": "要替换的多余副本",
+    "link_keeper": "保留文件",
+    "link_apply": "将已检查的多余副本改为硬链接…",
+    "link_confirm": (
+        "要将 {count} 个多余副本替换为硬链接吗？{skipped} 个拒绝行"
+        "会跳过。\n\n旧数据不保留在回收站。全部链接名称共享后续内容、元数据与安全性／"
+        "权限变化。此操作没有自动恢复。失败或取消可能保留已发布的链接及旧副本备份，准"
+        "确路径会显示。停止／关闭会等待当前原生调用完成。完整内容及命名流会重新核对；"
+        "同时变化仍只能观察。请在详细信息检查每个配对与拒绝原因。"
+    ),
+    "link_progress": "正在重新核对／创建硬链接：{path}",
+    "link_done": (
+        "硬链接：{linked} 个已发布，{other} 个未链接。请重新扫描以更"
+        "新记录；回收容量未知。"
+    ),
+    "link_not_linked": "未链接",
+    "link_retained": "保留路径：\n{paths}",
+    "journal_status_linked": "已发布硬链接",
+    "journal_reason_duplicate_links": "明确要求替换重复文件为硬链接",
+    "undo_button": "恢复（{count}）",
+    "undo_running": "正在恢复已记录的回收站项目…",
+    "undo_done": "恢复：{restored} 个已恢复，{failed} 个失败",
+    "undo_title": "回收站恢复",
+    "undo_result": "{status}\n原位置：{source}\n回收站：{trashed}\n{reason}",
+    "undo_unavailable": "部分项目无法恢复：{reason}",
+    "journal_status_restored": "已从回收站恢复",
+    "journal_reason_undo": "明确要求恢复回收站项目",
+    "menu_move_drive": "移动到另一个磁盘…",
+    "copy_hint": ("选择另一个磁盘上的现有文件夹。另行确认移入回收站前，保留原始数据。"
+                  "核对文件数、长度及小于 64 MiB 内容的 SHA-256；更大内容仅核对长度。"
+                  "失败／取消会保留部分目标。最多选择 1,000 个文件夹。"),
+    "copy_apply": "复制并验证已查看的文件夹…",
+    "copy_redirect": "成功移入回收站后，在每个原始路径留下 junction／符号链接",
+    "copy_finish": "将已验证的原始数据移到回收站…",
+    "copy_confirm": ("要复制并验证已查看的 {count} 个文件夹吗？其余 {skipped} 组将跳过。"
+                     "不覆盖现有名称。另行确认移入回收站前会保留原始数据；错误或取消会保留部分目标。"),
+    "copy_progress": "正在复制／验证 {path}：此文件夹 {done}／{total} 个文件",
+    "copy_done": "已验证副本：{copied}；跳过：{skipped}；失败：{failed}。原始数据已保留。",
+    "copy_partial": "保留的部分目标：{path}",
+    "copy_trash_confirm": ("每个原始文件夹移入回收站前，会再次验证副本。核对数量及长度；"
+                           "小于 64 MiB 的内容以 SHA-256 核对，更大内容仅核对长度。"
+                           "验证失败会停止剩余批次。并行变更不具事务保证。"),
+    "copy_errors": "复制验证或原始路径链接失败。请查看详细信息中的实际路径。",
+    "copy_verify_failed": "原始数据已保留：{source}\n副本：{destination}\n验证遭拒：{reason}",
+    "copy_redirect_failed": ("原始数据已移入回收站：{source}\n已验证副本已保留：{destination}\n"
+                             "链接失败（原始路径可能留下空文件夹）：{reason}"),
+    "namespace_reason_same_volume": "同一磁盘；请使用移动到文件夹",
+    "namespace_source_name": "源名称",
+    "namespace_destination_name": "目标名称",
+    "namespace_closed_errors": "已停止／关闭的操作报告错误。请检查详细信息中的源／目标路径。",
+    "namespace_refreshed": "已重扫 {path}：{files} 个文件；{errors} 个扫描错误。",
+    "namespace_refresh_failed": "重扫失败，路径 {path}：{reason}",
+    "namespace_refreshing": "正在重扫受影响的目标：{path}",
+    'menu_move_folder': '移动到文件夹…',
+    'menu_rename': '重命名…',
+    'namespace_source': '源',
+    'namespace_destination': '目标',
+    'namespace_status': '状态',
+    'namespace_pattern': '文件名模式',
+    'namespace_rename_hint': ('查看每个源与目标。字面替换：{name}、{stem}、{ext}、{n}。'
+                            '仅限同磁盘，不覆盖。最多选中 1,000 个项目。'),
+    'namespace_move_hint': ('选择现有目标文件夹，查看每组路径。仅限同磁盘，不覆盖。'
+                          '拒绝受保护、链接、不可用或记录不完整的项目。最多选中 1,000 个项目。'),
+    'namespace_collision_skip': '名称已存在：跳过',
+    'namespace_collision_rename': '名称已存在：预览编号后缀',
+    'namespace_preview': '预览路径',
+    'namespace_apply': '应用已查看的路径…',
+    'namespace_reading': '正在检查源与目标元数据…',
+    'namespace_preview_needed': '选项已变化；应用前请重新预览路径。',
+    'namespace_summary': '{total} 组最外层路径；{ready} 组可执行；{skipped} 组拒绝／未变化。',
+    'namespace_confirm': ('要应用预览中 {count} 组可执行的源／目标吗？其余 {skipped} '
+     '组将跳过。详细信息列出每组可执行路径。不覆盖现有名称。停止／关闭须等待当前重命名完成，已完成的变化会保留。'),
+    'namespace_progress': '已处理 {done}／{total} 组路径',
+    'namespace_done': '已移动／重命名：{moved}；跳过：{skipped}；失败：{failed}。关闭后更新扫描。',
+    'namespace_failed': '操作失败：{reason}',
+    'namespace_reason_ready': '可执行',
+    'namespace_reason_unverified': '标识未知',
+    'namespace_reason_link': '拒绝链接',
+    'namespace_reason_special': '拒绝特殊项目',
+    'namespace_reason_unavailable': '不可用／云端项目',
+    'namespace_reason_cancelled': '已停止',
+    'namespace_reason_outside': '当前扫描范围外／根目录',
+    'namespace_reason_missing': '源不存在',
+    'namespace_reason_kind': '项目类型已变化',
+    'namespace_reason_identity': '源已被替换',
+    'namespace_reason_changed': '源已变化',
+    'namespace_reason_incomplete': '源记录不完整',
+    'namespace_reason_unreadable': '无法读取源',
+    'namespace_reason_system_managed': '系统管理的源',
+    'namespace_reason_protected': '受保护的源',
+    'namespace_reason_unchanged': '名称未变化',
+    'namespace_reason_descendant': '目标位于选中的源内',
+    'namespace_reason_protected_destination': '受保护的目标',
+    'namespace_reason_volume': '不同磁盘；须验证复制',
+    'namespace_reason_collision': '名称已存在',
+    "photos_exact": "精确重复文件",
+    "photos_find": "查找相似照片",
+    "photos_similar": "相似照片",
+    "photos_distance": "哈希距离（0–16）：",
+    "photos_hint": ("仅为视觉候选：请比较缩略图与原图。哈希可能碰撞；"
+                    "不自动选择保留副本、多余副本或估计回收量。动画只看第一帧。"),
+    "photos_group": "{count} 张图片；与第一张的距离在 {distance} 位内",
+    "photos_running": "正在读取图片：{read}；跳过／失败：{skipped}",
+    "photos_summary": "{groups} 组相似图片；已读取 {read} 张；跳过／失败 {skipped} 张。",
+    "photos_limited": "列表或显示范围受限；最多显示 {count} 个图片行／缩略图。",
+    "archive_loading": "正在读取压缩文件元数据…",
+    "archive_virtual_name": "{name}［虚拟］",
+    "tree_more_rows": "还有 {count} 个项目，单击显示接下来的 {page} 个",
+    "tree_more_rows_hint": ("大型文件夹每次显示 {page} 个项目，使窗口保持流畅。"
+        "单击此行或按 Enter 显示下一页；在图表或列表中选中的项目会自动显示其所在的页面。"),
+    "archive_virtual_hint": "压缩文件内容：声明的未压缩大小，不计入磁盘总量。不提供文件操作或解压。",
+    "archive_failed": "无法预览：{reason}",
+    "archive_rejected": "已跳过 {count} 个不安全、链接或冲突的项目",
+    "archive_empty": "没有可预览的项目",
+    "archive_stopped": "压缩文件预览已停止；内容列表不完整",
+    "archive_busy": "已有两个压缩文件读取任务；重新扫描后可重试",
+    "archive_stop": "停止读取此压缩文件",
+    "action_count_hard_links": (
+        "观察到的硬链接只计一次"
+    ),
+    "action_count_hard_links_tip": (
+        "默认关闭；后续扫描保留具名大小并增加计入总量。分支／回收站移动后会重扫完整范围。"
+    ),
+    "column_accounted_size": (
+        "计入大小"
+    ),
+    "column_accounted_allocated": (
+        "计入磁盘大小"
+    ),
+    "hard_links_hint": (
+        "启用硬链接计量时，观察到的路径排序第一个名称计入字节，其他名称在此计为零。具名大小仍是实际文件长度。未知／不一致记录保留估计值，共享数据区段"
+        "仍未知。"
+    ),
+    "hard_links_summary": (
+        "计入：{size}（磁盘估计 {allocated}）；观察到 {aliases} 个别名；未知记录 {unknown} 个。图表使用计入总"
+        "量，文件／类型／文件年龄列表保留具名大小。"
+    ),
+    "compression_mode_ntfs": "NTFS 压缩",
+    "compression_mode_xpress8k": "XPRESS8K 压缩（很少修改的文件）",
+    "compression_mode_uncompress": "解压缩（NTFS 及可执行文件模式）",
+    "compression_apply": "处理列表中的文件…",
+    "compression_restore_summary": "{count}/{total} 个已记录文件可供检查；显示 {shown} 个。压缩状态可能未知。",
+    "compression_confirm": (
+        "范围：{path}\n模式：{mode}\n仅处理列表中的 {count} 个文件（逻辑大小 {size}），"
+        "候选项共 {total} 个。\n\n会重新核对当前 NTFS "
+        "范围与未变化的文件。拒绝链接、云端／离线、稀疏、隐藏／系统、硬链接及受保护文件。"
+        "不改变文件夹默认值及列表外文件。压缩可能降低写入速度；XPRESS "
+        "适合很少修改的数据。解压缩需要足够可用空间。停止或失败可能留下部分更改。\n\n关闭此窗口会取消当前命令、等待结束，再以逐文件磁盘大小测量重新扫描此文件夹。是否继续？"
+    ),
+    "compression_progress": "正在处理列表中的 {done}/{total} 个文件…",
+    "compression_done": (
+        "{done}/{attempted} 个命令完成；失败 {failures} 个。"
+        "核对成功的已知文件分配：{before} → {after}；未知测量 {unknown} "
+        "个。关闭后重新扫描；总计不保证可释放空间。显示前 20 条错误。"
+    ),
+    "compression_canceled": "已停止；先前或当前文件可能已更改。关闭后重新扫描。",
+    "compression_failed": "操作失败：{reason}。可能有部分更改，关闭后重新扫描。",
+    "action_exact_allocation": "测量 Windows 逐文件磁盘大小",
+    "action_exact_allocation_tip": (
+        "默认关闭，后续扫描增加元数据查询，包含 XPRESS／WOF 文件。启用后请重新扫描。"
+        "已知云端／离线文件不会查询，失败结果仍使用估计值。"
+    ),
+    "menu_compression": "NTFS 压缩…",
+    "compression_reading": "正在检查已记录的压缩候选项…",
+    "compression_summary": (
+        "{count}/{total} 个文件为类型候选，显示 {shown} 个；逻辑大小 {logical}，具名磁盘分配 {allocated}。"
+        "可能节省 0–{allocated}，不预测固定压缩率。{unknown} 个文件的元数据未知。"
+    ),
+    "compression_volume": "文件系统：{filesystem}；分配单位：{unit}",
+    "compression_unknown": "未知",
+    "compression_ntfs_only": "无法确认 NTFS，此范围不能进行原生压缩。",
+    "compression_partial": "扫描不完整：跳过／无法读取的数据不在此估算范围。",
+    "compression_hint": (
+        "只读类型估算：日志、文本、代码与可能未压缩的图像格式。扩展名不能证明可压缩程度。"
+        "不含隐藏／系统、压缩／稀疏、重解析／云端／离线或元数据未知的项。"
+        "具名磁盘分配可能是估计值或由硬链接共享，不保证可回收空间；不读取文件内容。"
+        "双击选择已记录的文件，Ctrl+C 复制列表。"
+    ),
+    "action_capture_owners": "记录 Windows 文件所有者",
+    "action_capture_owners_tip": "默认关闭；后续扫描增加所有者元数据查询，启用后请重新扫描",
+    "tab_users": "用户",
+    "column_owner": "所有者",
+    "column_owner_id": "所有者标识",
+    "owner_unknown": "所有者未知",
+    "owners_refresh": "刷新记录总计",
+    "owners_reading": "正在累加所有者记录并查询账户名称…",
+    "owners_unqueried": "扫描完成后打开“用户”，即可查询已记录的所有者总计。",
+    "owners_partial": "扫描不完整：跳过／无法读取的大小与所有者保持未知。",
+    "owners_summary": (
+        "{count} 组所有者，显示 {shown} 组；{files} 个文件，{size}。"
+        "所有者未知：{unknown_files} 个文件，{unknown_size}。"
+    ),
+    "owners_hint": (
+        "使用整份扫描，仅按文件所有者累加；文件夹所有者不会应用到其中的文件。"
+        "POSIX uid 来自扫描已读取的 stat；Windows 请启用“选项 → 记录 Windows 文件所有者”并重新扫描。"
+        "未启用、失败、路径已变或云端／离线查询保持未知，名称可能改显示 uid／SID。"
+        "具名磁盘分配仍是估计值，硬链接按各名称计算。所有者不能证明实际使用或移除权限；此处不会准备清理操作。"
+    ),
+    "bin_labels_refresh": "刷新回收站大小",
+    "bin_labels_hint": (
+        "只读快照，最多查询 256 个就绪磁盘，优先查询扫描所在磁盘。"
+        "POSIX 大小为内容的逻辑字节；无法获取或不完整的总计不代表零。"
+        "范围可能重叠，请勿累加。点击刷新才会查询，此处不会准备清理操作。"
+    ),
+    "bin_label_scope_unknown": "此扫描所在磁盘的回收站：尚未查询范围",
+    "bin_label_unqueried": "{root} 回收站：尚未查询",
+    "bin_label_total": "{root} 回收站：{size}，{count} 个项目",
+    "bin_label_partial": "{root} 回收站：总计未知；已知 {size}，{count} 个项目",
+    "action_file_times": "文件时间…",
+    "action_file_times_tip": "按本次扫描记录的访问与创建时间筛选",
+    "action_capture_file_times": "记录文件访问／创建时间",
+    "action_capture_file_times_tip": "默认关闭；之后扫描每个普通文件增加 16 bytes；开启后请重新扫描",
+    "column_accessed": "记录的访问时间",
+    "column_created": "创建时间",
+    "file_times_hint": (
+        "请开启“选项 → 记录文件访问／创建时间”后重新扫描。只记录普通文件；文件夹、链接"
+        "及无法获取的创建时间保持未知。访问时间可能停用、延迟更新，或受后台工具影响，无法"
+        "证明实际使用时间。POSIX ctime 不是创建时间。此视图不会准备清理操作。"
+    ),
+    "file_times_accessed": "多久未打开…（按记录的访问日期）",
+    "file_times_created": "创建至少多久…",
+    "file_times_mode": "记录时间的筛选模式",
+    "file_times_days": "天数",
+    "file_times_reading": "正在筛选已记录的文件时间…",
+    "file_times_summary": (
+        "符合 {count} 个文件，共 {size}；显示 {shown} 个。{total} 个文件中有 {unknown} 个"
+        "时间未知或在未来。"
+    ),
+    "file_times_policy_disabled": (
+        "NTFS 报告已停用访问时间更新，无法按访问时间筛选；仍可按创建时间筛选。注册表设置"
+        "可能需重启，且不代表所有文件系统。"
+    ),
+    "file_times_policy_unknown": "无法确认 NTFS 访问时间更新设置，无法按访问时间筛选；仍可按创建时间筛选。",
+    "file_times_policy_enabled": (
+        "NTFS 注册表设置报告已启用访问时间更新；待重启、文件系统／提供者设置及延迟更新仍"
+        "可能影响日期。"
+    ),
+    "file_times_policy_platform": "文件系统／提供者设置可能延迟或停用访问时间更新，请将日期视为已记录的元数据。",
+    "action_programs": "已安装程序…",
+    "action_programs_tip": "核对安装程序／游戏元数据与此扫描中的安装文件夹",
+    "program_name": "程序／游戏",
+    "program_source": "元数据来源",
+    "program_version": "版本／构建",
+    "program_publisher": "发布者",
+    "program_reported": "报告的估计大小",
+    "program_scanned": "扫描的逻辑大小",
+    "program_allocated": "扫描按名称计算的分配量",
+    "program_coverage": "记录的文件夹覆盖范围",
+    "program_location": "安装文件夹",
+    "program_registry": "Windows 注册表",
+    "program_steam": "Steam 清单",
+    "program_epic": "Epic 清单",
+    "program_outside": "没有完全匹配的扫描文件夹",
+    "program_hint": "Windows 卸载注册项与识别到的 Steam／Epic 清单，仅核对此扫描中完全匹配的文件夹，"
+                    "也会读取 Epic 在 ProgramData 的固定清单目录。报告大小是估计，缺少数据保持未知。共享或嵌套"
+                    "文件夹可能重叠，请勿合计行或视为可回收空间。便携式／打包应用可能未列出。双击选中"
+                    "记录的文件夹，Ctrl+C 复制行。请通过 Windows 或游戏启动器卸载。",
+    "program_reading": "正在读取安装元数据…",
+    "program_summary": "显示 {shown}／{count} 个安装条目；{issues} 个无法读取、格式错误或跳过的元数据条目",
+    "program_failed": "无法读取安装条目：{reason}",
+    "program_uninstall_page": "打开 Windows 已安装应用设置",
+    "program_open_failed": "Windows 无法打开已安装应用设置页面",
+    "action_history": "扫描历史…",
+    "action_history_tip": "查看此根目录大小随时间的变化，并与先前扫描比较",
+    "action_history_settings": "扫描历史设置…",
+    "action_history_settings_tip": "启用本地扫描元数据并设置整体保留上限",
+    "history_enable": "在本地保留已完成的整个扫描",
+    "history_settings_hint": "历史保留文件夹名称、路径、容量与覆盖范围，不含文件内容。默认启用，所有根目录合计 "
+                             "1 GiB。只按时间移除识别为历史的元数据。关闭后仍可查看已有历史。变化适用于未来的"
+                             "整个扫描；降低上限会在下次保存时应用。",
+    "history_limit": "历史总容量上限",
+    "history_time": "扫描时间",
+    "history_logical": "逻辑大小",
+    "history_allocated": "按名称计算的分配量",
+    "history_coverage": "覆盖范围",
+    "history_incomplete": "不完整；仅含已知数据",
+    "history_complete": "记录范围完整",
+    "history_chart": "文件夹逻辑大小随时间的变化",
+    "history_chart_range": "{first}：{before}；{last}：{after}",
+    "history_empty": "此根目录没有保留的扫描",
+    "trend_folder": "根目录相对文件夹",
+    "trend_folder_hint": "留空表示根目录",
+    "trend_start": "起始日期（含）",
+    "trend_end": "结束日期（含）",
+    "trend_apply": "应用趋势",
+    "trend_change": "变化",
+    "trend_child": "直属子文件夹",
+    "trend_before": "起始大小",
+    "trend_after": "结束大小",
+    "trend_direct_files": "直属文件",
+    "trend_unknown": "未知",
+    "trend_net": "期间净变化：{change}",
+    "trend_net_unknown": "期间净变化未知",
+    "trend_summary": "显示 {shown}/{count} 条日期有效的扫描；无效标头 {invalid} 条。"
+                     "直属项目 {children}/{child_count}。{cap}",
+    "trend_capped": "期间记录已截断，无法计算完整期间净变化",
+    "trend_invalid": "趋势查询无效：{reason}",
+    "trend_reason_legacy": "旧记录的扫描规则未知",
+    "trend_reason_incomplete": "扫描不完整",
+    "trend_reason_incompatible": "扫描规则或根目录不兼容",
+    "trend_reason_missing": "文件夹不存在",
+    "trend_reason_corrupt": "扫描内容损坏",
+    "trend_chart_known": "已知大小 {known}/{total}；未知处断线",
+    "trend_chart_unknown": "没有可比较的文件夹大小",
+    "trend_net_reason": "期间净变化未知：{reason}",
+    "trend_reason_truncated": "期间记录已截断",
+    "trend_reason_insufficient": "少于两条记录",
+    "trend_tab_sizes": "文件夹大小",
+    "trend_tab_sources": "直属来源",
+    "trend_tab_compare": "完整根目录比较",
+    "history_compare": "将所选扫描与当前结果比较",
+    "history_reading": "正在读取本地扫描历史…",
+    "history_hint": "显示此根目录最近 1,000 条保留的整个扫描，不保存停止的扫描及局部重扫。不完整扫描仅描述"
+                    "已知数据，缺少文件夹不代表已删除。总量分别计入硬链接名称；差异是元数据，而非内容验证。",
+    "history_summary": "显示 {shown}／{count} 条扫描；{invalid} 个无效或无法读取的元数据文件",
+    "history_failed": "无法读取历史：{reason}",
+    "history_save_failed": "扫描已完成，但无法保存历史：{reason}",
+    "action_scan_workers": "扫描线程数…",
+    "action_scan_workers_tip": "选择新扫描的并行数，较高不一定较快",
+    "workers_prompt": "新扫描线程数（1–32），默认值为 {default}。慢速网络共享可能受益于更多线程；"
+                      "过高并行数可能使磁盘／服务器负荷过重。进行中的扫描保留现有线程数，UNC 性能取决于实际共享环境。",
+    "action_auto_cpu": "按 CPU 使用率调整扫描线程",
+    "action_auto_cpu_tip": "其他程序正在使用 CPU 时，新扫描会减少读取线程；CPU 空闲时恢复到设置的线程数",
+    "action_mft_scan": "从文件表读取 NTFS 磁盘",
+    "action_mft_scan_tip": "以管理员身份运行并扫描 NTFS 磁盘上的文件夹时，直接读取磁盘的主文件表，不逐一列出文件夹；"
+                           "其他扫描照旧列出文件夹",
+    "action_bins": "回收站…",
+    "action_bins_tip": "检查回收站总量与明确范围的系统清空操作",
+    "bin_finder_empty": "清空所有已挂载磁盘的 Finder 回收站…",
+    "bin_finder_all": "所有已挂载磁盘（Finder 全局回收站）",
+    "bin_finder_scopes": "当前用户的回收站范围：\n{scopes}\n\n已挂载磁盘：\n{roots}",
+    "bin_finder_first": "清空当前用户在所有已挂载磁盘上的 Finder 回收站？\n\n{root}\n\n"
+                        "内容逻辑大小：{size}\n项数：{count}",
+    "bin_finder_irreversible": "永久清空当前用户在所有已挂载磁盘上的 Finder 回收站？\n\n{root}\n\n"
+                               "内容逻辑大小：{size}\n项数：{count}\n\n此操作无法恢复。"
+                               "Finder 也可能移除操作期间新增的项。"
+                               "此操作影响所有已挂载磁盘的回收站，与选中哪一行无关，开始后不能取消。"
+                               "自动化或权限错误可能导致仅完成一部分，Finder 也可能仍在运行。",
+    "bin_preparing": "正在清点 {root} 的确切回收站范围…",
+    "bin_no_approval": "没有完整且非空的回收站清点，请刷新后重新检查。",
+    "bin_scope_first": "清空当前用户的这些回收站内容／收据范围？\n\n{root}\n\n内容逻辑大小：{size}\n项数：{count}",
+    "bin_scope_irreversible": "永久移除这些确切范围内已检查的内容？\n\n{root}\n\n"
+                              "内容逻辑大小：{size}\n项数：{count}\n\n"
+                              "此操作无法恢复。内容中的链接只移除链接本身，不跟随其目标。已变化的项会拒绝处理；"
+                              "失败时可能只完成一部分。开始清空后无法取消。",
+    "bin_partial": "已移除 {count} 个已检查项；其余失败原因：{reason}",
+    "bin_empty": "清空选中磁盘的回收站…",
+    "bin_first": "清空 {root} 的回收站？\n\n报告大小：{size}\n项数：{count}",
+    "bin_irreversible": "永久移除 {root} 回收站当前的全部项？\n\n报告大小：{size}\n项数：{count}\n\n"
+                        "此操作无法恢复。系统操作期间新增的项也可能被移除；原生操作开始后不能取消。",
+    "bin_running": "正在清空 {root} 的回收站，等待系统操作完成…",
+    "bin_failed": "未完成清空：{reason}",
+    "bin_hint": "选中一个已挂载磁盘。Windows 清空当前用户的系统回收站；Linux 清点已识别的 files／info 范围。"
+                "永久移除前以两次询问列出确切范围与总量。停止可取消清点；开始清空后必须等待完成。"
+                "macOS 经全局检查后清空所有已挂载磁盘的 Finder 回收站，原生验证待完成。"
+                "完成后更新容量／回收站数值；重新扫描可更新主树。",
+    "forecast_column": "剩余空间预测",
+    "forecast_record": "记录已用空间以预测",
+    "forecast_record_tip": (
+        "每次打开此总览时，FileTree 会在本地数据目录保存各磁盘的时间、已用与总容量字节：每个磁盘最多每 {hours} "
+        "小时一条、最多 {count} 条。不保存任何文件信息。"
+    ),
+    "forecast_growing": "每天约 {rate}，约 {date} 用满",
+    "forecast_not_soon": "每天约 {rate}，{years} 年内不会用满",
+    "forecast_stable": "没有增长",
+    "forecast_not_enough": "历史数据不足（需要几天）",
+    "forecast_off": "记录已关闭",
+    "forecast_unknown": "未知（系统未报告已用空间）",
+    "forecast_off_tip": "打开下方的记录，即可为此磁盘积累已用空间的历史。",
+    "forecast_unknown_tip": "系统未报告此磁盘的已用空间，因此没有记录。",
+    "forecast_not_enough_tip": (
+        "目前有 {count} 条、覆盖 {days} 天；预测至少需要 {needed} 条、覆盖 {needed_days} "
+        "天。每次打开此总览时记录一条，最多每几小时一条。"
+    ),
+    "forecast_estimate_tip": (
+        "根据 {count} 条、覆盖 {days} 天的已用空间估算（最多最近 {window} "
+        "天，且自上次总容量变化后）。假设近期速度持续，并非保证。"
+    ),
+    "forecast_newer": "剩余空间历史由较新版本的 FileTree 保存，已保持不变。",
+    "forecast_save_failed": "无法保存剩余空间历史：{reason}",
+    "forecast_unavailable": "无法使用剩余空间历史：系统未提供应用数据目录。",
+    "action_volumes": "磁盘总览…",
+    "action_volumes_tip": "查看已挂载磁盘、容量、分配单位与回收站总量",
+    "volume_root": "挂载根目录",
+    "volume_name": "磁盘名称",
+    "volume_fs": "文件系统",
+    "volume_total": "总量",
+    "volume_used": "已用",
+    "volume_free": "可用空间",
+    "volume_cluster": "分配单位",
+    "volume_trash": "回收站大小",
+    "volume_trash_count": "回收站项数",
+    "volume_reading": "正在读取已挂载磁盘与回收站总量…",
+    "volume_summary": "共 {count} 个已挂载磁盘，显示 {shown} 个。双击开始扫描。",
+    "volume_trash_partial": "总量未知（已知 {known}）",
+    "volume_hint": "操作系统容量快照；可用空间可能扣除保留量或配额。重复挂载可能共用容量，不要汇总各行。"
+                   "Windows 分配单位是簇；POSIX 单位是文件系统片段，不是最佳传输大小。"
+                   "回收站列出 Windows 报告总量或 POSIX 已知逻辑内容大小，非可回收空间，"
+                   "不含文件夹／回执元数据与共享分配。"
+                   "错误保持未知。停止会等待当前系统调用，取消时丢弃检查结果。Ctrl+C 复制行；此处不提供清空操作。",
+    "action_disks": "物理磁盘…",
+    "action_disks_tip": "查看物理驱动器、健康状况与分区布局（只读）",
+    "disks_title": "物理磁盘",
+    "disks_hint": "只读：FileTree 只显示系统报告的各物理驱动器信息，不会更改磁盘上的任何内容。不显示序列号。",
+    "disks_reading": "正在读取物理磁盘…",
+    "disks_summary": "找到的物理磁盘：{count} 个。",
+    "disks_none": "系统未报告任何物理磁盘。",
+    "disks_problem_unsupported": "无法在此系统上列出物理磁盘。",
+    "disks_problem_tool_missing": "找不到列出磁盘的系统工具。",
+    "disks_problem_timeout": "系统列出磁盘的时间过长，请点“刷新”重试。",
+    "disks_problem_failed": "系统无法列出磁盘。",
+    "disks_problem_malformed": "无法读取系统报告的磁盘列表。",
+    "disks_refresh": "刷新",
+    "disks_select": "选中一个磁盘以查看健康状况与分区。",
+    "disks_col_disk": "磁盘",
+    "disks_col_model": "型号",
+    "disks_col_media": "类型",
+    "disks_col_bus": "接口",
+    "disks_col_style": "分区表",
+    "disks_col_size": "大小",
+    "disks_col_health": "健康状况",
+    "disks_col_number": "#",
+    "disks_col_kind": "分区类型",
+    "disks_col_label": "卷标",
+    "disks_col_mounts": "盘符／挂载点",
+    "disks_col_fs": "文件系统",
+    "disks_col_offset": "起始位置",
+    "disks_media_ssd": "固态硬盘（SSD）",
+    "disks_media_hdd": "机械硬盘（HDD）",
+    "disks_media_unknown": "未知",
+    "disks_unknown": "未知",
+    "disks_state_healthy": "良好",
+    "disks_state_warning": "警告",
+    "disks_state_unhealthy": "即将故障",
+    "disks_state_unknown": "未知",
+    "disks_health_line": "健康状况：{state}。{meaning}",
+    "disks_meaning_healthy": "驱动器未报告任何问题。仍请保留备份：驱动器可能毫无预兆地损坏。",
+    "disks_meaning_warning": "驱动器报告了问题。请尽快备份重要文件，并用厂商的工具检查。",
+    "disks_meaning_unhealthy": "驱动器报告即将故障。请立即备份重要文件，并准备更换。",
+    "disks_meaning_unknown": "系统未报告这个驱动器的健康状况，FileTree 无法判断。",
+    "disks_counters": "温度：{temperature} · 磨损：{wear} · 通电时间：{hours}",
+    "disks_temperature_value": "{degrees} °C",
+    "disks_wear_value": "已用额定寿命的 {percent}%",
+    "disks_hours_value": "{hours} 小时",
+    "disks_not_reported": "无法获取",
+    "disks_counters_denied": "在此系统上，温度、磨损与通电时间需要管理员权限。"
+                             "请以管理员身份重新启动 FileTree 来查看；此处不会申请权限。",
+    "disks_counters_missing": "这个驱动器或其驱动程序不报告温度、磨损或通电时间。",
+    "disks_counters_unsupported": "在此系统上，磨损与通电时间需要管理工具（例如 smartctl），"
+                                  "FileTree 不会运行这些工具。",
+    "disks_no_partitions": "没有报告任何分区。",
+    "disks_free_space": "未分配",
+    "disks_bar_name": "分区布局",
+    "disks_tool_management": "磁盘管理…",
+    "disks_tool_optimize": "优化驱动器…",
+    "disks_tool_volumes": "磁盘和卷设置…",
+    "disks_tool_storage": "存储设置…",
+    "action_export_report_html": "扫描报告（HTML）…",
+    "action_export_report_html_tip": "保存内嵌三张图表图片的独立报告",
+    "action_export_report_xlsx": "扫描报告（Excel）…",
+    "action_export_report_xlsx_tip": "将报告列表保存在各自的 Excel 工作表",
+    "html_filter": "HTML 报告 (*.html)",
+    "xlsx_filter": "Excel 工作簿 (*.xlsx)",
+    "report_title": "FileTree 扫描报告",
+    "report_note": "仅含已知记录范围；磁盘分配是估计值。标题数量为显示／全部。最大文件夹范围重叠，不要汇总各行。"
+                   "最大文件与文件夹各限 1,000 条，文件类型限 10,000 条。大小单位为字节。"
+                   "文件时间按修改记录，非最后访问；"
+                   "无可用日期归入现有的最旧时间组。HTML 图表显示整份扫描根目录，图形范围有限。"
+                   "Excel 文本经转义，控制字符显示为十六进制，每格限 32,767 字符，16 位以上整数以精确文本保存。",
+    "report_bytes": "逻辑字节",
+    "report_allocated": "分配字节（估计）",
+    "report_created": "报告创建时间",
+    "report_reference": "文件时间参考点",
+    "report_skipped": "跳过文件夹",
+    "report_denied": "不可读取文件夹",
+    "report_pending": "待读取文件夹",
+    "report_summary": "摘要",
+    "report_notes": "说明",
+    "report_field": "字段",
+    "report_value": "值",
+    "report_top_folders": "最大文件夹（范围重叠）",
+    "report_categories": "分类",
+    "action_projects": "项目与可重建数据…",
+    "action_projects_tip": "查看已扫描的项目、Git 与生成数据大小",
+    "project_path": "项目／管理存储区",
+    "project_kind": "识别类型",
+    "project_other": "源文件／其他",
+    "project_git": ".git",
+    "project_generated": "可重建数据",
+    "project_coverage": "扫描范围",
+    "project_partial": "不完整",
+    "project_recorded": "已记录范围",
+    "project_hint": "仅列已知逻辑大小；嵌套项目范围重叠。Git 指针文件不含外部元数据。生成数据可能含自定义文件，"
+                    "移动前请检查。Maven、全局 Gradle 与 Docker 存储区分开显示，不假定其内容可丢弃。",
+    "project_reading": "正在检查已扫描的项目数据…",
+    "project_summary": "共识别 {count} 个项目／存储区，显示最大的 {shown} 个。",
+    "project_review": "检查符合条件的可重建项…",
+    "project_review_count": "按当前时间、扫描范围与清理设置，{count} 个符合条件的项最多检查 {shown} 个。"
+                            "已停止的扫描不提供清理建议。",
+    "project_git_kind": "Git",
+    "project_python": "Python",
+    "project_node": "Node.js",
+    "project_rust": "Rust",
+    "project_jvm": "JVM",
+    "project_conda": "Conda 项目",
+    "project_python_environment": "Python 环境",
+    "project_conda_environment": "Conda 环境",
+    "project_maven_store": "Maven 存储区",
+    "project_gradle_store": "全局 Gradle 存储区",
+    "project_docker_store": "Docker 数据",
+    "action_git_history": "Git 历史…",
+    "action_git_history_tip": "查看所有 Git 引用可达的最大对象",
+    "git_oid": "对象标识",
+    "git_kind": "对象类型",
+    "git_length": "解压后长度",
+    "git_type_blob": "文件内容（blob）",
+    "git_type_tree": "文件夹列表（tree）",
+    "git_type_commit": "提交",
+    "git_type_tag": "附注标签",
+    "git_hint": ("只读 Git 底层命令检查所有引用，保留最大的 1,000 个对象。大小是解压后长度，并非磁盘分配或可回收空间。"
+                 "Git 的对象名称提示可能有歧义，因此不列名称。Ctrl+C 复制标识／行。"
+                 "禁用可选锁定、自动维护与延迟网络下载；"
+                 "Git 必须支持 --no-lazy-fetch。不绕过仓库所有者检查。可停止；不执行 gc。"),
+    "git_reading": "正在检查 Git 历史…",
+    "git_summary": "显示 {count} 个可达对象中的 {shown} 个；解压后总量 {size}。",
+    "git_gc_loose": ("Git gc 可能合并 {count} 个松散对象，但这些最大对象仍可由引用到达，不会被移除。"
+                     "实际节省量及其他不可达／引用日志数据仍未知。"),
+    "git_gc_packed": ("没有可合并的松散对象。引用保留这些对象时，Git gc 不会移除它们；"
+                      "其他不可达／引用日志数据与实际节省量尚未测量。"),
+    "git_failed": "Git 检查失败：{reason}",
+    "tree_filter_placeholder": "筛选已展开的文件夹…",
+    "tree_filter_hint": ("仅在已展开的文件夹匹配名称（不区分大小写），保留上层路径。不搜索折叠的内容。"
+                         "清除筛选即可恢复树状列表。从图表／列表选择被隐藏的项目会清除筛选。扫描总量与导出保持不变。"),
+    "action_live_compare": "比较两个文件夹…",
+    "action_live_compare_tip": "比较实时相对路径，仅验证选中的文件对",
+    "compare_choose_left": "选择左侧文件夹",
+    "compare_choose_right": "选择右侧文件夹",
+    "compare_relative": "相对路径",
+    "compare_state": "比较结果",
+    "compare_left_size": "左侧大小",
+    "compare_right_size": "右侧大小",
+    "compare_left_time": "左侧修改时间",
+    "compare_right_time": "右侧修改时间",
+    "compare_roots": "左侧：{left}\n右侧：{right}",
+    "compare_hint": ("只读：按 Unicode 与大小写完全匹配的名称配对，不跟随链接。大小／时间相同不代表内容相同。"
+                     "选中文件对后可完整哈希验证，并可停止；更改、无法读取与已知云端文件保持无法验证。"
+                     "结果对应此次扫描／验证时间。不执行复制、移动或同步。Ctrl+C 复制行；"
+                     "CSV 仅导出显示的行，最多 10,000 行。"),
+    "compare_reading": "正在扫描两个文件夹…",
+    "compare_error": "比较或导出失败：{reason}",
+    "compare_hashing": "正在验证选中的文件对…",
+    "compare_verify": "验证选中的内容",
+    "compare_summary": "显示 {count} 个相对路径中的 {shown} 个（上限 10,000）。",
+    "compare_incomplete": "扫描范围不完整；无法读取范围中缺少的路径仍为未知。",
+    "compare_unavailable": "无法验证或已更改",
+    "compare_link": "链接；未读取内容",
+    "compare_only_left": "仅左侧有",
+    "compare_only_right": "仅右侧有",
+    "compare_different_kind": "项目类型不同",
+    "compare_folder": "两侧均为文件夹",
+    "compare_different_size": "大小不同",
+    "compare_different_time": "时间不同；尚未验证内容",
+    "compare_unchecked": "尚未验证内容",
+    "compare_identical": "完整哈希匹配",
+    "compare_different_bytes": "内容不同",
+    "problem_mount_boundary": "挂载边界：未扫描内容",
+    "action_special_files": "云端与特殊文件…",
+    "action_special_files_tip": "查看已记录的召回、脱机、压缩及稀疏文件状态",
+    "special_states": "已记录状态",
+    "special_content_size": "完整内容大小",
+    "special_recall": "访问时可能召回",
+    "special_offline": "脱机",
+    "special_compressed": "已压缩",
+    "special_sparse": "稀疏",
+    "special_allocation_low": "分配较少，原因未知",
+    "special_reading": "正在读取已记录的文件元数据…",
+    "special_hint": ("本列表只使用扫描元数据，不打开或下载文件。召回／脱机属性可能来自 OneDrive、Dropbox "
+                     "或其他服务，无法据此判断提供者及已在本机的比例。完整内容大小是含在线内容的逻辑长度；"
+                     "下载后的磁盘分配未知。稀疏区域、压缩及驻留数据都可能减少分配。召回／脱机项目的磁盘大小 "
+                     "0 是扫描估计，不是实测云端分配。双击可选择扫描项目；Ctrl+C 复制选中行。"),
+    "special_summary": ("显示 {count} 个匹配文件中的 {shown} 个。完整内容 {size}；已记录分配 {allocated}。"
+                        "无法获取文件元数据：{unknown}。保留最大的 1,000 个。"),
+    "special_partial": "扫描范围不完整；未读取的文件仍未知。",
+    "action_shell_integration": "资源管理器集成…",
+    "action_shell_integration_tip": "在资源管理器的文件夹菜单添加或移除“使用 FileTree 扫描”",
+    "shell_enabled": "在资源管理器的文件夹菜单添加“使用 FileTree 扫描”",
+    "shell_scan": "使用 FileTree 扫描",
+    "shell_hint": ("保存只会更改您账户的文件夹菜单，不需要管理员权限。"
+                   "Windows 11 请查看“显示更多选项”。在此取消勾选即可移除。"
+                   "移动可执行文件或源码文件夹后，请重新注册。已开始的保存完成后才会关闭窗口。"),
+    "shell_failed": "无法更改资源管理器集成。\n{reason}",
+    "menu_properties": "属性",
+    "properties_failed": "Windows 无法打开此项目的属性：\n{path}",
+    "menu_theme": "主题",
+    "theme_system": "系统",
+    "theme_light": "浅色",
+    "theme_dark": "深色",
+    "menu_text_size": "文字大小(&T)",
+    "text_size_larger": "放大(&L)",
+    "text_size_smaller": "缩小(&S)",
+    "text_size_reset": "恢复系统大小(&R)",
+    "text_size_percent": "{percent}%",
+    "text_size_default": "{percent}%（系统大小）",
+
+    "chart_access_keys": ("方向键选择已绘制条目；Enter 打开文件夹，Backspace 返回上级。"
+                          "合并或未显示的条目可使用文件夹树查看。"),
+    "chart_access_tree_keys": "上／下选择卡片，右／左展开或折叠文件夹。Enter 打开文件夹，Backspace 返回上级。",
+    "chart_access_folder": "当前文件夹：{path}",
+    "chart_access_selected": "已选择：{path}。大小 {size}；磁盘大小 {allocated}；{files} 个文件，{folders} 个文件夹。",
+
+    "system_file_hibernate": ("休眠与快速启动状态，由 Windows 管理。管理员可使用 powercfg /hibernate off "
+                              "关闭休眠，这也会移除休眠功能，并可能影响快速启动。FileTree 仅打开电源设置。"),
+    "system_file_pagefile": ("虚拟内存的分页文件，Windows 可自动管理大小。在高级系统设置的性能设置中查看"
+                             "虚拟内存；缩小可能影响应用程序与崩溃转储。"),
+    "system_file_swapfile": ("Windows 的交换文件，包含暂停的应用数据，由系统与虚拟内存一并管理。请查看系"
+                             "统内存设置，不要直接移除。"),
+    "system_file_old": ("以前的 Windows 安装。在磁盘清理的“清理系统文件”中审查以前的 Windows 安装；"
+                        "移除后将无法返回该安装。"),
+    "system_file_recycle": "已删除条目在清空回收站前仍占用空间。请查看回收站或存储感知；清空是永久删除。",
+    "system_file_restore": ("系统元数据、还原点与卷影副本。在系统保护的“配置”中调整还原点容量上限。备份"
+                            "工具管理的卷影副本可能需要各自的备份工具；未读取的大小仍未知。"),
+    "system_file_winsxs": ("Windows 组件存储。许多条目与 Windows 文件共用硬链接，因此逐名称汇总可能高估"
+                           "实际存储空间。请使用磁盘清理的“清理系统文件”与 Windows 更新清理，不要手动移"
+                           "除组件。"),
+    "system_file_updates": ("Windows 更新下载数据。在磁盘清理的“清理系统文件”中审查更新及临时文件，进行"
+                            "中的下载交由更新服务管理。"),
+    "system_file_delivery": ("Windows 更新与应用的传递优化下载缓存。请在磁盘清理中审查传递优化文件，进行"
+                             "中的传输由 Windows 管理。"),
+    "system_tool_power": "打开电源设置…",
+    "system_tool_memory": "打开高级系统设置…",
+    "system_tool_cleanup": "打开磁盘清理…",
+    "system_tool_storage": "打开存储感知…",
+    "system_tool_restore": "打开系统保护…",
+    "system_tool_failed": "无法打开 Windows 工具。",
+    "trash_skip_system_managed": "此条目由 Windows 管理，请使用详细信息中的系统工具",
+
+    "type_locations_title": "所在文件夹（最多 1,000 个）",
+    "type_location_size": "匹配类型的大小",
+    "type_locations_tip": "统计各文件夹直接包含的匹配类型文件；子文件夹单独列出，不重复计算。",
+
+    "action_export_list": "当前列表（CSV）…",
+    "action_export_list_tip": "按当前筛选与排序保存活动列表的所有行",
+    "list_changed": "获取期间列表已变更，请重新导出或复制。",
+
+    "details_title": "详细信息",
+    "details_empty": "选择条目以显示详细信息",
+    "details_live": "扫描完成后可查看分布。",
+    "details_loading": "正在计算类型与文件年龄分布…",
+    "details_recorded": "仅统计已读取的文件，未读取条目不在分布内。文件夹修改时间为最新的已记录日期。",
+    "details_bucket": "{label}：{size} · {count} 个文件",
+
+    "breadcrumbs_back": "返回（Alt+Left）",
+    "breadcrumbs_forward": "前进（Alt+Right）",
+    "breadcrumbs_more": "…",
+    "breadcrumbs_more_tip": "显示上级文件夹",
+
+    "action_print_view": "打印当前视图…",
+    "action_print_view_tip": "通过系统打印对话框将可见结果打印在一页上",
+    "action_export_view_pdf": "当前视图（PDF）…",
+    "action_export_view_pdf_tip": "将可见结果调整为一页 PDF 保存",
+    "pdf_filter": "PDF 文档 (*.pdf)",
+    "view_pdf_exported": "已保存当前视图：{path}",
+    "print_failed": "无法打印视图：{reason}",
+    "print_submitted": "已将视图发送到打印机",
+    "action_export_chart_png": "屏幕上的图表（PNG）…",
+    "action_export_chart_png_tip": "保存当前可见的图表范围",
+    "action_export_chart_svg": "条形图或旭日图（SVG）…",
+    "action_export_chart_svg_tip": "将有数量上限的完整条形或圆弧保存为矢量图形与文字",
+    "png_filter": "PNG 图片 (*.png)",
+    "svg_filter": "SVG 图片 (*.svg)",
+    "graphic_exported": "已保存图表：{path}",
+    "treemap_colours_age": "按修改年龄",
+    "age_colour_unknown": "日期未知",
+    "age_colour_tip": "距离修改的时间。文件夹按最新修改记录着色，无可用日期时为灰色；合并的小项目保持灰色。",
+    "action_gentle": "低优先级扫描",
+    "action_gentle_tip": "降低新扫描的 CPU 与 I/O 优先级，可能花费较长时间",
+    "scan_priority_warning": "扫描注意事项：{reason}",
+    "scan_pause": "暂停",
+    "scan_resume": "继续",
+    "scan_pause_tip": "暂停获取新文件夹；当前读取会完成。暂停时仍可停止。",
+    "scan_paused": "已暂停 — {progress}",
+    "scan_analysing": "文件夹读取完成，正在分析结果…",
+    "column_drive_share": "占磁盘比例",
+    "columns_reset": "重置列",
+    "drive_share_tip": ("逻辑字节除以磁盘总容量。硬链接名称分别计算；不是分配或可回收空间。"
+                        "容量未知或已过期时不显示比例。"),
+    "action_recent_actions": "最近操作…",
+    "action_recent_actions_tip": "查看保留的操作元数据，并导出隐藏个人路径的审计报告",
+    "journal_time": "时间（UTC）",
+    "journal_source": "原始路径",
+    "journal_identity": "磁盘／文件标识",
+    "journal_result": "结果",
+    "journal_detail": "详情",
+    "journal_destination": "回收站位置",
+    "journal_reason_duplicates": "明确的重复文件决策",
+    "journal_status_approved": "结果未知（只有确认记录）",
+    "journal_status_moved": "已移到回收站",
+    "journal_status_skipped": "已跳过",
+    "journal_status_failed": "系统移动失败",
+    "journal_reading": "正在读取保留的操作…",
+    "journal_hint": ("最近 500 个操作；仅元数据，保留 90 天／50 MB。"
+                     "只有确认记录的操作，其最终结果未知。记录回收站位置不保证可还原。"),
+    "journal_summary": "显示 {count} 个操作；{invalid} 条损坏记录，{unavailable} 个无法读取的日志分段。",
+    "journal_read_failed": "无法读取操作日志：{reason}",
+    "journal_write_failed": "日志写入或保留管理失败，已尽可能停止剩余移动；最近操作可能不完整。\n\n{reason}",
+    "trash_skip_journal": "无法记录已确认的操作，未移动任何项目",
+    "journal_export": "导出隐藏个人路径的 CSV…",
+    "journal_exported": "审计报告已保存，主目录前缀已隐藏。",
+    "duplicate_folder_match": "{copy} = {original}（{size}，{files} 个文件；搜索快照相符）",
+    "duplicate_folder_tip": "名称、大小、已验证哈希与空文件夹结构相同。仅供比较，不代表可清理。",
+    "duplicates_keep_selected": "保留选中的副本",
+    "duplicates_kept_name": "保留：{name}",
+    "duplicates_kept_path": "保留副本：{path}。",
+    "duplicates_choose_keeper": "选中多余副本前，请先选择这组要保留的副本。",
+    "duplicates_group_blocked": "此组保持原样，须重新扫描：{reason}",
+    "trash_skip_duplicate_choose": "请选择保留副本，再次审查此组",
+    "trash_skip_duplicate_keep": "选到了保留副本，此组保持原样；请重新扫描",
+    "trash_skip_duplicate_unverified": "此组没有已验证的哈希；请重新扫描并搜索",
+    "trash_skip_duplicate_hard_links": "副本还有硬链接名称，此组保持原样；请重新扫描",
+    "trash_skip_duplicate_content": "此组内容更改或无法重新哈希；请重新扫描并搜索",
+    "menu_options": "选项",
+    "action_cleanup_policy": "清理策略…",
+    "action_cleanup_policy_tip": "启用规则、更改最低文件年龄，或排除清理建议的路径",
+    "policy_enabled": "启用",
+    "policy_age": "最低文件年龄（天）",
+    "policy_age_for": "{rule} 的最低文件年龄",
+    "policy_enabled_for": "启用 {rule}",
+    "policy_hint": "策略只影响建议。须手动审查的规则仍默认不勾选。保存前请先预览。",
+    "policy_exclusions": "不提出建议的路径或名称（每行一个；路径须为绝对路径）。不影响扫描。",
+    "policy_preview": "预览更改",
+    "policy_import": "导入策略 JSON…",
+    "policy_preview_needed": "保存前请先预览当前设置。",
+    "policy_preview_running": "正在比较候选数量与逻辑大小…",
+    "policy_preview_result": "增加 {added} 个候选（{size}）；移除 {removed} 个候选（{removed_size}）。未移动任何项目。",
+    "policy_preview_partial": "扫描不完整；未读取的候选与容量仍未知。",
+    "policy_no_scan": "尚无完成的扫描，无法测量影响。设置将应用到以后的建议。",
+    "policy_invalid": "策略无效。请使用支持的规则、是／否开关、0–36500 天，以及绝对路径或名称模式。",
+    "policy_saved": "清理策略已保存，正在更新建议。",
+    "policy_saved_invalid": "已保存的清理策略无效。请到“选项”审查策略；目前已停用清理建议。",
+    "cleanup_review_manual": "手动审查",
+    "cleanup_evidence": ("分类：{category}；最低文件年龄：{days} 天；风险：{risk}。"
+                         "依据：{evidence} 重建／后果：{rebuild}"),
+    "cleanup_category_temporary": "临时文件",
+    "cleanup_category_cache": "下载／生成的缓存",
+    "cleanup_category_application_state": "应用程序状态",
+    "cleanup_category_build": "项目构建输出",
+    "cleanup_category_downloads": "用户下载",
+    "cleanup_risk_low": "较低风险；移动前仍须确认",
+    "cleanup_risk_manual": "手动审查；默认不勾选",
+    "cleanup_rebuild_temp": "先关闭使用它的应用程序；临时数据不一定能重建。",
+    "cleanup_rebuild_browser_cache": "先关闭浏览器；缓存网页会重新下载。个人设置与书签不列入。",
+    "cleanup_rebuild_thumbnails": "先关闭文件管理器；需要时会重新生成预览。",
+    "cleanup_rebuild_crash_dumps": "保留需要的崩溃证据；过去的崩溃转储无法重建。",
+    "cleanup_rebuild_package_caches": "用包管理工具重新下载，先确认网络可用。包存储库不列入。",
+    "cleanup_rebuild_build_output": "核对项目内容与依赖锁定文件，再按项目文档重建。自行编写的文件应保留。",
+    "cleanup_rebuild_old_installers": "保留离线或已无法获取的安装文件；仍可获取时向发布者重新下载。",
+    "cleanup_rebuild_empty_folders": "应用程序可能仍需要空文件夹；先确认用途。",
+    "trash_holder": "{name}（PID {pid}）",
+    "trash_holders": "{path}：观察到 {programs} 打开此文件。请自行关闭相关程序后重试。",
+    "trash_holders_limited": "{path}：无法完整查询进程；其他占用程序或失败原因可能未知。",
+    "duplicates_savings": ("不重复分配估计 {allocated}；清空回收站后可回收的文件数据 "
+                           "{recoverable}。"),
+    "duplicates_estimating": ('正在估计不重复分配空间与可回收的文件数据…'),
+    "duplicates_estimate_unavailable": ('无法获取分配估计。选择多余副本前请重新搜索。'),
+    "duplicates_estimate_assumption": ("估计按您选择的保留副本，未决定的组保持未知。"
+        "移动前会核对并完整重新哈希整组文件。有硬链接名称时不执行决策。"
+        "共享区块与文件夹元数据仍未知，移到回收站不会释放空间。"),
+    'capacity_details': '容量明细',
+    'capacity_summary': '系统已用 {used}；可用 {free}；不重复分配估计 {unique}。{status}',
+    'capacity_estimated': '整个磁盘的估计；无法归账的空间请见明细。',
+    'capacity_folder_only': '仅扫描文件夹：无法核对整个磁盘。',
+    'capacity_incomplete': '扫描不完整：无法核对整个磁盘。',
+    'capacity_identity_unknown': '缺少文件标识信息：无法核对整个磁盘。',
+    'capacity_capacity_unavailable': '无法获取系统容量：无法核对整个磁盘。',
+    'capacity_root_changed': '扫描根目录已更改，请重新扫描后核对。',
+    'capacity_allocation_exceeds_used': '分配估计超过系统已用空间，无法核对。',
+    'capacity_coverage': '跳过 {skipped}；无法读取 {inaccessible}；尚未读取 {pending}',
+    'capacity_bin_partial': '未完整识别或读取回收站，显示的大小仅限已读取的数据。',
+    "capacity_explanation": ('已知文件分配包含读取到的回收站数据，硬链接的多个名称只算一次。其他挂载磁盘不计入。跳'
+                             '过的数据与文件系统元数据是未知，而非 0。无法归账的空间可能包含无法读取的数据、元数'
+                             '据、快照、共享区块及分配估计误差。系统容量与文件不是同时测量，扫描期间文件系统可能变'
+                             '化。不可用的剩余空间是系统报告的总量、已用及可用量之差，不是测量得到的元数据总量。这'
+                             '些数字是估计，仍待 NTFS、ext4 与 APFS 测试磁盘验证。'),
+    'capacity_row_total': '系统总容量',
+    'capacity_row_used': '系统已用空间',
+    'capacity_row_free': '系统可用空间',
+    'capacity_row_unavailable_free': '不可用的剩余空间',
+    'capacity_row_named_allocated': '按名称计算的分配估计',
+    'capacity_row_unique_allocated': '不重复分配估计',
+    'capacity_row_hard_link_overcount': '已扣除的硬链接重复量',
+    'capacity_row_recycle_bin_seen': '已读取的回收站分配（已包含）',
+    'capacity_row_foreign_allocated_seen': '已读取的其他磁盘分配（不计入）',
+    'capacity_row_unaccounted': '无法归账',
+    'capacity_row_metadata_bytes': '文件系统元数据／保留空间',
+    'capacity_row_omitted_bytes': '跳过的数据',
+    'capacity_row_other_volumes_bytes': '其他挂载磁盘',
+    'capacity_row_mounts': '跨磁盘挂载边界',
+    'capacity_row_coverage': '扫描覆盖范围',
+    "review_title": "审查清理建议",
+    'review_logical_size': '逻辑大小',
+    'review_risk': '风险',
+    'review_risk_low': '较低风险',
+    'review_risk_manual': '需手动审阅',
+    'review_details_label': '项目详细信息',
+    'review_scope': '扫描范围',
+    'review_details': (
+        '{path}\n'
+        '规则：{rule}\n'
+        '修改时间：{modified}\n'
+        '逻辑大小：{logical}；分配空间估计：{allocated}\n'
+        '风险：{risk}\n'
+        '保护状态：{protection}\n'
+        '\n'
+        '{consequence}'
+    ),
+    "review_hint": "请检查每条路径与删除后果，取消勾选即可保留项目；继续后才会显示确认问题。",
+    "review_select": "移动",
+    "review_rule": "规则",
+    "review_reason": "原因",
+    "review_protection": "保护状态",
+    "review_consequence": "删除后果",
+    "review_manual": "手动选择",
+    "review_manual_reason": "用户选择的项目，删除可能影响依赖的文件或程序。",
+    "review_not_protected": "未匹配受保护路径",
+    "review_open_folder": "打开所在文件夹",
+    "review_continue": "继续到确认步骤",
+    "review_estimating": "已选择 {count} 项，正在估计分配空间…",
+    "review_summary": ("{count} 项；逻辑大小 {logical}；分配空间估计 {allocated}；清空回收站后可回收的文件数据 "
+                       "{recoverable}；当前可用 {free}。共享区块与文件夹元数据仍未知，移到回收站不会立刻释放空间。"),
+    "size_unknown": "未知",
+    "trash_running": "正在重新核对并移动已批准的项目…点击停止可取消剩余项目。",
+    "trash_batch_done": "已移动 {moved}、跳过 {skipped}、失败 {failed}；共 {size} 移到回收站。",
+    "trash_skipped": "已跳过以下项目，请重新扫描文件夹后再试：\n{names}",
+    "trash_skip_outside": "不在当前的扫描范围",
+    "trash_skip_unverified": "没有经过核对的扫描身份",
+    "trash_skip_incomplete": "扫描覆盖范围不完整",
+    "trash_skip_missing": "项目或父文件夹已不存在",
+    "trash_skip_unreadable": "无法读取项目",
+    "trash_skip_link": "项目或父文件夹变成链接",
+    "trash_skip_kind": "项目类型已变更",
+    "trash_skip_identity": "项目已被替换",
+    "trash_skip_changed": "大小、时间或文件夹内容已变更",
+    "trash_skip_protected": "解析后路径的保护状态不同",
+    "trash_skip_cancelled": "操作已取消",
+    "coverage_complete": ("覆盖范围：{known} 个文件夹，已知 {size}；"
+                          "跳过 {skipped}、无法读取 {denied}、未扫描 {pending}。"),
+    "coverage_partial": ("覆盖范围不完整：{known} 个文件夹，已知 {size}；跳过 {skipped}、无法读取 {denied}、"
+                         "未扫描 {pending}。跳过的字节数未知。清理前请重新扫描不完整的分支；已禁用全部选择。"),
+    "problem_hidden_omitted": "已跳过隐藏项目，大小未知。",
+    "problem_partial_folder": "部分项目无法读取，文件夹内容不完整。",
+    "app_title": "FileTree",
+    "about_text": "<h3>FileTree {version}</h3><p>看看磁盘空间都用到哪里去了。</p>"
+                  "<p>MIT 许可证 · © 2026 JE-Chen</p>",
+    "menu_file": "文件(&F)",
+    "menu_export": "导出(&E)",
+    "menu_view": "视图(&V)",
+    "menu_unit": "大小单位(&U)",
+    "menu_language": "语言(&L)",
+    "menu_help": "帮助(&H)",
+    "action_open": "选择文件夹…",
+    "action_open_tip": "选一个文件夹或磁盘来扫描",
+    "action_rescan": "重新扫描",
+    "action_rescan_tip": "再扫描一次同一个文件夹，获取最新的变动",
+    "action_stop": "停止",
+    "action_stop_tip": "停止正在进行的扫描",
+    "action_export_folders": "文件夹列表（CSV）…",
+    "action_export_folders_tip": "把每个文件夹和它的大小保存为表格，可用 Excel 打开",
+    "action_export_largest": "最大的文件（CSV）…",
+    "action_export_largest_tip": "保存最大的文件列表",
+    "action_export_json": "文件夹树（JSON）…",
+    "action_export_json_tip": "保存文件夹树，供脚本或其他软件使用",
+    "action_trash": "移到回收站",
+    "action_trash_tip": "把选中的文件和文件夹移到回收站（会先询问）",
+    "action_find": "搜索…",
+    "action_find_tip": "在整个扫描结果里按名称找文件和文件夹",
+    "action_quit": "退出",
+    "action_quit_tip": "关闭 FileTree",
+    "action_hidden": "包含隐藏文件",
+    "action_exclusions": "扫描时跳过…",
+    "action_exclusions_tip": "扫描时要跳过的文件夹与文件夹名称，例如 node_modules",
+    "exclusions_title": "扫描时跳过",
+    "exclusions_hint": ("扫描会跳过这些文件夹：它们仍会列出来，以灰字显示、大小为 0。"
+                        "像 node_modules 或 *.cache 这样的名称会跳过所有同名的文件夹；"
+                        "文件夹路径只跳过那一个文件夹。下一次扫描开始生效。"),
+    "exclusions_add_name": "添加名称…",
+    "exclusions_add_folder": "添加文件夹…",
+    "exclusions_remove": "删除",
+    "exclusions_name_prompt": "文件夹名称，可用 * 和 ?：",
+    "exclusions_saved": "已保存 {count} 项排除；下一次扫描开始生效。",
+    "tooltip_excluded": "{path}\n已跳过：它在“视图 → 扫描时跳过”的列表中",
+    "action_hidden_tip": "把隐藏的文件和文件夹也算进去（下次扫描时生效）",
+    "action_help": "使用说明",
+    "action_help_tip": "FileTree 的简短使用说明",
+    "action_about": "关于 FileTree",
+    "action_about_tip": "版本与许可证",
+    "app_title_admin": "FileTree（管理员）",
+    "action_elevate": "以管理员身份重新启动",
+    "action_elevate_tip": "用管理员权限重新启动 FileTree，才能读取每一个文件夹",
+    "action_ask_admin": "启动时请求管理员权限",
+    "action_ask_admin_tip": "FileTree 启动时由 Windows 询问权限，受保护的文件夹也能读取",
+    "problems_hint": "有些文件夹需要管理员权限。以管理员身份重新启动 FileTree 就能一起读取。",
+    "elevate_declined": "FileTree 仍以普通权限运行。",
+    "startup_invalid": "无法恢复请求的工作区：{reason}",
+    "elevate_waiting": "请完成或关闭 Windows 权限提示。关闭此窗口时，仍会等待该请求完成。",
+    "elevate_failed": "FileTree 无法以管理员身份重新启动：{reason}",
+    "unit_auto": "自动",
+    "path_placeholder": "输入或粘贴文件夹路径，按 Enter 开始扫描",
+    "choose_folder_title": "选择要扫描的文件夹",
+    "welcome_title": "看看磁盘空间都用到哪里去了",
+    "welcome_subtitle": "选一个文件夹或整个磁盘，FileTree 会把里面每个文件的大小加总，"
+                        "先列出最大的文件夹和文件。",
+    "welcome_choose": "选择文件夹…",
+    "welcome_drives": "磁盘",
+    "welcome_drive_tip": "扫描 {path}",
+    "welcome_drive_free": "可用 {free}，共 {total}",
+    "welcome_drive_used": "已使用 {percent}",
+    "welcome_recent": "最近扫描过",
+    "welcome_tip": "小技巧：也可以把文件夹从文件管理器拖到这个窗口。Windows 可粘贴绝对 UNC 共享路径"
+                   "（\\\\server\\share），使用当前账户访问。扫描线程数可在选项调整；权限不足／断线的分支保持不完整，并非空文件夹。",
+    "scan_starting": "准备中…",
+    "scan_progress": "正在扫描… {folders} 个文件夹中的 {files} 个文件 · {size} · {time}",
+    "scan_stop": "停止",
+    "scan_stopping": "正在停止…",
+    "scan_cancelled": "已停止扫描。",
+    "scan_stopped_partial": "已停止扫描：结果只包含停止前读到的部分。",
+    "scan_failed_title": "无法扫描",
+    "scan_mount_changed": "挂载边界已变化或无法确认。请重新扫描后再使用扫描结果。",
+    "scan_failed": "FileTree 无法读取 {path}。\n\n原因：{reason}",
+    "not_a_folder": "{path} 不是存在的文件夹。",
+    "duration_seconds": "{value} 秒",
+    "duration_minutes": "{minutes} 分 {seconds} 秒",
+    "summary": ("<b>{path}</b> — {size}（占用空间 {allocated}），共 {files} 个文件、{folders} 个文件夹"
+                "（扫描用时 {time}）"),
+    "summary_live": "<b>{path}</b> — 目前 {size}（占用空间 {allocated}），{files} 个文件、{folders} 个文件夹",
+    "summary_partial": "<b>{path}</b> — {size}（占用空间 {allocated}），{files} 个文件、{folders} 个文件夹 · "
+                       "<b>不完整</b>：扫描在 {time} 后停止",
+    "tab_chart": "图表",
+    "chart_treemap": "方块图",
+    "treemap_levels": "层数",
+    "treemap_levels_all": "全部",
+    "treemap_colours": "颜色",
+    "treemap_colours_type": "按文件类型",
+    "treemap_colours_folder": "按文件夹",
+    "chart_treemap_tip": "每个文件都是一个方块，大小代表占用的空间",
+    "chart_bars": "条形图",
+    "chart_sunburst": "旭日图",
+    "chart_tree": "树状图",
+    "chart_tree_tip": "文件夹层级：展开分支、Ctrl＋滚轮缩放、双击聚焦",
+    "tree_orientation": "方向",
+    "tree_orientation_horizontal": "从左到右",
+    "tree_orientation_vertical": "从上到下",
+    "tree_more": "其余 {count} 个文件夹 · {size}",
+    "tree_unavailable": "未扫描",
+    "chart_sunburst_tip": "当前文件夹在中心，每深一层就是外面一圈；点中心回上一级",
+    "chart_bars_tip": "文件夹里每个项目一个条形，从大到小，附大小与比例",
+    "bars_empty_folder": "这个文件夹是空的。",
+    "bars_more": "其余 {count} 个：{size}",
+    "tab_largest": "最大的文件",
+    "scope_folder": "只看选中的文件夹",
+    "scope_folder_named": "只看 {name}",
+    "scope_folder_tip": "改为列出文件夹树中选中的文件夹（而不是整个扫描范围）的最大文件、类型与新旧",
+    "tab_search": "搜索",
+    "tab_changes": "变化",
+    "action_compare": "与之前保存的扫描比较…",
+    "action_compare_tip": "打开用“导出 → 文件夹树（JSON）”保存的扫描，看看之后哪里变大了",
+    "compare_title": "与之前保存的扫描比较",
+    "compare_failed": "这个文件不是 FileTree 保存的扫描：\n{reason}",
+    "column_before": "之前",
+    "column_now": "现在",
+    "column_change": "变化",
+    "changes_new": "新增",
+    "changes_gone": "已不存在",
+    "changes_whole_scan": "（扫描的文件夹）",
+    "changes_stop": "结束比较",
+    "changes_running": "比较中…",
+    "changes_waiting": "扫描结束后会再比较。",
+    "changes_unknown_time": "时间不明",
+    "changes_summary": ("与 {path}（保存于 {when}）比较：之前 {before}，现在 {now}（{change}）；"
+                        "{count} 个文件夹有变化。"),
+    "tab_duplicates": "重复文件",
+    "tab_cleanup": "清理",
+    "cleanup_suggestions": "建议",
+    "cleanup_select_all": "全部选中",
+    "cleanup_select_group": "选中这一组",
+    "cleanup_running": "正在查找可以清理的东西…",
+    "cleanup_hint": "扫描完成后，这里会列出内容通常可以删掉的位置。",
+    "cleanup_none": "这次扫描没有可以建议清理的东西。",
+    "cleanup_summary": ("共 {groups} 组，逻辑大小 {size}。移到回收站前请先审查路径与分配空间；"
+                        "移动不会立刻释放空间。"),
+    "cleanup_group": "{title}：{count} 项，共 {size}",
+    "cleanup_temp": "临时文件",
+    "cleanup_temp_tip": "程序暂时留下的文件；仍在运行的程序可能还在使用其中一些。",
+    "cleanup_browser_cache": "浏览器缓存",
+    "cleanup_browser_cache_tip": "网页与图片的副本；浏览器需要时会重新下载。",
+    "cleanup_thumbnails": "缩略图缓存",
+    "cleanup_thumbnails_tip": "图片的小型预览；打开文件夹时会重新生成。",
+    "cleanup_crash_dumps": "崩溃转储",
+    "cleanup_crash_dumps_tip": "程序崩溃时保存的内存内容，只有报告崩溃时才用得到。",
+    "cleanup_package_caches": "包下载缓存（pip、npm…）",
+    "cleanup_package_caches_tip": "为下次安装保留的已下载包；需要时会重新下载。",
+    "cleanup_build_output": "构建产物（可以重新构建）",
+    "cleanup_build_output_tip": "项目安装的依赖与编译出来的文件；重新构建项目就会再生成。",
+    "cleanup_old_installers": "下载文件夹里的安装包",
+    "cleanup_old_installers_tip": "多半很久以前就运行过的安装程序；之后还要拿来安装的请留着。",
+    "cleanup_empty_folders": "空文件夹",
+    "cleanup_empty_folders_tip": "里面什么都没有，或只有其他空文件夹的文件夹。",
+    "duplicates_min_size": "比较的最小文件",
+    "duplicates_any_size": "任意大小",
+    "duplicates_find": "查找重复文件",
+    "duplicates_stop": "停止",
+    "duplicates_select_extra": "选中多余的副本",
+    "duplicates_select_extra_tip": "选中已决定保留副本且核对成功组的多余副本，再按 Delete",
+    "duplicates_hint": ("在整个扫描范围内查找内容相同的文件。只会读取大小相同的文件，"
+                        "但读取需要时间，所以除非选了较小的大小，否则会跳过小文件。"),
+    "duplicates_starting": "正在查找大小相同的文件…",
+    "duplicates_running": "已读取 {files} / {total} 个文件（{read} / {bytes}）…",
+    "duplicates_stopped": "搜索已停止。",
+    "duplicates_none": "没有找到重复的文件。",
+    "duplicates_summary": ('{groups} 组重复文件：多余副本的逻辑大小共 {extra}。'),
+    "duplicates_limited": "只列出多余空间最大的 {shown} 组。",
+    "duplicates_skipped": "有 {count} 个文件无法读取。",
+    "duplicates_group": ('{count} 份 × {size}：多余副本的逻辑大小 {extra}。'),
+    "search_placeholder": "名称的一部分，或模式：backup、*.mp4、*.iso;*.zip",
+    "search_hint": "输入名称的一部分或含 * 和 ? 的模式、选择条件，或两者一起，在整个扫描结果里找文件和文件夹。",
+    "search_running": "搜索中…",
+    'search_larger': '至少（含）',
+    'search_smaller': '至多（含）',
+    'search_custom_ranges': '自定义范围…',
+    'search_changed_custom': '自定义日期',
+    'search_exact_bytes': '{value} B（精确）',
+    'search_date_format': 'YYYY-MM-DD',
+    'search_date_start': '开始日期（含）',
+    'search_date_through': '结束日期（含）',
+    'search_range_hint': '留空表示不限。大小使用精确字节；日期使用本地时间（YYYY-MM-DD）。',
+    'search_range_size_error': ('请输入非负整数字节，最多 9223372036'
+        '854775807 B，不接受不足一字节的数值。'),
+    'search_range_order_error': '大小下限不能超过上限。',
+    'search_range_date_error': ('请以 YYYY-MM-DD 输入有效'
+        '的本地日期，开始日期不能晚于结束日期。'),
+    'search_range_invalid': '搜索范围无效。请修正大小或日期范围后再搜索或保存。',
+    "search_no_limit": "不限",
+    "search_changed": "修改时间",
+    "search_changed_any": "不限",
+    "search_changed_week": "最近一周内",
+    "search_changed_month": "最近一个月内",
+    "search_changed_year": "最近一年内",
+    "search_changed_stale_year": "超过一年没动",
+    "search_changed_stale_2y": "超过两年没动",
+    "search_changed_stale_5y": "超过五年没动",
+    "search_type": "类型",
+    "search_type_any": "不限类型",
+    "search_show": "显示",
+    "search_kind_any": "文件和文件夹",
+    "search_kind_files": "只有文件",
+    "search_kind_folders": "只有文件夹",
+    "search_saved": "已保存的搜索",
+    "search_saved_none": "（无）",
+    "search_save": "保存…",
+    "search_delete": "删除",
+    "search_save_title": "保存这个搜索",
+    "search_save_prompt": "名称：",
+    "search_none": "没有匹配的项目。",
+    "problems_none": "本次扫描的每个项目都读取成功，没有需要检查的问题。",
+    "largest_none": "没有可列出的文件。",
+    "search_summary": "{count} 个匹配，共 {size}。",
+    "search_limited": "只列出最大的 {shown} 个。",
+    "tab_types": "文件类型",
+    "tab_age": "文件新旧",
+    "column_age": "最后修改",
+    "age_month": "一个月内",
+    "age_half_year": "1–6 个月前",
+    "age_year": "6–12 个月前",
+    "age_two_years": "1–2 年前",
+    "age_older": "超过 2 年",
+    "largest_focus": "只显示：{what}",
+    "largest_show_all": "显示全部",
+    "list_files_tip": "双击一行，列出它最大的文件",
+    "tab_problems": "无法读取",
+    "tab_problems_count": "无法读取（{count}）",
+    "column_name": "名称",
+    "column_size": "大小",
+    "column_allocated": "占用空间",
+    "column_share": "占上级比例",
+    "column_share_total": "占总量比例",
+    "column_files": "文件数",
+    "column_folders": "文件夹数",
+    "column_modified": "修改时间",
+    "column_folder": "所在文件夹",
+    "column_extension": "扩展名",
+    "column_type": "类型",
+    "column_path": "路径",
+    "column_problem": "原因",
+    "problem_access_denied": "拒绝访问",
+    "problem_not_found": "已经不存在",
+    "problem_path_too_long": "路径太长",
+    "problem_not_scanned": "没有扫描到：扫描在读到这里之前就停止了",
+    "no_extension": "（没有扩展名）",
+    "tooltip_unreadable": "{path}\n无法读取：{reason}",
+    "tooltip_link": "{path}\n链接：只列出，不会进入计算",
+    "tooltip_not_scanned": "{path}\n没有扫描到：扫描在读到这里之前就停止了",
+    "treemap_empty": "没有可以显示的内容",
+    "treemap_up": "↑ 上一级",
+    "treemap_up_tip": "显示上一级文件夹",
+    "treemap_tooltip": "<b>{name}</b><br>{size}（占当前画面的 {share}）<br>{path}",
+    "treemap_more": "其余 {count} 个",
+    "treemap_more_tooltip": "<b>{name} 里其余 {count} 个较小的项目</b>，每个都小到画不出来<br>"
+                            "{size}（占当前画面的 {share}）",
+    "treemap_more_open": "双击可以单独显示这个文件夹",
+    "largest_filter": "按名称或文件夹筛选…",
+    "types_all": "所有类型",
+    "category_images": "图片",
+    "category_video": "视频",
+    "category_audio": "音乐与音频",
+    "category_documents": "文档",
+    "category_archives": "压缩包与镜像",
+    "category_code": "代码与数据",
+    "category_programs": "应用程序",
+    "category_other": "其他",
+    "status_selected": "{name}：{size}（占所在文件夹的 {share}）",
+    "status_selected_root": "{name}：{size}",
+    "menu_open_item": "打开",
+    "menu_reveal": "在文件管理器中显示",
+    "menu_copy_path": "复制路径",
+    "menu_show_chart": "在图表中显示",
+    "menu_scan_here": "只扫描这个文件夹",
+    "menu_rescan_here": "重新扫描这个文件夹",
+    "rescan_done": "已重新扫描 {name}：{before} → {after}",
+    "refresh_notice": "这次扫描之后，有 {count} 个已扫描的文件夹内容发生了变化，那里显示的大小可能已经过时。"
+                      "除非您要求，FileTree 不会自行重新扫描。",
+    "refresh_now": "重新扫描有变化的文件夹",
+    "refresh_now_tip": "只读取有变化的文件夹并更新结果",
+    "trash_confirm_title": "移到回收站",
+    "protected_title": "系统或程序文件夹",
+    "protected_question": ("其中 {count} 个是系统或程序的文件夹，移走可能让系统或程序无法正常运行："
+                           "\n\n{names}\n\n仍要移走吗？"),
+    "protected_system": "操作系统的一部分",
+    "protected_programs": "已安装的程序",
+    "protected_settings": "程序的设置与数据",
+    "protected_profile": "用户的个人文件夹",
+    "trash_confirm": "要把“{name}”（{size}）移到回收站吗？\n\n之后仍可以从回收站还原。",
+    "trash_failed": "无法把“{name}”移到回收站，可能正在使用或是只读。",
+    "trash_done": "已把“{name}”移到回收站，释放 {size}。",
+    "action_trash_many": "把 {count} 个项目移到回收站",
+    "trash_confirm_many": ("要把这 {count} 个项目（共 {size}）移到回收站吗？\n\n{names}\n\n"
+                           "之后仍可以从回收站还原。"),
+    "trash_more": "……还有 {count} 个",
+    "trash_failed_many": "有 {count} 个项目无法移到回收站，可能正在使用或是只读：\n\n{names}",
+    "trash_done_many": "已把 {count} 个项目移到回收站，释放 {size}。",
+    "permanent_delete": "永久删除",
+    "permanent_delete_tip": "永久删除选中的文件和文件夹，不经过回收站（会先询问，删除后无法恢复）",
+    "permanent_menu_many": "永久删除 {count} 个项目",
+    "permanent_not_suggestions": ("永久删除只用于你在文件夹树、最大文件或搜索结果中挑出的项目，"
+                                  "不用于清理或重复文件的建议。"),
+    "permanent_title": "永久删除",
+    "permanent_confirm": ("要永久删除“{name}”（{size}）吗？\n\n{path}\n\n"
+                          "它不会移到回收站，删除后无法恢复。"),
+    "permanent_confirm_many": ("要永久删除这 {count} 个项目（共 {size}）吗？\n\n{names}\n\n"
+                               "它们不会移到回收站，删除后无法恢复。"),
+    "permanent_confirm_folders": ("文件夹会连同扫描时记录的内容一起删除；"
+                                  "扫描后新增或更改的项目会保留在原处。"),
+    "permanent_protected_question": ("其中 {count} 个是系统或程序的文件夹，永久删除可能让系统或程序"
+                                     "无法正常运行：\n\n{names}\n\n仍要删除吗？"),
+    "permanent_managed": ("这些项目由 Windows 管理，FileTree 不会删除。"
+                          "请改用详细信息中列出的系统工具：\n\n{names}"),
+    "permanent_running": "正在永久删除…已删除 {count} 个项目。按 Esc 可停止。",
+    "permanent_done": "已永久删除 {removed} 个项目（{size}）。保留在原处：{refused}；失败：{failed}。",
+    "permanent_report_title": "永久删除：保留在原处的项目",
+    "permanent_failed": "系统未删除此项目：{reason}",
+    "permanent_pending": "删除尚未完成：另一个程序仍打开着它",
+    "permanent_journal_reason": "明确的永久删除",
+    "permanent_journal_deleted": "已永久删除",
+    "permanent_journal_partial": "部分删除（保留文件夹）",
+    "permanent_skip_outside": "不在当前的扫描范围，未删除",
+    "permanent_skip_unverified": "没有经过核对的扫描身份，未删除",
+    "permanent_skip_incomplete": "扫描无法读取此文件夹的全部内容，未进入",
+    "permanent_skip_missing": "项目或所在文件夹已不存在",
+    "permanent_skip_unreadable": "无法读取项目，未删除",
+    "permanent_skip_link": "项目或父文件夹变成链接，未删除",
+    "permanent_skip_kind": "项目类型已更改，未删除",
+    "permanent_skip_identity": "扫描后项目已被替换，未删除",
+    "permanent_skip_changed": "扫描后大小或时间已更改，未删除",
+    "permanent_skip_protected": "不在你确认范围内的系统或程序文件夹，未删除",
+    "permanent_skip_system_managed": "此项目由 Windows 管理，未删除",
+    "permanent_skip_cancelled": "在处理此项目前已停止，未删除",
+    "permanent_skip_journal": "无法记录已确认的操作，未删除任何项目",
+    "permanent_skip_read_only": "只读项目；FileTree 不会清除此属性，因此未删除",
+    "permanent_skip_mount_point": "已挂载的卷或挂载点，未删除",
+    "permanent_skip_other_volume": "位于其他卷，未删除",
+    "permanent_skip_arrived": "扫描后新增，保留在原处",
+    "permanent_skip_not_empty": "保留文件夹：其中仍有项目保留在原处",
+    "permanent_skip_failed": "系统拒绝删除其中的项目",
+    "status_selected_many": "已选中 {count} 个项目：{size}",
+    "export_title": "导出",
+    "export_running": "正在保存到 {path}…",
+    "csv_filter": "CSV 文件 (*.csv)",
+    "json_filter": "JSON 文件 (*.json)",
+    "export_done": "已把 {count} 行保存到 {path}",
+    "export_failed": "无法保存文件。\n\n原因：{reason}",
+    "help_title": "FileTree 使用说明",
+    "help_html": cjk("""
+<h2>三个步骤就会用</h2>
+<ol>
+<li><b>选择要扫描的地方。</b>点击<i>选择文件夹…</i>或其中一个磁盘，把文件夹拖到窗口上，
+或在上方的输入框输入路径后按 Enter。</li>
+<li><b>边扫边看。</b>文件夹树会立刻出现，FileTree 一边加总，最大的文件夹一边往上排；
+最大的文件与文件类型在扫描结束时补上。
+随时可以点<i>停止</i>（或按 Esc）：已经读到的部分会留在画面上，并标示为不完整。</li>
+<li><b>找出占空间的东西。</b>最大的文件夹排在最上面，点文件夹旁的箭头就能看里面的内容。</li>
+</ol>
+<h2>看懂结果</h2>
+<ul>
+<li><b>文件夹树</b>（左边）：每个文件夹或文件的大小、<i>占用空间</i>（实际占用的磁盘空间：按整个簇计算，
+通常比大小多一点；压缩文件较少，只在云端的文件是 0）、<i>占上级比例</i>条（它占上一级文件夹多少空间）、
+里面有几个文件和文件夹，以及里面最近一次变动的时间。点列标题可以按该列排序。</li>
+<li><b>图表</b>：在选项卡角落切换同一个文件夹的四种图（一开始是方块图，之后会记住你选的）。<i>方块图</i>把每个文件画成一个方块，文件越大、方块越大，
+每个文件夹顶部有写着名称和大小的标题栏；
+文件夹里小到看不见的文件会合成一个灰色斜线方块（<i>其余 12 个</i>），双击它可以单独显示那个文件夹。
+<i>层数</i>决定要画几层，<i>颜色</i>可以按文件类型（图例在下方）或按最上层的文件夹上色。
+<i>条形图</i>给文件夹里每个项目画一个条形，由大到小，附大小与比例。
+<i>旭日图</i>把当前文件夹放在中心，每深一层就是外面一圈，点中心回上一级。
+<i>树状图</i>画出可展开的文件夹卡片，点加号或“其余文件夹”显示更多；可切换方向、
+按 Ctrl＋滚轮缩放并用滚动条移动。
+单击可以在文件夹树中找到它，双击文件夹可以进入，点<i>上一级</i>回去。</li>
+<li><b>最大的文件</b>：整个扫描范围内最大的 1,000 个文件。在筛选框输入文字可以缩小列表，
+双击某一行就会在文件夹树中找到那个文件。</li>
+<li><b>搜索</b>（Ctrl+F）：整个扫描范围内，名称含有输入文字的文件和文件夹。
+<code>*.mp4</code> 这类模式要匹配完整名称；多个模式用 <code>;</code> 分开（<code>*.iso;*.zip</code>）。
+搜索框下方的条件（大小、修改时间、文件类型、文件或文件夹）可以缩小范围，也可以单独搜索；
+<i>保存…</i>可以把搜索取名保存起来。会列出最大的 1,000 个匹配项目，并显示全部匹配项目的数量和总大小。</li>
+<li><b>清理 → 建议</b>：每次扫描后列出内容通常可以删掉的位置，每种一组
+（临时文件、缓存、崩溃转储、可以重新构建的构建产物、下载文件夹里的旧安装包、空文件夹）；
+鼠标停在组名上可以看删掉它的影响，再点<i>选中这一组</i>或<i>全部选中</i>，然后按 Delete。</li>
+<li><b>清理 → 重复文件</b>：点<i>查找重复文件</i>，把内容相同的文件分组。只会读取大小相同的文件；因为读取需要时间，
+除非选了较小的大小，否则会跳过 1 MB 以下的文件。每一组从旧到新列出副本；<i>选中多余的副本</i>会选中最旧那份以外的全部，
+再按 Delete 就会移到回收站。</li>
+<li><b>文件类型</b>：各种文件按扩展名各占多少空间；在表格上方的列表选一种类型，就只显示那一类；
+双击一行，会列出那种文件里最大的几个。</li>
+<li><b>文件新旧</b>：一个月内、1–6 个月前……一直到超过 2 年前最后修改的文件各占多少空间。
+旧数据常常就是可以归档或删除的东西；双击一行，会列出那一段里最大的文件。</li>
+<li><b>无法读取</b>：FileTree 没有权限读取的文件夹，里面的内容不会算进去。</li>
+</ul>
+<h2>释放空间</h2>
+<p>在任何项目上点右键，可以<i>打开</i>、<i>在文件管理器中显示</i>、<i>复制路径</i>、<i>在方块图中显示</i>、
+<i>重新扫描这个文件夹</i>（在 FileTree 以外改过东西之后用，其余结果不变）、
+<i>只扫描这个文件夹</i>，或<i>移到回收站</i>。
+要一次移走好几个项目，在文件夹树、<i>最大的文件</i>或<i>搜索</i>列表里用 Ctrl+单击或 Shift+单击选中，
+只会询问一次，并列出它们和总大小。
+FileTree 不会永久删除任何东西：每次都会先询问，
+移走的东西都能从回收站（macOS 与 Linux 是“废纸篓”）还原。数字会立刻更新，不必重新扫描。
+系统与程序的文件夹会说明原因并多问一次；临时文件夹与缓存不会。</p>
+<h2>看看哪里变大了</h2>
+<p>用<i>文件 → 导出 → 文件夹树（JSON）</i>把扫描保存起来。之后重新扫描，选<i>文件 → 与之前保存的扫描比较…</i>
+打开那个文件，<b>变化</b>选项卡就会列出每个有变化的文件夹之前和现在的大小，变大最多的排在最前面
+（<i>新增</i>与<i>已不存在</i>标示新出现或消失的文件夹）。在点<i>结束比较</i>之前，每次重新扫描都会继续比较。</p>
+<h2>键盘快捷键</h2>
+<table cellpadding="3">
+<tr><td><b>Ctrl+O</b></td><td>选择文件夹</td></tr>
+<tr><td><b>F5</b></td><td>重新扫描</td></tr>
+<tr><td><b>Esc</b></td><td>停止扫描</td></tr>
+<tr><td><b>Ctrl+F</b></td><td>按名称搜索</td></tr>
+<tr><td><b>Delete</b></td><td>把选中的项目（可以好几个）移到回收站</td></tr>
+<tr><td><b>Ctrl++／Ctrl+−</b></td><td>放大／缩小文字</td></tr>
+<tr><td><b>Ctrl+0</b></td><td>文字恢复系统大小</td></tr>
+<tr><td><b>F1</b></td><td>这份说明</td></tr>
+<tr><td><b>Ctrl+Q</b></td><td>退出</td></tr>
+</table>
+<p>在 macOS 上请用 ⌘ 代替 Ctrl（⌘R 是重新扫描）。</p>
+<h2>小知识</h2>
+<ul>
+<li>大小是文件的实际大小，按二进制单位计算（1 KB = 1,024 字节），和 Windows 资源管理器相同；
+可以在<i>视图 → 大小单位</i>改用固定的单位。</li>
+<li>文字太小或太大？用<i>视图 → 文字大小</i>调整整个程序的文字，FileTree 会记住这个选择。</li>
+<li>快捷方式与链接（符号链接、目录联接）会列出来，但不会进入计算，所以不会重复计算。</li>
+<li>在 Windows 上，FileTree 启动时会像 TreeSize 一样请求管理员权限，受保护的文件夹也能读取。
+拒绝的话它照常以普通权限运行，读不到的文件夹列在<i>无法读取</i>标签页，那里有<i>以管理员身份重新启动</i>按钮。
+不想每次被问，可以关掉<i>视图 → 启动时请求管理员权限</i>。</li>
+<li><i>最大的文件</i>、<i>文件类型</i>与<i>文件新旧</i>默认统计整个扫描范围；
+点这几个选项卡右上角的<i>只看选中的文件夹</i>，就会改为跟着文件夹树中选中的文件夹。</li>
+<li>默认会计算隐藏文件；关掉<i>视图 → 包含隐藏文件</i>，下次扫描就不会算进去。</li>
+<li>要让某些文件夹每次都不扫描，把它们加进<i>视图 → 扫描时跳过</i>：
+像 <code>node_modules</code> 这样的名称会跳过所有同名的文件夹，路径只跳过那一个文件夹。
+跳过的文件夹会以灰字列出，大小为 0。</li>
+<li>用<i>文件 → 导出</i>保存结果：CSV 可用 Excel 打开，JSON 供脚本使用。</li>
+</ul>
+"""),
+    "budget_close": "关闭",
+    "action_folder_budgets": "文件夹容量预算…", "action_folder_budgets_tip": "管理文件夹上限和上次扫描用量",
+    "budget_title": "文件夹容量预算", "budget_name": "名称", "budget_path": "文件夹路径",
+    "budget_limit": "上限", "budget_usage": "上次用量", "budget_excess": "超出量",
+    "budget_status": "状态", "budget_add": "添加", "budget_update": "更新", "budget_delete": "删除",
+    "budget_new": "新规则", "budget_waiting": "等待完整扫描", "budget_unknown": "未知",
+    "budget_over": "超过上限", "budget_within": "未超过上限", "budget_alerted": "{status}，已记录提醒",
+    "budget_dated_usage": "{when}：{usage}", "budget_invalid_limit": "请输入精确的字节上限",
+    "budget_summary": "预算：{over} 项超额，{unknown} 项未知",
+    "budget_save_error": "无法保存文件夹预算：{reason}",
+    "budget_unknown_reason": "未知：{reason}", "budget_reason_missing": "扫描中未找到文件夹",
+    "budget_reason_linked": "链接文件夹", "budget_reason_not_folder": "不是文件夹",
+    "budget_reason_incomplete": "覆盖范围不完整",
+    "budget_invalid_input": "请输入有效名称、绝对路径和精确上限",
+    "budget_invalid_data": "已保存的预算数据无效", "budget_duplicate_path": "此路径已有预算",
+    "budget_missing_rule": "此预算已不存在", "budget_too_many": "预算数量过多",
+    "budget_settings_locked": "预算设置正忙", "budget_storage_unavailable": "预算存储位置不可用",
+    "budget_read_failed": "无法读取预算设置", "budget_write_failed": "无法保存预算设置",
+    "budget_observed": "观测时间",
+    "budget_not_scanned": "尚未扫描",
+    "budget_changed_limit": "上限已更改，等待完整扫描",
+    "budget_input_unit": "上限单位（二进制）",
+    "budget_choose": "选择文件夹…",
+    "budget_empty": "尚未设置文件夹容量预算。选择文件夹，输入名称和上限，再点击添加。",
+    "budget_edit_hint": (
+        '上限使用精确的二进制单位。添加或编辑预算不会开始扫描。用量为上次观测，并非实时用量；更改上限后需要重新完整扫描'
+        '。'
+    ),
+    "budget_keep_draft": "已保留尚未保存的输入。请先保存或点击新规则，再选择其他目标。",
+    "budget_editing": "正在编辑所选预算",
+    "budget_creating": "新建预算",
+    "budget_exact": "精确大小：{value}",
+    "budget_invalid_name": "请输入预算名称",
+    'search_edit_conditions': '调整条件',
+    'date_accept': '确定', 'date_cancel': '取消', 'date_choose': '选择日期…',
+    'date_clear': '清除日期',
+    'search_fix_field': '请修正标记的字段，再应用范围。',
+    'search_size_unit': '大小单位（二进制）',
+    'search_condition_name': '名称：{value}',
+    'search_condition_value': '{label}：{value}',
+    'search_condition_dates': '日期（含首末日）：{start} 至 {through}',
+    'search_scope_none': '搜索范围：尚无已完成的扫描',
+    'search_scope_root': '整个扫描：{path}',
+    'search_scope_multi': '整个扫描：全部合并来源',
+    'search_scope': '搜索范围',
+    'search_clear_all': '清除全部条件',
+    'search_no_conditions': '添加名称或条件，即可搜索整个扫描结果。',
+    'search_clear_condition': '清除',
+    'search_remove_condition': '清除条件：{condition}',
+}
