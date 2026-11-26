@@ -131,7 +131,7 @@ shutdown. A queued finished callback is idempotent; closing readiness does not d
 | Layer | Path | Depends on | Holds |
 |---|---|---|---|
 | Core | `je_file_tree/core/` | standard library only | `node.py` (the tree), `scanner.py` (parallel scan), `allocation.py` (size on disk), `protected.py` (system and program folders), `advice.py` (whether an entry can go), `exclusions.py` (folders to skip), `analysis.py` (largest files, per-type and per-age totals), `search.py` (find by name), `duplicates.py` (same content), `cleanup.py` (clean-up suggestions), `reclaim.py` (free-up-space plan), `permanent_delete.py` (confirmed permanent removal), `compare.py` (against a saved scan), `pacing.py` (background work gives way to the window), `treemap.py` (layout), `sunburst.py` (rings), `tree_layout.py` (bounded hierarchy rows), `formatting.py`, `export.py` (CSV / JSON) |
-| GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `advice_text.py`, `reclaim_dialog.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings.py`, `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
+| GUI | `je_file_tree/gui/` | PySide6, core | `app.py` (start-up), `main_window.py` + `window_*.py`, `welcome.py`, `scan_bar.py`, `results_view.py`, `charts.py` + `bar_chart.py` + `sunburst_widget.py` + `tree_diagram.py`, `search_panel.py`, `cleanup_panel.py`, `advice_text.py`, `reclaim_dialog.py`, `duplicates_panel.py`, `grouped_list.py`, `changes_panel.py`, `tree_model.py`, `tables.py`, `treemap_widget.py`, `delegates.py`, `scan_worker.py`, `file_actions.py`, `help_dialog.py`, `i18n.py` + `strings/` (one module per language), `qt_translation.py`, `elevation.py`, `icon.py` (drawn in code) |
 | Entry script | `start_file_tree.py` | GUI | Starts the window from a source copy; the file Nuitka compiles |
 | Tools | `tools/` | GUI | `make_screenshots.py` (README pictures), `build_nuitka.py` (stand-alone builds, see `nuitka.md`) |
 | Tests | `test/` | both | one file per area; Qt tests on the offscreen platform |
@@ -731,9 +731,58 @@ scan/live-monitor readers while settings are open; shutdown retains both kinds u
 colour scheme (re-applied when it changes), use `fluent_style`: Fluent tokens fitted to the platform
 accent captured at start-up, a complete palette, `FluentStyle` (Fusion with drawn close/clear glyphs)
 and one application style sheet; widgets opt in through `role` properties or object names and carry
-no style sheet of their own. System under high contrast keeps the native style and an empty palette.
+no style sheet of their own. The contrast each token keeps (`TEXT_CONTRAST`, `DISABLED_CONTRAST`,
+`EDGE_CONTRAST`, `DIVIDER_CONTRAST`) is declared beside the surfaces and tested for every accent;
+controls are outlined with `stroke_strong`, containers with `stroke`. `glyphs` draws the marks of check
+boxes, radio buttons, menus and arrows once and registers them as an in-memory Qt resource the sheet
+addresses: an override of `drawPrimitive` would cost every painted cell. `delegates.bar_colour` fades
+share bars until the number on them is readable. System under high contrast keeps the native style and an empty palette.
 Explicit themes also request the matching platform colour scheme (Qt 6.8+) for the title bar.
 ThemeMenu persists the choice and startup restores it before constructing windows. Palette/style events discard chart caches.
+`text_scale` holds the chosen interface text size (no dependencies, so layout code can ask it);
+`text_size` owns the one QApplication controller, View → Text size (`text_size` setting, restored by
+`app._configure_interface` before any window) and its Ctrl++/Ctrl+-/Ctrl+0 commands, shared with the
+modal help window. `TextSizeController.apply` sets the application font through `apply_language_font`
+(always from the captured base font), delivers Qt's posted font change, scales the columns and rows of
+open lists by the ratio, then emits `changed` for geometry derived from text. New pixel sizes chosen for
+text (column widths above all) go through `text_scaled`; `fit_window` grows dialogs within the screen.
+`ScrollingPage` holds the results page, so its minimum size never becomes the window's. Its `room_changed`
+drives `ShortLayout`, which folds the highlights, inlines the totals and hides the hint before anything scrolls.
+`ChangeColours` colours treemap and sunburst from the changes the Changes tab already holds.
+`SettingsDialog` shows the menu actions themselves (no second copy of a setting); `settings_file` holds the
+portable keys with their validators and reads or writes them all or nothing (`file-tree-settings/1`).
+`core.custom_rules` validates user-written clean-up rules (data in policy version 2). They run after the
+built-in rules, always as manual review; `Guard` refuses protected and Windows-managed places and folders
+holding one, and recurring proposals use `CleanupPolicy.built_in()`.
+`core.problem_files` surveys recorded entries; on disk it reads only link texts and small local shortcuts
+(`core.shell_link`) and checks their targets with `lstat`, never a network or absent drive.
+`core.name_regex` prices a pattern before compiling it for search: Python's engine holds the interpreter while
+it backtracks, so anything that could grow exponentially is refused. `_Bounds` prunes excluded and too deep folders.
+`cli_reports` adds the console's read-only reports (`REPORTS`: search, duplicates, cleanup, budget) over the same
+scan; their arguments are checked before anything is scanned.
+`chart_palette.CATEGORY_COLOURS` is the one dictionary of file-type colours in use; `PaletteController` swaps
+its values and charts and legends redraw. The accent is the user's or the platform's (`ThemeController.accent_for`).
+`core.preview` reads the bounded beginning of a recorded file through `archives.opened`; `PreviewPane` is off
+until asked for, follows the selection after a pause and decodes pictures scaled and within a memory limit.
+`command_palette.commands` reads the menus themselves; `WindowShortcuts` applies the validated choices of
+`ShortcutController` over each window's defaults. Removing, stopping and quitting have fixed keys (`FIXED`).
+`core.dev_tools.TOOLS` is data: path ends and the commands a tool has; the dialog copies them and never runs one.
+`core.scan_overview` matches saved scans of several computers by relative folder path; it holds numbers and text
+only, never `Node` objects, so it grants no operation.
+`core.zip_archive` packs an unchanged scanned folder into a temporary sibling, reads every member back by
+SHA-256 and publishes it with `rename_no_replace`; the original is moved only through `move_to_trash`.
+`core.media_info` parses bounded container headers with the standard library; `core.similar_media` groups
+candidates and reuses the similar-photo result, so they get no keeper, estimate or bulk selection.
+`core.sftp` implements only the read-only requests of SFTP 3 (no request that opens or changes a file exists);
+`core.remote_scan` runs the fixed system OpenSSH client (keys or agent only, known hosts only, no forwarding) and
+walks with several requests under way. Its tree stays private and is written as a saved scan, so remote paths
+never reach anything that acts on local entries.
+`MainWindow` is assembled from plain mixin classes without state of their own: `window_scans.ScanControls`,
+`window_exports.ExportActions`, `window_dialogs.DialogActions` and `window_menus.WindowMenus`; the setting keys
+they share are in `window_settings`. Moving to the Recycle Bin, permanent deletion, the context menu, start-up and
+closing stay in `main_window.py`, where the removal tests expect the single entry points.
+Help texts are `strings/help_<language>.py`; their `{key}` fields are labels, filled by `help_dialog.help_text`,
+so they always name menus as the window does. `openpyxl` is imported by the first Excel export.
 `colours` selects label ink by sRGB contrast and blends colours; treemap tiles are flat (1 px gap,
 rounded corners from 8 px) and folder fills blend the palette's text over its base by depth. Sunburst/age labels share this logic; bars use palette text roles.
 
@@ -1629,7 +1678,7 @@ contract. ja/ko system locales select their language on first use. Native Qt ja/
 standard buttons/dialogs and all four non-English catalogues are required in runtime/package checks.
 README/Nuitka parity and generated screenshots cover all five languages; OS fonts provide glyphs.
 locale_font chooses installed Japanese/Korean UI families on each retranslation while preserving
-the captured system size/style, restoring that base for other languages. `apply_language_font` sets
+the captured system style, at the chosen text size, restoring that base for other languages. `apply_language_font` sets
 it as the application font, so widgets created later and dialogs get it too: under an application
 style sheet Qt no longer passes a window's font on to children created after it. Bold, scaled
 labels use `emphasise`, which marks them so `apply_language_font` re-applies their font: on macOS a
@@ -1638,11 +1687,11 @@ installs fonts; missing families retain normal system fallback across workspace 
 
 ## 5. Extension points
 
-- **A language**: a table in `je_file_tree/gui/strings.py`, an entry in `i18n.LANGUAGES`, a Qt catalogue in
+- **A language**: a module in `je_file_tree/gui/strings/`, an entry in `i18n.LANGUAGES`, a Qt catalogue in
   `qt_translation.CATALOGUES`, a README translation and a screenshot (`tools/make_screenshots.py`).
 - **A file-type group**: `analysis.CATEGORY_EXTENSIONS`, a colour in `treemap_widget.CATEGORY_COLOURS`
   and a `category_<name>` text in every language (tests check all five).
-- **An export format**: a function in `core/export.py` (atomic write) and an action in `main_window.py`.
+- **An export format**: a function in `core/export.py` (atomic write), its handler in `window_exports.py` and its action in `window_menus.py`.
 - **A result tab**: a widget added in `ResultsView._assemble`, fed from `ScanOutcome`.
 - **A chart view**: a widget with the treemap's interface, added to `charts.MODES` and `ChartStack`, with
   `chart_<mode>` and `chart_<mode>_tip` texts in every language (the mode button appears by itself).
@@ -1819,7 +1868,8 @@ non-yanked wheel SHA-256 values. `tools/lock_compiler_wheels.py` regenerates onl
 fixed runtime locks from bounded PyPI metadata with four read-only request workers; unsupported
 pins/releases, changed lock inputs and missing/invalid hashes fail before writes. It downloads or
 executes no packages and leaves the isolated PyPI publishing lock unchanged. Native pip still requires
-hashes and wheels only; only the separately pinned Nuitka compiler may be an sdist.
+hashes and wheels only; only Nuitka may be an sdist, at a locked hash (`nuitka.txt`) and built without isolation
+by the setuptools and wheel of `compiler.txt`.
 Release and Desktop builds share this installer. The latter keeps unsigned compiled ZIP/MSI and owned installation
 evidence without a release token. `validate_msi.ps1 -DisposableRunner -CompiledPayload` accepts only
 the fixed hosted workspace's sole standalone output, copies no-follow contents into fresh runner
@@ -1896,7 +1946,7 @@ guards locked installs, the producer's backend, publisher token isolation and co
 The source distribution carries no tests (`MANIFEST.in`,
 `test/test_sdist_manifest.py`).
 
-Development tooling uses pytest >=9.1.1 and Ruff 0.17.1. The hash-locked CI test requirements
+Development tooling uses pytest >=9.2.0 and Ruff 0.17.3. The hash-locked CI test requirements
 match that pytest floor; the local Ruff requirement, locked CI wheel and dedicated lint job share
 one exact version. `test/test_workflow_actions.py` rejects a partial Ruff update across those files.
 

@@ -8,7 +8,7 @@ from test_gui import window as window  # noqa: PLC0414 - explicit pytest fixture
 from je_file_tree.core.node import Node
 from je_file_tree.core.scanner import ScanResult
 from je_file_tree.gui.breadcrumbs import Breadcrumbs, FolderHistory
-from je_file_tree.gui.main_window import RESULTS_PAGE
+from je_file_tree.gui.window_settings import RESULTS_PAGE
 from je_file_tree.gui.results_view import CHART_TAB
 from je_file_tree.gui.scan_worker import analyse
 

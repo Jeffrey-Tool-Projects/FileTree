@@ -9,11 +9,11 @@ from collections.abc import Callable
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from je_file_tree.core.analysis import CATEGORY_EXTENSIONS, extension_of
-from je_file_tree.core.archives import _opened
+from je_file_tree.core.archives import opened
 from je_file_tree.core.node import Node
 from je_file_tree.core.pacing import give_way
 from je_file_tree.core.similar_photos import (
-    DEFAULT_DISTANCE, PhotoSignature, SimilarPhotoResult, check_cancel, group_similar,
+    DEFAULT_DISTANCE, PhotoSearchCancelledError, PhotoSignature, SimilarPhotoResult, check_cancel, group_similar,
 )
 from je_file_tree.core.snapshot import unpack_snapshot
 
@@ -32,7 +32,16 @@ def _image(node: Node, cancel: threading.Event | None) -> tuple[int, bytes]:
     check_cancel(cancel)
     if node.size > MAX_SOURCE_BYTES:
         raise OSError("Image exceeds the 128 MiB source limit")
-    with _opened(node) as stream, Image.open(stream, formats=_FORMATS) as original:
+    try:
+        return _decode(node, cancel)
+    except PhotoSearchCancelledError:
+        raise
+    except Exception as error:  # noqa: BLE001 - decoders raise anything over damage (AVIF: RuntimeError, SyntaxError)
+        raise OSError(f"The image could not be decoded: {error}") from error
+
+
+def _decode(node: Node, cancel: threading.Event | None) -> tuple[int, bytes]:
+    with opened(node) as stream, Image.open(stream, formats=_FORMATS) as original:
         if original.width * original.height > MAX_PIXELS:
             raise OSError("Image exceeds the 40 million pixel limit")
         original.thumbnail(THUMBNAIL_SIZE, Image.Resampling.LANCZOS)

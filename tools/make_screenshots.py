@@ -23,7 +23,7 @@ from je_file_tree.core.node import Node  # noqa: E402
 from je_file_tree.core.scanner import ScanResult  # noqa: E402
 from je_file_tree.gui.app import create_workspace  # noqa: E402
 from je_file_tree.gui.i18n import LANGUAGES  # noqa: E402
-from je_file_tree.gui.main_window import RESULTS_PAGE  # noqa: E402
+from je_file_tree.gui.window_settings import RESULTS_PAGE  # noqa: E402
 from je_file_tree.gui.scan_worker import analyse  # noqa: E402
 
 OUTPUT = ROOT / "docs" / "images"
@@ -88,9 +88,13 @@ def main() -> None:
         while window.current.results.cleanup.proposal_summary is None and time.monotonic() < deadline:
             app.processEvents()
             time.sleep(.01)
+        if window.current.results.cleanup.proposal_summary is None:
+            raise RuntimeError("The clean-up analysis did not finish in time")
         for _ in range(10):
             app.processEvents()
-        window.grab().save(str(OUTPUT / f"main_window_{language}.png"))
+        picture = OUTPUT / f"main_window_{language}.png"
+        if not window.grab().save(str(picture)):
+            raise RuntimeError(f"{picture} could not be written")
         window.close()
         deadline = time.monotonic() + 30
         while not window._close_ready:

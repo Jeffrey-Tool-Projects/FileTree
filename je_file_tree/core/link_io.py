@@ -13,7 +13,7 @@ from je_file_tree.core.compression_ops import _kernel
 from je_file_tree.core.copy_io import _descriptor, check_cancel, check_file, check_volume, opened_file
 from je_file_tree.core.duplicate_links import LinkPair, _attributes, _digests, _streams
 from je_file_tree.core.no_replace import anchored_directory
-from je_file_tree.core.snapshot import pack_snapshot, stable_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import pack_snapshot, renamed, stable_snapshot, unpack_snapshot
 
 if os.name == "nt":
     import msvcrt
@@ -98,7 +98,7 @@ def _retire_backup(pair: LinkPair, backup: str, expected: bytes, keeper: bytes,
                    cancel: threading.Event | None) -> None:
     _artifact(pair, backup, "copy")
     original, observed = unpack_snapshot(pair.copy_snapshot), unpack_snapshot(expected)
-    if replace(observed, changed_ns=original.changed_ns) != original:
+    if not renamed(original, observed):
         raise ValueError("Backup differs from the captured extra-copy identity/metadata")
     with (anchored_directory(pair.copy_parents) as parent,
           opened_file(pair.keeper_path, keeper, volume=pair.volume) as source,

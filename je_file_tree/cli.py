@@ -11,6 +11,7 @@ import threading
 from collections.abc import Sequence
 from typing import TextIO
 
+from je_file_tree.cli_reports import REPORTS, check_arguments
 from je_file_tree.core import export
 from je_file_tree.core.analysis import summarise
 from je_file_tree.core.compare import SavedScan, compare, load_saved
@@ -32,18 +33,44 @@ def _positive(value: str) -> int:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="je-file-tree-cli")
     commands = parser.add_subparsers(dest="command", required=True)
-    scanning = commands.add_parser("scan")
-    scanning.add_argument("root")
-    scanning.add_argument("--also", action="append", default=[], metavar="ROOT")
+    scanning = commands.add_parser("scan", help="scan, export and compare")
+    _add_scan_options(scanning)
     for kind in ("folders", "largest", "json", "compare"):
         scanning.add_argument(f"--{kind}")
-    scanning.add_argument("--workers", type=_positive, default=2)
-    scanning.add_argument("--limit", type=_positive, default=1000)
-    scanning.add_argument("--exclude", action="append", default=[])
-    scanning.add_argument("--no-hidden", action="store_true")
-    scanning.add_argument("--gentle", action="store_true")
-    scanning.add_argument("--count-hard-links", action="store_true")
+    for name, (text, add, _report) in REPORTS.items():
+        reporting = commands.add_parser(name, help=text)
+        _add_scan_options(reporting)
+        add(reporting)
     return parser
+
+
+def _add_scan_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("root")
+    parser.add_argument("--also", action="append", default=[], metavar="ROOT")
+    parser.add_argument("--workers", type=_positive, default=2)
+    parser.add_argument("--limit", type=_positive, default=1000)
+    parser.add_argument("--exclude", action="append", default=[])
+    parser.add_argument("--no-hidden", action="store_true")
+    parser.add_argument("--gentle", action="store_true")
+    parser.add_argument("--count-hard-links", action="store_true")
+
+
+def _usable(args: argparse.Namespace) -> bool:
+    """Whether a report's conditions can be used; says why not on stderr."""
+    try:
+        check_arguments(args)
+    except ValueError as error:
+        _emit(sys.stderr, {"kind": "error", "reason": str(error)})
+        return False
+    return True
+
+
+def _report(args: argparse.Namespace, result: ScanResult, coverage: Coverage, cancel: threading.Event) -> int:
+    document, code = REPORTS[args.command][2](args, result.root, coverage, cancel)
+    if code is None:
+        return INTERRUPTED
+    _emit(sys.stdout, document | {"complete": coverage.complete})
+    return code
 
 
 def _emit(stream: TextIO, document: dict) -> None:
@@ -54,7 +81,8 @@ def _emit(stream: TextIO, document: dict) -> None:
 def _run_scan(args: argparse.Namespace, cancel: threading.Event) -> tuple[ScanResult, bool]:
     try:
         options = ScanOptions(workers=args.workers, include_hidden=not args.no_hidden,
-                              exclude=tuple(args.exclude), gentle=args.gentle, count_hard_links=args.count_hard_links)
+                              exclude=tuple(args.exclude), gentle=args.gentle, count_hard_links=args.count_hard_links,
+                              windows_owners=bool(getattr(args, "owner", "")))
         return (scan_roots([args.root, *args.also], options=options, cancel=cancel) if args.also else
                 scan(args.root, options=options, cancel=cancel)), False
     except ScanCancelledError as stopped:
@@ -99,7 +127,7 @@ def _summary(result: ScanResult, coverage: Coverage, interrupted: bool) -> dict:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the console command; return 0/1/2/3/130 for success/partial/arguments/I/O/interruption.
+    """Run the console command; return 0/1/2/3/4/130 for success/partial/arguments/I/O/over budget/interruption.
 
     Each requested export is atomic independently. Ctrl+C stops the scan and exports its partial
     snapshot; a second Ctrl+C aborts immediately. No move or removal is offered by this entry point.
@@ -115,16 +143,20 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     previous = signal.signal(signal.SIGINT, interrupt)
     try:
-        saved = load_saved(args.compare) if args.compare else None
+        saved = load_saved(args.compare) if getattr(args, "compare", None) else None
+        if not _usable(args):
+            return INVALID_ARGUMENTS
         result, interrupted = _run_scan(args, cancel)
         coverage = coverage_of(result.root)
         _emit(sys.stdout, _summary(result, coverage, interrupted))
         if result.errors:
             _emit(sys.stderr, {"kind": "scan_errors", "entries": result.errors})
-        _reports(args, result, saved)
-        if interrupted or cancel.is_set():
-            return INTERRUPTED
-        return OK if coverage.complete else INCOMPLETE
+        complete = OK if coverage.complete else INCOMPLETE
+        if args.command == "scan":
+            _reports(args, result, saved)
+        elif not interrupted:
+            complete = _report(args, result, coverage, cancel) or complete
+        return INTERRUPTED if interrupted or cancel.is_set() else complete
     except (KeyboardInterrupt, ScanCancelledError):
         return INTERRUPTED
     except Exception as error:  # noqa: BLE001 - CLI boundary preserves the JSON error protocol

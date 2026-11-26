@@ -1,4 +1,8 @@
-"""Capture three independent chart views and write bounded report lists to Excel outside the core."""
+"""Capture three independent chart views and write bounded report lists to Excel outside the core.
+
+``openpyxl`` is loaded by the first Excel export, on its worker: importing it took 0.33 s of the window's
+1.05 s of imports at every start (native Windows, 2026-11-26).
+"""
 
 from __future__ import annotations
 
@@ -8,8 +12,6 @@ import tempfile
 import threading
 from collections.abc import Sequence
 
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Font, PatternFill
 from PySide6.QtCore import QByteArray, QBuffer, QIODevice, Qt
 from PySide6.QtGui import QImage
 
@@ -32,6 +34,7 @@ def capture_report_charts(root: Node, source: ChartStack, unit: str, now: float)
     charts.set_unit(unit)
     charts.set_colour_mode(source.treemap.colour_mode)
     charts.set_age_reference(now)
+    charts.treemap.change_colours = charts.sunburst.change_colours = source.treemap.change_colours
     charts.treemap.set_levels(source.treemap.levels)
     charts.set_view_root(root)
     charts.show()
@@ -69,6 +72,8 @@ def _excel_value(value: Cell) -> Cell:
 
 def write_xlsx(report: Report, target: str, *, cancel: threading.Event | None = None) -> int:
     """Atomically write six sheets with byte/count numbers, escaped text and bounded cell lengths."""
+    from openpyxl import Workbook  # noqa: PLC0415 - loaded on first use
+
     cancel = cancel if cancel is not None else threading.Event()
     handle, temporary = tempfile.mkstemp(prefix=".file-tree-", suffix=".xlsx",
                                          dir=os.path.dirname(os.path.abspath(target)))
@@ -102,6 +107,8 @@ def write_xlsx(report: Report, target: str, *, cancel: threading.Event | None = 
 
 
 def _style_sheet(sheet, cancel: threading.Event) -> None:
+    from openpyxl.styles import Alignment, Font, PatternFill  # noqa: PLC0415 - loaded on first use
+
     for cell in sheet[3]:
         cell.font = Font(bold=True, color="FFFFFF")
         cell.fill = PatternFill("solid", fgColor="24466B")

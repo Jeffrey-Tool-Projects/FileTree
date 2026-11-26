@@ -19,6 +19,7 @@ from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.lazy_details import set_lazy_details
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, queue_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.window_fit import fit_window
@@ -92,7 +93,7 @@ class DuplicateLinksDialog(WorkerDialog):
         self.view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.view.setTextElideMode(Qt.TextElideMode.ElideMiddle)
         for number, width in enumerate((410, 410, 230)):
-            self.view.setColumnWidth(number, width)
+            self.view.setColumnWidth(number, text_scaled(width))
         install_copy(self.view)
         self.status = QLabel(tr("namespace_reading"))
         self.status.setWordWrap(True)

@@ -10,6 +10,7 @@ import plistlib
 import stat
 import sys
 import uuid
+from xml.parsers.expat import ExpatError
 
 from je_file_tree.gui.autostart import LABEL, MAX_BYTES, Registration, desktop_entry, launch_agent
 
@@ -93,7 +94,7 @@ def _owned(payload: bytes) -> None:
             expected = desktop_entry(arguments)
         if payload != expected:
             raise ValueError("Startup entry differs from its owned canonical metadata")
-    except (ValueError, TypeError, KeyError, UnicodeError, RecursionError, OverflowError) as error:
+    except (ValueError, TypeError, KeyError, AttributeError, ExpatError, RecursionError, OverflowError) as error:
         raise OSError("Startup entry belongs to another application or was changed") from error
 
 

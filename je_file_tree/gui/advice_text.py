@@ -11,9 +11,9 @@ from je_file_tree.core.advice import LOW, MANAGED, PENDING, PERSONAL, PROTECTED,
 from je_file_tree.gui.cleanup_text import explanation
 from je_file_tree.gui.i18n import tr
 
-# Mid-tone inks that stay readable on the light and the dark surface; the label always says the same.
-ADVICE_COLOURS = {LOW: "#2e9e5b", REVIEW: "#d99a00", PERSONAL: "#8a8f98", PROTECTED: "#d64545",
-                  MANAGED: "#8e5bd6", PENDING: "#b4b8bf"}
+# Mid-tone inks with at least 3:1 on the light and the dark surface; the label always says the same.
+ADVICE_COLOURS = {LOW: "#2e9e5b", REVIEW: "#bd8500", PERSONAL: "#6f7682", PROTECTED: "#d64545",
+                  MANAGED: "#8e5bd6", PENDING: "#90959e"}
 _DOT, _CANVAS, _SCALE = 10, 16, 2
 _icons: dict[str, QIcon] = {}
 

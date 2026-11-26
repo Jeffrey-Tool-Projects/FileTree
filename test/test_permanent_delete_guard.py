@@ -77,3 +77,24 @@ def test_guard_place_check_accepts_only_entries_strictly_inside_the_base(tmp_pat
 def test_guard_is_installed_around_the_single_removal_function(_permanent_delete_guard):
     assert permanent_delete.remove_entry.__name__ == "guarded"
     assert _permanent_delete_guard == []
+
+
+def test_a_test_undoing_its_own_patches_keeps_every_guard(monkeypatch):
+    from je_file_tree.core import finder_bin
+    from je_file_tree.gui import elevation, history
+
+    guarded = (permanent_delete.remove_entry, finder_bin._run_finder_empty, elevation.run_as_admin,
+               history.history_folder)
+    monkeypatch.setattr(permanent_delete, "remove_entry", lambda *_args, **_options: None)
+    monkeypatch.undo()
+    assert guarded == (permanent_delete.remove_entry, finder_bin._run_finder_empty, elevation.run_as_admin,
+                       history.history_folder)
+    assert permanent_delete.remove_entry.__name__ == "guarded"
+
+
+def test_names_that_are_no_entry_are_refused(tmp_path, tmp_path_factory):
+    from conftest import _inside_temporary
+
+    base = os.path.normcase(os.path.realpath(tmp_path_factory.getbasetemp()))
+    for name in (".", "..", ""):
+        assert not _inside_temporary(os.path.join(str(tmp_path), name), base)

@@ -19,7 +19,8 @@ from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QIcon, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import QProxyStyle, QStyle, QStyleFactory, QStyleOption, QWidget
 
-from je_file_tree.gui.colours import blend, contrast, readable_ink
+from je_file_tree.gui.colours import blend, contrast, luminance, readable_ink
+from je_file_tree.gui.glyphs import glyph_url, register_glyphs
 
 DEFAULT_ACCENT = "#0067c0"  # Windows' default blue, used when the platform reports no accent
 RADIUS = 6
@@ -52,16 +53,31 @@ class Tokens:
     caution: str
 
 
+# Contrast the tests hold for every theme and accent (WCAG 2.2): text 7:1 on every surface, unavailable text
+# 4.5:1, control edges and scroll bars 3:1, dividers and card edges 1.8:1 (they only group, so they stay quiet).
+TEXT_CONTRAST, DISABLED_CONTRAST, EDGE_CONTRAST, DIVIDER_CONTRAST = 7.0, 4.5, 3.0, 1.8
+_ACCENT_CONTRAST = 4.5
+_MID_LUMINANCE = .18  # black and white contrast equally with it
+# Text on the selection; the light scheme leaves room for the share bar, which is drawn at 7:1, to show on it.
+_SELECTION_TEXT = {"light": 8.5, "dark": TEXT_CONTRAST, "contrast": TEXT_CONTRAST}
+_SELECTION_STRONGEST = {"light": .45, "dark": .45, "contrast": .6}
+_SELECTION_FAINTEST, _SELECTION_STEP = .1, .025
+
 _SURFACES = {
-    "light": {"window": "#f3f3f3", "card": "#ffffff", "subtle": "#f5f5f5", "control": "#fbfbfb",
-              "control_hover": "#f0f0f0", "control_pressed": "#e8e8e8", "stroke": "#e3e3e3",
-              "stroke_strong": "#c8c8c8", "text": "#1a1a1a", "text_secondary": "#5c5c5c",
-              "text_disabled": "#8a8a8a", "scrollbar": "#a8a8a8", "success": "#0f7b0f", "caution": "#8a5100"},
-    "dark": {"window": "#202020", "card": "#2b2b2b", "subtle": "#323232", "control": "#2d2d2d",
-             "control_hover": "#383838", "control_pressed": "#262626", "stroke": "#3b3b3b",
-             "stroke_strong": "#545454", "text": "#ffffff", "text_secondary": "#c5c5c5",
-             "text_disabled": "#808080", "scrollbar": "#7a7a7a", "success": "#6ccb5f", "caution": "#fce100"},
+    "light": {"window": "#ededed", "card": "#ffffff", "subtle": "#f2f2f2", "control": "#fafafa",
+              "control_hover": "#e6e6e6", "control_pressed": "#d6d6d6", "stroke": "#b0b0b0",
+              "stroke_strong": "#767676", "text": "#111111", "text_secondary": "#414141",
+              "text_disabled": "#666666", "scrollbar": "#767676", "success": "#085608", "caution": "#6b3f00"},
+    "dark": {"window": "#141414", "card": "#1f1f1f", "subtle": "#2a2a2a", "control": "#2b2b2b",
+             "control_hover": "#3d3d3d", "control_pressed": "#484848", "stroke": "#545454",
+             "stroke_strong": "#8a8a8a", "text": "#ffffff", "text_secondary": "#e0e0e0",
+             "text_disabled": "#9a9a9a", "scrollbar": "#a0a0a0", "success": "#7fdc72", "caution": "#fce100"},
+    "contrast": {"window": "#000000", "card": "#000000", "subtle": "#141414", "control": "#000000",
+                 "control_hover": "#2b2b2b", "control_pressed": "#3d3d3d", "stroke": "#a6a6a6",
+                 "stroke_strong": "#ffffff", "text": "#ffffff", "text_secondary": "#ffffff",
+                 "text_disabled": "#b3b3b3", "scrollbar": "#ffffff", "success": "#8dff7f", "caution": "#ffe100"},
 }
+CONTRAST_ACCENT = "#ffd400"  # high contrast uses yellow unless an accent was chosen
 
 
 def _shift_until(colour: QColor, against: tuple[QColor, ...], ratio: float, lighter: bool) -> QColor:
@@ -78,43 +94,52 @@ def _shift_until(colour: QColor, against: tuple[QColor, ...], ratio: float, ligh
     return shifted
 
 
-def tokens_for(scheme: str, accent: QColor | str | None = None) -> Tokens:
-    """Tokens for ``light`` or ``dark``, fitting ``accent`` so controls and links stay distinguishable.
+def _selection(scheme: str, accent: QColor, card: QColor, text: QColor) -> QColor:
+    """The strongest tint of ``accent`` over ``card``, up to a share, that keeps ``text`` readable on it."""
+    amount = _SELECTION_STRONGEST[scheme]
+    while amount > _SELECTION_FAINTEST and contrast(blend(accent, card, amount), text) < _SELECTION_TEXT[scheme]:
+        amount -= _SELECTION_STEP
+    return blend(accent, card, amount)
 
-    The accent is shifted until it has 3:1 against cards (WCAG non-text contrast) and the link
-    colour until 4.5:1 against every surface text sits on; text on the accent is black or white, whichever reads better
-    (always at least 4.5:1).
+
+def tokens_for(scheme: str, accent: QColor | str | None = None) -> Tokens:
+    """Tokens for ``light``, ``dark`` or ``contrast``, fitting ``accent`` so controls and links stay distinguishable.
+
+    The accent is shifted until it has 4.5:1 against cards and the link colour until 7:1 against every
+    surface text sits on; text on the accent is black or white, whichever reads better (always at least
+    4.5:1). The selection is as strong a tint of the accent as its text allows at 7:1.
     """
     scheme = scheme if scheme in _SURFACES else "light"
     surfaces = _SURFACES[scheme]
     card = QColor(surfaces["card"])
     base = QColor(accent) if accent is not None and QColor(accent).isValid() else QColor(DEFAULT_ACCENT)
-    lighter = scheme == "dark"
-    fitted = _shift_until(base, (card,), 3.0, lighter)
+    lighter = scheme != "light"
+    fitted = _shift_until(base, (card,), _ACCENT_CONTRAST, lighter)
     surfaces_behind_text = tuple(QColor(surfaces[name]) for name in ("window", "card", "subtle"))
-    link = _shift_until(fitted, surfaces_behind_text, 4.5, lighter)
+    link = _shift_until(fitted, surfaces_behind_text, TEXT_CONTRAST, lighter)
     hover = fitted.lighter(112) if lighter else fitted.darker(112)
     return Tokens(scheme=scheme, accent=fitted.name(), accent_hover=hover.name(),
                   on_accent=readable_ink(fitted).name(), link=link.name(),
-                  selection=blend(fitted, card, .32 if lighter else .2).name(), **surfaces)
+                  selection=_selection(scheme, fitted, card, QColor(surfaces["text"])).name(), **surfaces)
 
 
 def style_sheet(tokens: Tokens) -> str:
     """The application style sheet for ``tokens``."""
+    register_glyphs()
     t = tokens
     return "\n".join((
-        _controls(t), _inputs(t), _containers(t), _menus(t), _scrollbars(t), _roles(t),
+        _controls(t), _inputs(t), _indicators(t), _containers(t), _menus(t), _scrollbars(t), _roles(t),
     ))
 
 
 def _controls(t: Tokens) -> str:
     return f"""
 QPushButton {{
-    background: {t.control}; color: {t.text}; border: 1px solid {t.stroke};
-    border-bottom-color: {t.stroke_strong}; border-radius: {RADIUS}px; padding: 5px 14px; min-height: 20px;
+    background: {t.control}; color: {t.text}; border: 1px solid {t.stroke_strong};
+    border-radius: {RADIUS}px; padding: 5px 14px; min-height: 20px;
 }}
 QPushButton:hover {{ background: {t.control_hover}; }}
-QPushButton:pressed {{ background: {t.control_pressed}; color: {t.text_secondary}; }}
+QPushButton:pressed {{ background: {t.control_pressed}; }}
 QPushButton:disabled {{ color: {t.text_disabled}; background: {t.subtle}; border-color: {t.stroke}; }}
 QPushButton:focus {{ border: 2px solid {t.text}; padding: 4px 13px; }}
 QPushButton:flat {{ background: transparent; border: 1px solid transparent; }}
@@ -130,7 +155,8 @@ QPushButton[role="primary"]:focus {{ border: 2px solid {t.text}; }}
 QToolButton {{ background: transparent; border: 1px solid transparent; border-radius: {RADIUS}px;
     padding: 3px 3px; color: {t.text}; }}
 QToolButton:hover {{ background: {t.control_hover}; }}
-QToolButton:pressed, QToolButton:checked {{ background: {t.control_pressed}; }}
+QToolButton:pressed {{ background: {t.control_pressed}; }}
+QToolButton:checked {{ background: {t.selection}; border-color: {t.accent}; }}
 QToolButton:disabled {{ color: {t.text_disabled}; }}
 QToolButton:focus {{ border: 2px solid {t.text}; }}
 QProgressBar {{ background: {t.stroke}; border: 0; border-radius: 3px; text-align: center; color: {t.text}; }}
@@ -143,23 +169,71 @@ def _inputs(t: Tokens) -> str:
     focused = ", ".join(f"{name.strip()}:focus" for name in fields.split(","))
     return f"""
 {fields} {{
-    background: {t.control}; color: {t.text}; border: 1px solid {t.stroke};
-    border-bottom-color: {t.stroke_strong}; border-radius: {RADIUS}px; padding: 4px 8px;
+    background: {t.control}; color: {t.text}; border: 1px solid {t.stroke_strong};
+    border-radius: {RADIUS}px; padding: 4px 8px;
     selection-background-color: {t.accent}; selection-color: {t.on_accent};
 }}
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QDateTimeEdit, QTimeEdit {{ min-height: 20px; }}
 {focused} {{ border-bottom: 2px solid {t.accent}; background: {t.card}; }}
 QLineEdit:disabled, QComboBox:disabled {{ color: {t.text_disabled}; background: {t.subtle}; }}
 QComboBox QAbstractItemView {{
-    background: {t.card}; border: 1px solid {t.stroke}; selection-background-color: {t.control_hover};
+    background: {t.card}; border: 1px solid {t.stroke_strong}; selection-background-color: {t.selection};
     selection-color: {t.text}; outline: 0;
+}}
+"""
+
+
+def _ink(colour: str) -> str:
+    """The glyph ink closest to a token: black or white."""
+    return "white" if luminance(QColor(colour)) > _MID_LUMINANCE else "black"
+
+
+def _indicators(t: Tokens) -> str:
+    """Check boxes, radio buttons and the arrows of spin and combo boxes, outlined like every other control."""
+    boxes = ("QCheckBox", "QRadioButton", "QGroupBox", "QAbstractItemView")
+    on, text = _ink(t.on_accent), _ink(t.text)
+
+    def rule(state: str = "", owners: tuple[str, ...] = boxes) -> str:
+        return ", ".join(f"{owner}::indicator{state}" for owner in owners)
+
+    return f"""
+{rule()} {{
+    width: 14px; height: 14px; border: 1px solid {t.stroke_strong}; border-radius: 3px; background: {t.control};
+}}
+QRadioButton::indicator {{ border-radius: 8px; }}
+{rule(":hover")} {{ border-color: {t.text}; }}
+{rule(":focus")} {{ border-color: {t.text}; }}
+{rule(":checked")}, {rule(":indeterminate")} {{ background: {t.accent}; border-color: {t.accent}; }}
+{rule(":checked", ("QCheckBox", "QGroupBox", "QAbstractItemView"))} {{ image: {glyph_url("check", on)}; }}
+{rule(":indeterminate")} {{ image: {glyph_url("dash", on)}; }}
+QRadioButton::indicator:checked {{ image: {glyph_url("dot", on)}; }}
+{rule(":disabled")} {{ background: {t.subtle}; border-color: {t.stroke}; }}
+{rule(":checked:disabled", ("QCheckBox", "QGroupBox", "QAbstractItemView"))} {{ image: {glyph_url("check", "grey")}; }}
+{rule(":indeterminate:disabled")} {{ image: {glyph_url("dash", "grey")}; }}
+QRadioButton::indicator:checked:disabled {{ image: {glyph_url("dot", "grey")}; }}
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {{
+    subcontrol-origin: border; width: 20px; border: 0; background: transparent;
+}}
+QAbstractSpinBox::up-button {{ subcontrol-position: top right; }}
+QAbstractSpinBox::down-button {{ subcontrol-position: bottom right; }}
+QAbstractSpinBox::up-button:hover, QAbstractSpinBox::down-button:hover {{ background: {t.control_hover}; }}
+QAbstractSpinBox::up-arrow {{ image: {glyph_url("up", text)}; width: 11px; height: 11px; }}
+QAbstractSpinBox::down-arrow, QComboBox::down-arrow {{
+    image: {glyph_url("down", text)}; width: 11px; height: 11px;
+}}
+QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {{ image: {glyph_url("up", "grey")}; }}
+QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off, QComboBox::down-arrow:disabled {{
+    image: {glyph_url("down", "grey")};
+}}
+QComboBox::drop-down, QDateEdit::drop-down, QDateTimeEdit::drop-down {{
+    subcontrol-origin: border; subcontrol-position: center right; width: 24px; border: 0; background: transparent;
 }}
 """
 
 
 def _containers(t: Tokens) -> str:
     return f"""
-QToolTip {{ background: {t.card}; color: {t.text}; border: 1px solid {t.stroke}; padding: 4px 8px; }}
+QToolTip {{ background: {t.card}; color: {t.text}; border: 1px solid {t.stroke_strong}; padding: 4px 8px; }}
 QTreeView, QTableView, QListView, QTextEdit, QTextBrowser {{
     background: {t.card}; border: 1px solid {t.stroke}; border-radius: {CARD_RADIUS}px;
     alternate-background-color: {t.subtle};
@@ -174,10 +248,11 @@ QHeaderView::section:last {{ border-right: 0; }}
 QHeaderView::section:hover {{ background: {t.control_hover}; }}
 QTabWidget::pane {{ border: 1px solid {t.stroke}; border-radius: {CARD_RADIUS}px; background: {t.card}; top: -1px; }}
 QTabBar::tab {{
-    background: transparent; color: {t.text_secondary}; border: 0; padding: 6px 14px;
+    background: transparent; color: {t.text_secondary}; border: 0; border-bottom: 2px solid transparent;
+    padding: 6px 14px 4px;
     margin-right: 2px; border-top-left-radius: {RADIUS}px; border-top-right-radius: {RADIUS}px;
 }}
-QTabBar::tab:selected {{ background: {t.card}; color: {t.text}; }}
+QTabBar::tab:selected {{ background: {t.card}; color: {t.text}; border-bottom-color: {t.accent}; }}
 QTabBar::tab:hover:!selected {{ background: {t.control_hover}; color: {t.text}; }}
 QTabBar::close-button:hover {{ background: {t.control_hover}; border-radius: 4px; }}
 QGroupBox {{ border: 1px solid {t.stroke}; border-radius: {CARD_RADIUS}px; margin-top: 14px; padding: 10px 8px 8px; }}
@@ -195,11 +270,13 @@ def _menus(t: Tokens) -> str:
     return f"""
 QMenuBar {{ background: {t.window}; color: {t.text}; padding: 2px 6px; }}
 QMenuBar::item {{ background: transparent; padding: 5px 10px; border-radius: 4px; }}
-QMenuBar::item:selected, QMenuBar::item:pressed {{ background: {t.control_hover}; }}
-QMenu {{ background: {t.card}; color: {t.text}; border: 1px solid {t.stroke}; padding: 4px; }}
+QMenuBar::item:selected, QMenuBar::item:pressed {{ background: {t.selection}; }}
+QMenu {{ background: {t.card}; color: {t.text}; border: 1px solid {t.stroke_strong}; padding: 4px; }}
 QMenu::item {{ padding: 6px 28px 6px 24px; border-radius: 4px; margin: 1px 2px; }}
-QMenu::item:selected {{ background: {t.control_hover}; }}
+QMenu::item:selected {{ background: {t.selection}; }}
 QMenu::item:disabled {{ color: {t.text_disabled}; }}
+QMenu::indicator {{ width: 16px; height: 16px; left: 5px; }}
+QMenu::indicator:checked {{ image: {glyph_url("check", _ink(t.text))}; }}
 QMenu::separator {{ height: 1px; background: {t.stroke}; margin: 4px 8px; }}
 """
 
@@ -240,7 +317,7 @@ QListWidget#result_navigation::item {{
 }}
 QListWidget#result_navigation::item:hover {{ background: {t.control_hover}; }}
 QListWidget#result_navigation::item:selected {{
-    background: {t.control_hover}; color: {t.text}; border-left: 3px solid {t.accent};
+    background: {t.selection}; color: {t.text}; border-left: 3px solid {t.accent};
 }}
 """
 

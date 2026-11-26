@@ -198,8 +198,9 @@ class MountSurvey:
 def parse_mountinfo(contents: str) -> frozenset[str]:
     """Decode mount points exactly once, preserving escaped whitespace/backslashes and Unicode."""
     points = set()
-    for line in contents.splitlines():
-        fields = line.split()
+    # The kernel separates with spaces and newlines only; other Unicode whitespace belongs to the names.
+    for line in filter(None, contents.split("\n")):
+        fields = line.split(" ")
         try:
             separator = fields.index("-", _MIN_PREFIX)
         except ValueError as error:

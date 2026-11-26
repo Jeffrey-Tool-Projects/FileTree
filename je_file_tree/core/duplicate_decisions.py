@@ -10,7 +10,7 @@ from je_file_tree.core.duplicates import DuplicateGroup, DuplicateSearchCancelle
 from je_file_tree.core.node import Node
 from je_file_tree.core.operations import revalidate
 from je_file_tree.core.protected import Protection
-from je_file_tree.core.snapshot import pack_snapshot, stat_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import pack_snapshot, stable_snapshot, stat_snapshot, unpack_snapshot
 
 _MIN_COPIES = 2
 
@@ -63,7 +63,7 @@ def _check_copy(node: Node, root: Node, places: Sequence[Protection], cancel: th
         return "unreadable"
     if unpack_snapshot(current).links > 1:
         return "duplicate_hard_links"
-    if current != node.snapshot or before.size != node.size:
+    if current != stable_snapshot(node.snapshot) or before.size != node.size:
         return "changed"
     return _check_handle(node, proof)
 

@@ -10,6 +10,8 @@ from PySide6.QtWidgets import QComboBox, QListWidget, QStyle, QTabWidget, QVBoxL
 
 from je_file_tree.gui.fluent_icons import palette_icon
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.text_scale import text_scaled
+from je_file_tree.gui.text_size import text_size_controller
 
 _ICON_SIZE = 18
 _ITEM_PADDING = 34  # the style sheet's 10 px item padding on both sides, 3 px accent bar and slack
@@ -52,6 +54,7 @@ class ResultNavigation(QWidget):
         layout.addWidget(self.combo)
         self.compact = False
         self.set_compact(False)
+        text_size_controller().changed.connect(self._fit_text)
 
     def refresh(self) -> None:
         """Copy labels/visibility from the fixed page registry, preserving the active view."""
@@ -72,16 +75,19 @@ class ResultNavigation(QWidget):
         self.combo.setAccessibleName(tr("overview_navigation"))
         self.set_compact(self.compact)
 
+    def _fit_text(self, _percent: int) -> None:
+        self.set_compact(self.compact)
+
     def set_compact(self, compact: bool) -> None:
         """Switch presentation without changing page selection or triggering analysis work."""
         self.compact = compact
         self.list.setVisible(not compact)
         self.combo.setVisible(compact)
-        width = max(170, max((self.list.fontMetrics().horizontalAdvance(self.list.item(index).text())
+        width = max(text_scaled(170), max((self.list.fontMetrics().horizontalAdvance(self.list.item(index).text())
                              for index in range(self.list.count())), default=110) + _ITEM_PADDING
                 + (_ICON_SIZE + 8 if self._icon_names else 0))
-        self.setMinimumWidth(0 if compact else min(width, 240))
-        self.setMaximumWidth(16_777_215 if compact else min(width, 240))
+        self.setMinimumWidth(0 if compact else min(width, text_scaled(240)))
+        self.setMaximumWidth(16_777_215 if compact else min(width, text_scaled(240)))
 
     def changeEvent(self, event: QEvent) -> None:  # noqa: N802 - Qt's name
         """Qt: repaint the page icons in the new palette's text colour (themes, high contrast)."""

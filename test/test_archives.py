@@ -114,6 +114,25 @@ def test_real_seven_zip_and_missing_rar_tool(tmp_path, monkeypatch):
         read_archive(node, reader=rar_members)
 
 
+def test_every_damaged_seven_zip_header_is_an_archive_error(tmp_path):
+    import py7zr
+    from je_file_tree.archive_formats import seven_zip_members
+    target = tmp_path / "archive.7z"
+    with py7zr.SevenZipFile(target, "w") as archive:
+        for number in range(20):
+            archive.writestr(b"contents" * number, f"folder/data{number}.txt")
+    good = target.read_bytes()
+    failed = 0
+    for position in range(len(good) * 2 // 3, len(good), 3):
+        damaged = bytearray(good)
+        damaged[position] ^= 0xFF
+        try:
+            list(seven_zip_members(archives.MetadataReader(io.BytesIO(damaged), None)))
+        except ArchiveError:  # nothing else may reach the worker
+            failed += 1
+    assert failed
+
+
 def test_zip_link_and_unusually_deep_names_are_omitted(tmp_path):
     target = tmp_path / "links.zip"
     with zipfile.ZipFile(target, "w") as archive:

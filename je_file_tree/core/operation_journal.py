@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import io
 import json
 import os
 import re
@@ -11,7 +12,7 @@ import tempfile
 import time
 import uuid
 from collections.abc import Iterator, Sequence
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, UTC
 from pathlib import Path
@@ -115,8 +116,9 @@ class OperationJournal:
                     unavailable += 1
                     continue
                 budget -= size
-                with path.open(encoding="utf-8") as stream:
-                    for line in iter(lambda: stream.readline(_EVENT_BYTES + 1), ""):
+                # Read at once: Windows cannot replace a segment while it is open here.
+                with io.StringIO(path.read_bytes().decode("utf-8")) as stream:
+                    for line in stream:
                         if len(line.encode("utf-8")) > _EVENT_BYTES:
                             invalid += 1
                             break
@@ -148,8 +150,9 @@ class OperationJournal:
         for path in paths[:-1]:  # Never remove the segment just written, even under a tiny budget.
             if path.name[8:16] < cutoff or total > self.max_bytes:
                 size = path.stat().st_size
-                path.unlink()  # Only this application's recognized journal segments, never scanned entries.
-                total -= size
+                with suppress(OSError):  # In use: the events are written, and the next append tries again.
+                    path.unlink()  # Only this application's recognized journal segments, never scanned entries.
+                    total -= size
 
 
 def _now() -> str:
@@ -163,7 +166,8 @@ def _encode(record: OperationRecord) -> bytes:
              "source": record.source, "identity": list(map(str, record.identity)) if record.identity else None,
              "reason": record.reason, "result": record.outcome.status, "detail": record.outcome.detail,
              "destination": record.outcome.destination}
-    encoded = (json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
+    text = json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n"
+    encoded = text.encode("utf-8", "backslashreplace")  # a lone surrogate in a name becomes its JSON escape
     if len(encoded) > _EVENT_BYTES:
         raise ValueError("operation record too large")
     return encoded
@@ -218,10 +222,23 @@ def _append_atomic(path: Path, block: bytes) -> None:
             stream.write(block)
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        _replace(temporary, path)
     except BaseException:
         Path(temporary).unlink(missing_ok=True)
         raise
+
+
+def _replace(source: str, target: Path) -> None:
+    """``os.replace``, tried again while another program briefly holds the target (Windows refuses meanwhile)."""
+    deadline = time.monotonic() + _LOCK_SECONDS
+    while True:
+        try:
+            os.replace(source, target)
+            return
+        except PermissionError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(0.05)
 
 
 @contextmanager

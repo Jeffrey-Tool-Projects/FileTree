@@ -8,6 +8,7 @@ from PySide6.QtCore import QPoint, QSettings, Qt
 from PySide6.QtWidgets import QMenu, QTreeView
 
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.tree_model import (
     ACCESSED, ACCOUNTED_ALLOCATED, ACCOUNTED_SIZE, COLUMN_KEYS, CREATED, DRIVE_SHARE, NAME,
 )
@@ -63,7 +64,7 @@ class TreeColumns:
     def reset(self) -> None:
         """Restore the default columns and a readable name width."""
         self._apply(_DEFAULT)
-        self.tree.setColumnWidth(NAME, 250)
+        self.tree.setColumnWidth(NAME, text_scaled(250))
         self._save()
 
     def _apply(self, visible: list[str]) -> None:

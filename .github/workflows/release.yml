@@ -35,6 +35,10 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # One at a time: a second merge waits, so each version commit is pushed onto the one before it.
+    concurrency:
+      group: release-version
+      cancel-in-progress: false
     permissions:
       contents: write
     outputs:

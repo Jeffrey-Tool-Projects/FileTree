@@ -13,7 +13,7 @@ from je_file_tree.core.node import Node
 from je_file_tree.core.trash_size import TrashUsage
 from je_file_tree.gui import grouped_list
 from je_file_tree.gui.i18n import tr
-from je_file_tree.gui.cleanup_text import explanation
+from je_file_tree.gui.cleanup_text import explanation, title
 from je_file_tree.gui.bin_labels import bin_caption
 from je_file_tree.gui.scan_worker import CleanupWorker, wait_for
 
@@ -212,7 +212,7 @@ class CleanupPanel(QWidget):
         self._update_status()
 
     def _group_labels(self) -> list[tuple[str, str]]:
-        return [(tr("cleanup_group", title=tr(f"cleanup_{group.key}"), count=format_count(len(group.nodes)),
+        return [(tr("cleanup_group", title=title(group.key), count=format_count(len(group.nodes)),
                     size=format_size(group.size, self.unit)), explanation(group.key, group.details))
                 for group in self._groups]
 

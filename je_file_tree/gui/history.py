@@ -7,7 +7,7 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 import threading
 
-from PySide6.QtCore import QPointF, QSettings, QStandardPaths, QThread, Qt, Signal
+from PySide6.QtCore import QPointF, QRect, QSettings, QStandardPaths, QThread, Qt, Signal
 from PySide6.QtGui import QKeyEvent, QMouseEvent, QPainter, QPaintEvent, QPen
 from PySide6.QtWidgets import (
     QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
@@ -25,6 +25,7 @@ from je_file_tree.gui.loaded_folder import LoadedFolderDialog
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.optional_date import OptionalDateEdit
 from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, retire_worker
 from je_file_tree.gui.tables import Column, _TableModel
 from je_file_tree.gui.window_fit import fit_window
@@ -180,14 +181,18 @@ class HistoryChart(QWidget):
             self.setFocus()
         super().mousePressEvent(event)
 
+    def _area(self) -> QRect:
+        """The plot, leaving room for its labels at the text size in use."""
+        return self.rect().adjusted(text_scaled(100), text_scaled(15), -25, -text_scaled(55))
+
     def _positions(self, values: Sequence[TrendPoint] | Sequence[HistoryEntry]) -> list[QPointF]:
-        area = self.rect().adjusted(100, 15, -25, -55)
+        area = self._area()
         peak = max((item.size or 0 for item in values), default=1) or 1
         entries = [item.entry if isinstance(item, TrendPoint) else item for item in values]
         times = [datetime.fromisoformat(entry.saved).timestamp() for entry in entries]
         start, end = times[0], times[-1]
         return [QPointF(area.left() + ((stamp - start) / (end - start) if end > start else .5) * area.width(),
-                        area.bottom() + 20 if item.size is None else area.bottom() - item.size / peak * area.height())
+                        area.bottom() + (text_scaled(20) if item.size is None else -item.size / peak * area.height()))
                 for item, stamp in zip(values, times, strict=True)]
 
     def paintEvent(self, event: QPaintEvent) -> None:
@@ -196,7 +201,7 @@ class HistoryChart(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.fillRect(self.rect(), self.palette().base())
-        area = self.rect().adjusted(100, 15, -25, -55)
+        area = self._area()
         painter.setPen(self.palette().text().color())
         if not self.entries and not self.points:
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, tr("history_empty"))
@@ -208,9 +213,10 @@ class HistoryChart(QWidget):
         painter.drawText(5, area.top() + 10, format_size(peak, self.unit))
         painter.drawText(5, area.bottom(), "0")
         if any(item.size is None for item in values):
-            painter.drawText(5, area.bottom() + 23, tr('trend_unknown'))
+            painter.drawText(5, area.bottom() + text_scaled(23), tr('trend_unknown'))
         painter.drawText(area.left(), self.height() - 10, _date(values[0].entry if self.points else values[0]))
-        painter.drawText(area.right() - 145, self.height() - 10, _date(values[-1].entry if self.points else values[-1]))
+        painter.drawText(area.right() - text_scaled(145), self.height() - 10,
+                         _date(values[-1].entry if self.points else values[-1]))
         painter.setPen(QPen(self.palette().highlight().color(), 2))
         previous = None
         for index, (item, point) in enumerate(zip(values, self._positions(values), strict=True)):
@@ -285,7 +291,7 @@ class HistoryDialog(WorkerDialog):
         self.view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.view.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         for column, width in enumerate((230, 170, 200, 210)):
-            self.view.setColumnWidth(column, width)
+            self.view.setColumnWidth(column, text_scaled(width))
         install_copy(self.view)
         self.view.doubleClicked.connect(lambda _index: self.compare_selected())
         self.view.selectionModel().selectionChanged.connect(self._selection)
@@ -371,13 +377,13 @@ class HistoryDialog(WorkerDialog):
         self.trend_view.setHorizontalHeaderLabels([tr("history_time"), tr("history_logical"),
                                                    tr("trend_change"), tr("history_coverage")])
         for column, width in enumerate((180, 130, 150, 220)):
-            self.trend_view.setColumnWidth(column, width)
+            self.trend_view.setColumnWidth(column, text_scaled(width))
         self.children_view = QTableWidget(0, 4)
         self.children_view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.children_view.setHorizontalHeaderLabels([tr("trend_child"), tr("trend_before"),
                                                       tr("trend_after"), tr("trend_change")])
         for column, width in enumerate((220, 130, 130, 150)):
-            self.children_view.setColumnWidth(column, width)
+            self.children_view.setColumnWidth(column, text_scaled(width))
         self.net_label = QLabel(tr("trend_net_unknown"))
         self.net_label.setWordWrap(True)
         self.point_details = QPlainTextEdit()
@@ -642,9 +648,10 @@ class HistoryDialog(WorkerDialog):
     def stop(self) -> None:
         """Cancel reading; partial replies never replace the chart or enable comparison."""
         self.worker.cancel.set()
-        self.compare_button.setEnabled(False)
+        self._running = False
         self.stop_button.setEnabled(False)
         self.status.setText(tr("scan_cancelled"))
+        self._selection()
 
     def shutdown(self, *, wait: bool = True) -> None:
         """Reject queued replies and join the owned worker before destroying this dialog."""

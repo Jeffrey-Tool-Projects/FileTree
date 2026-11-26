@@ -12,6 +12,7 @@ folder icon is asked of the style once: each ``standardIcon`` call took 41-52 ms
 from __future__ import annotations
 
 import heapq
+import html
 
 from PySide6.QtCore import QEvent, QPoint, QRectF, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QContextMenuEvent, QHelpEvent, QIcon, QMouseEvent, QPainter, QPaintEvent
@@ -20,9 +21,11 @@ from PySide6.QtWidgets import QStyle, QWidget
 from je_file_tree.core.analysis import category_of, extension_of
 from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_share, format_size
 from je_file_tree.core.node import Node
+from je_file_tree.gui.node_text import node_name, node_path
+from je_file_tree.gui.chart_palette import CATEGORY_COLOURS
 from je_file_tree.gui.chart_tooltip import show_chart_tip
 from je_file_tree.gui.i18n import tr
-from je_file_tree.gui.treemap_widget import CATEGORY_COLOURS
+from je_file_tree.gui.text_scale import text_scaled
 
 MAX_BARS = 100
 _NAME_SHARE = 0.34  # of the width, at most _NAME_MAX pixels
@@ -30,7 +33,7 @@ _NAME_MAX = 280
 _VALUE_WIDTH = 150
 _GAP = 8
 _FOLDER_COLOUR = "#5b8def"
-_REST_COLOUR = "#9a9a9a"
+_REST_COLOUR = "#8f8f8f"
 
 
 def bar_colour(node: Node) -> QColor:
@@ -218,7 +221,7 @@ class BarChartWidget(QWidget):
                    fraction: float, size: int, total: int) -> None:
         line = self._line_rect(index)
         height = line.height()
-        name_width = min(self.width() * _NAME_SHARE, _NAME_MAX)
+        name_width = min(self.width() * _NAME_SHARE, text_scaled(_NAME_MAX))
         icon_size = self.fontMetrics().height()
         text_colour = self.palette().text().color()
         if node is not None and node.is_dir:
@@ -232,13 +235,14 @@ class BarChartWidget(QWidget):
         painter.drawText(name_rect, align | Qt.AlignmentFlag.AlignLeft,
                          self.fontMetrics().elidedText(label, Qt.TextElideMode.ElideMiddle, int(name_rect.width())))
         bar_left = name_width + _GAP
-        bar_space = max(self.width() - bar_left - _VALUE_WIDTH - _GAP, 0)
+        value_width = text_scaled(_VALUE_WIDTH)
+        bar_space = max(self.width() - bar_left - value_width - _GAP, 0)
         bar = QRectF(bar_left, line.y() + height * 0.2, max(bar_space * fraction, 1.0), height * 0.6)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(bar_colour(node) if node is not None else QColor(_REST_COLOUR))
         painter.drawRoundedRect(bar, 2, 2)
         share = format_share(size / total) if total else ""
-        value = QRectF(self.width() - _VALUE_WIDTH, line.y(), _VALUE_WIDTH - 6, height)
+        value = QRectF(self.width() - value_width, line.y(), value_width - 6, height)
         painter.setPen(text_colour)
         painter.drawText(value, align | Qt.AlignmentFlag.AlignRight, f"{format_size(size, self.unit)}   {share}")
 
@@ -249,5 +253,6 @@ class BarChartWidget(QWidget):
     def _describe(self, node: Node) -> str:
         root = self._view_root
         share = node.accounted_size / root.accounted_size if root is not None and root.accounted_size else 0.0
-        return tr("treemap_tooltip", name=node.name, size=format_size(node.accounted_size, self.unit),
-                  share=format_share(share), path=node.path)
+        return tr("treemap_tooltip", name=html.escape(node_name(node)),
+                  size=format_size(node.accounted_size, self.unit), share=format_share(share),
+                  path=html.escape(node_path(node)))

@@ -26,8 +26,10 @@ from je_file_tree.core.pacing import give_way
 
 if TYPE_CHECKING:
     from je_file_tree.core.cleanup_policy import CleanupPolicy
+    from je_file_tree.core.custom_rules import Guard
 
 EMPTY_FOLDERS = "empty_folders"
+CUSTOM_PREFIX = "custom:"  # the groups of rules the user wrote (core.custom_rules)
 _DAY = 86400.0
 _REBUILD_NAMES_CACHE = 32
 
@@ -130,7 +132,7 @@ def find_cleanup(root: Node, *, rules: tuple[Rule, ...] = RULES, now: float | No
     None when ``cancel`` is set before the walk is done (checked once per folder).
     """
     rules = rules if policy is None else policy.rules()
-    matcher = _Matcher(rules, time.time() if now is None else now)
+    matcher = _Matcher(rules, time.time() if now is None else now, policy.guard() if policy is not None else None)
     blocked, omitted = _policy_boundaries(root, policy, cancel)
     coverage = coverage or coverage_of(root, cancel=cancel)
     if coverage is None:
@@ -143,7 +145,7 @@ def find_cleanup(root: Node, *, rules: tuple[Rule, ...] = RULES, now: float | No
     empty_age = empty_setting.minimum_age if empty_setting else DETAILS[EMPTY_FOLDERS].minimum_age
     empty = [] if empty_setting is not None and not empty_setting.enabled else [
         folder for folder in empty_folders(root) if folder not in blocked and folder not in omitted
-        and not _inside(folder, claimed) and matcher.old_enough(folder, empty_age)]
+        and id(folder) not in claimed and not _inside(folder, claimed) and matcher.old_enough(folder, empty_age)]
     if cancel is not None and cancel.is_set():
         return None
     if empty:
@@ -190,10 +192,14 @@ def _visit(folder: Node, parts: tuple[str, ...], matcher: _Matcher,
             child_parts = (*parts, child.name.casefold())
             key = (matcher.folder_key(child_parts, names, child)
                    if child not in blocked and coverage.can_clean(child) else None)
+            if key is not None and matcher.refuses(key, child):
+                key = None
             if key is None and child.children:
                 deeper.append((child, child_parts))  # a matching folder is suggested whole, not entered
         else:
             key = matcher.file_key(child, parts[-1] if parts else "")
+            if key is not None and matcher.refuses(key, child):
+                key = None
         if key is not None:
             found[key].append(child)
     return deeper
@@ -247,8 +253,9 @@ def empty_folders(root: Node) -> list[Node]:
 class _Matcher:
     """The rules, indexed for a quick test of every folder and file of a scan."""
 
-    def __init__(self, rules: tuple[Rule, ...], now: float) -> None:
+    def __init__(self, rules: tuple[Rule, ...], now: float, guard: Guard | None = None) -> None:
         self._now = now
+        self._guard = guard
         self._folders: dict[str, list[tuple[tuple[str, ...], bool, Rule]]] = defaultdict(list)
         self._files: list[tuple[re.Pattern[str], Rule]] = []
         for rule in rules:
@@ -288,6 +295,10 @@ class _Matcher:
                 continue
             return rule.key
         return None
+
+    def refuses(self, key: str, node: Node) -> bool:
+        """Whether a rule the user wrote may not propose ``node`` (built-in rules name their places)."""
+        return key.startswith(CUSTOM_PREFIX) and (self._guard is None or self._guard.refuses(node.path))
 
     def old_enough(self, node: Node, days: float) -> bool:
         """Folder.modified is the newest descendant, so a recent file disqualifies the whole folder."""

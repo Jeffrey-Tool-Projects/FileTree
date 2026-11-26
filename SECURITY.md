@@ -31,7 +31,5 @@ promise.
 FileTree reads metadata for paths the operator selects. Process launches do
 not use a shell.
 
-Do not run virtual-disk compaction on an extended-length path (the Win32
-prefix written as backslash-backslash-question-backslash), a UNC path, or a
-Volume path until that path is pinned inside the chosen directory. A path of
-that form can currently be resolved relative to the working directory.
+Virtual-disk compaction accepts only an ordinary local drive path and pins it
+before use; extended-length, UNC and Volume paths are refused.

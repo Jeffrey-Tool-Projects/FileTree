@@ -121,3 +121,23 @@ def test_cli_also_preserves_null_virtual_path_explicit_sources_and_partial_exit(
     assert report["root"] is None and set(report["roots"]) == {*map(str, sources), str(missing)}
     assert report["partial"] and report["files"] == 2 and report["capacity"]["status"] == "multiple_roots"
     assert report["capacity"]["total"] is report["capacity"]["free"] is None
+
+
+def test_a_folder_still_being_checked_is_not_dropped(qapp, sources):
+    dialog = MultiScanDialog()
+    try:
+        dialog.add_root(str(sources[0]))
+        _wait(qapp, lambda: not dialog._pending)
+        ok = dialog.buttons.button(QDialogButtonBox.StandardButton.Ok)
+        assert ok.isEnabled()
+        dialog._pending["slow"] = object()
+        dialog._buttons()
+        assert not ok.isEnabled()
+        dialog.accept()
+        assert dialog.result() != QDialog.DialogCode.Accepted and not dialog.roots
+        dialog._pending.clear()
+        dialog._buttons()
+        assert ok.isEnabled()
+    finally:
+        dialog.deleteLater()
+        qapp.processEvents()

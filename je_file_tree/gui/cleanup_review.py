@@ -17,7 +17,7 @@ from je_file_tree.core.protected import REASONS, Protection, protection_of
 from je_file_tree.core.savings import Savings, estimate_savings
 from je_file_tree.gui import file_actions
 from je_file_tree.gui.i18n import tr
-from je_file_tree.gui.cleanup_text import explanation
+from je_file_tree.gui.cleanup_text import explanation, title
 from je_file_tree.gui.scan_worker import wait_for
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.window_fit import fit_window
@@ -86,7 +86,7 @@ class ReviewModel(QAbstractTableModel):
         node = self.nodes[row]
         key, details = self._rule(node)
         protection = protection_of(node.path, self._places)
-        return tr("review_details", path=node.path, rule=tr(f"cleanup_{key}") if key else tr("review_manual"),
+        return tr("review_details", path=node.path, rule=title(key) if key else tr("review_manual"),
                   modified=format_time(node.modified), logical=format_size(node.size, self._unit),
                   allocated=format_size(node.allocated, self._unit), risk=self.risk_text(row),
                   protection=tr(f"protected_{protection.reason}") if protection else tr("review_not_protected"),

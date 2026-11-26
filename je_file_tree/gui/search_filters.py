@@ -12,13 +12,23 @@ from je_file_tree.core.analysis import CATEGORIES
 from je_file_tree.core.formatting import format_size
 from je_file_tree.core.search import ANY, KINDS
 from je_file_tree.gui.i18n import tr
-from je_file_tree.gui.search_ranges import MAX_BYTES, SearchRangeDialog, calendar_bounds, validate_sizes
+from je_file_tree.gui.search_ranges import (
+    MAX_BYTES,
+    SearchRangeDialog,
+    calendar_bounds,
+    validate_more,
+    validate_sizes,
+)
+from je_file_tree.gui.text_scale import text_scaled
+from je_file_tree.gui.text_size import text_size_controller
 
 FILTER_PAIR_WIDTH = 250
 MAX_FILTER_PAIRS = 3
 
 SIZE_STEPS = (1 << 20, 10 << 20, 100 << 20, 1 << 30, 10 << 30)
 _DAY = 86400.0
+# The name, owner and depth conditions, and what each is when it asks for nothing.
+MORE: dict[str, Any] = {"regex": False, "exclude": "", "owner": "", "min_depth": None, "max_depth": None}
 CHANGED: dict[str, tuple[float | None, float | None]] = {  # key: (changed within, unchanged for), in seconds
     "any": (None, None),
     "week": (7 * _DAY, None),
@@ -42,6 +52,7 @@ class SearchFilters(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._dates: dict[str, Any] = {}
+        self._more: dict[str, Any] = {}  # the name, owner and depth conditions in use
         self.custom = QPushButton()
         self.custom.clicked.connect(self._edit_ranges)
         self.min_size = QComboBox()
@@ -60,12 +71,16 @@ class SearchFilters(QWidget):
             combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             combo.currentIndexChanged.connect(lambda _index: self.changed.emit())
         self._arrange(MAX_FILTER_PAIRS)
+        text_size_controller().changed.connect(self._fit_columns)
         self.retranslate()
 
     def resizeEvent(self, event) -> None:
         """Keep filter inputs reachable as the result pane narrows."""
         super().resizeEvent(event)
-        self._arrange(max(1, min(MAX_FILTER_PAIRS, self.width() // FILTER_PAIR_WIDTH)))
+        self._fit_columns()
+
+    def _fit_columns(self, _percent: int = 0) -> None:
+        self._arrange(max(1, min(MAX_FILTER_PAIRS, self.width() // text_scaled(FILTER_PAIR_WIDTH))))
 
     def _arrange(self, columns: int) -> None:
         if columns == self._columns:
@@ -95,18 +110,20 @@ class SearchFilters(QWidget):
         changed_within, unchanged_for = CHANGED.get(self.changed_when.currentData(), (None, None))
         return {"min_size": self.min_size.currentData(), "max_size": self.max_size.currentData(),
                 "changed_within": changed_within, "unchanged_for": unchanged_for,
-                "category": self.category.currentData(), "kind": self.kind.currentData() or ANY, **dates}
+                "category": self.category.currentData(), "kind": self.kind.currentData() or ANY, **dates,
+                **(validate_more(self._more) if self._more else {})}
 
     def state(self) -> dict[str, Any]:
         """The choices as plain values, to save."""
         return {"min_size": self.min_size.currentData(), "max_size": self.max_size.currentData(),
                 "changed": self.changed_when.currentData(), "category": self.category.currentData(),
                 "kind": self.kind.currentData(),
-                **(self._dates if self.changed_when.currentData() == "custom" else {})}
+                **(self._dates if self.changed_when.currentData() == "custom" else {}), **self._more}
 
     def apply(self, state: Mapping[str, Any]) -> None:
         """Choose what ``state`` says; unknown or missing values fall back to *any*. Emits ``changed`` once."""
         self._dates = {key: state.get(key) for key in ("date_start", "date_through") if key in state}
+        self._more = {key: state[key] for key, unset in MORE.items() if key in state and state[key] != unset}
         values = (state.get("min_size"), state.get("max_size"), state.get("changed", "any"),
                   state.get("category"), state.get("kind", ANY))
         for combo, value in zip(self._combos(), values, strict=True):
@@ -119,11 +136,16 @@ class SearchFilters(QWidget):
 
     def remove_condition(self, key: str) -> None:
         """Clear one filter through the same state application path as saved searches."""
-        defaults = {"min_size": None, "max_size": None, "changed": "any", "category": None, "kind": ANY}
+        defaults = {"min_size": None, "max_size": None, "changed": "any", "category": None, "kind": ANY,
+                    "exclude": "", "owner": "", "depth": None}
         if key not in defaults:
             return
         state = self.state()
-        state[key] = defaults[key]
+        if key == "depth":
+            state.pop("min_depth", None)
+            state.pop("max_depth", None)
+        else:
+            state[key] = defaults[key]
         if key == "changed":
             state.pop("date_start", None)
             state.pop("date_through", None)

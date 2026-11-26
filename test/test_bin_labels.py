@@ -10,7 +10,7 @@ from test_gui import _scanned, _wait
 from test_gui import window as window  # noqa: PLC0414
 from je_file_tree.core.trash_size import TrashUsage
 from je_file_tree.gui import bin_labels as labels
-from je_file_tree.gui import main_window, welcome
+from je_file_tree.gui import welcome, window_dialogs
 from je_file_tree.gui.i18n import tr
 
 
@@ -146,7 +146,7 @@ def test_bin_manager_close_refreshes_labels_and_scan_invalidates_late_reply(
             self.closed = True
         def deleteLater(self):  # noqa: N802 - mirrors Qt's public API
             assert self.closed
-    monkeypatch.setattr(main_window, "BinDialog", Dialog)
+    monkeypatch.setattr(window_dialogs, "BinDialog", Dialog)
     window.show_bins()
     _wait(qapp, entered.is_set)
     _scanned(window, qapp, sample_tree)

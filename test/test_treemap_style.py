@@ -7,7 +7,8 @@ import pytest
 from je_file_tree.core.node import Node
 from je_file_tree.gui.colours import contrast, readable_ink
 from je_file_tree.gui.themes import theme_palette
-from je_file_tree.gui.treemap_widget import CATEGORY_COLOURS, TreemapWidget, folder_colour
+from je_file_tree.gui.chart_palette import CATEGORY_COLOURS
+from je_file_tree.gui.treemap_widget import TreemapWidget, folder_colour
 
 
 @pytest.mark.parametrize(("theme", "dark"), [("light", False), ("dark", True)])

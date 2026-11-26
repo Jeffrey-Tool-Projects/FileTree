@@ -282,3 +282,20 @@ def test_mount_change_never_publishes_history_or_a_successful_outcome(qapp, samp
     assert not succeeded and failed == [tr("scan_mount_changed")]
     assert store.read(str(sample_tree)).count == 0
     worker.deleteLater()
+
+
+def test_comparing_works_again_after_a_stop(window, qapp, sample_tree, tmp_path, monkeypatch):
+    store = ScanHistory(tmp_path / "history")
+    store.save(scan(sample_tree).root, options=ScanOptions())
+    dialog = HistoryDialog(store, str(sample_tree), "auto", window)
+    _wait(qapp, lambda: not dialog._running)
+    dialog.tabs.setCurrentWidget(dialog.view)
+    dialog.view.setCurrentIndex(dialog.model.index(0, 0))
+    assert dialog.compare_button.isEnabled()
+    monkeypatch.setattr(dialog, "_start_read", lambda: None)  # a read that has not answered yet
+    dialog.compare_selected()
+    assert not dialog.compare_button.isEnabled()
+    dialog.stop()
+    assert dialog.compare_button.isEnabled() and not dialog.stop_button.isEnabled()
+    dialog.reject()
+    dialog.deleteLater()

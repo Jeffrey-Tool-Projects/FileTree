@@ -14,7 +14,7 @@ from je_file_tree.core import bin_empty
 from je_file_tree.core.bin_empty import BinEntry
 from je_file_tree.core.mounts import descriptor_mount
 from je_file_tree.core.no_replace import DirectoryStamp, anchored_directory, directory_stamps, rename_no_replace
-from je_file_tree.core.snapshot import Snapshot, pack_snapshot, stable_snapshot, stat_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import Snapshot, pack_snapshot, renamed, stable_snapshot, stat_snapshot, unpack_snapshot
 
 _ESCAPE = re.compile(r"%(?![0-9A-Fa-f]{2})")
 
@@ -92,9 +92,7 @@ def receipt_destination(contents: str, *, topdir: str | None = None) -> str:
 
 
 def _unchanged(before: Snapshot, after: Snapshot) -> bool:
-    # The operating system's own rename legitimately changes only the top-level ctime.
-    return (before.identity, before.size, before.modified_ns, before.mode, before.attributes, before.links) == (
-        after.identity, after.size, after.modified_ns, after.mode, after.attributes, after.links)
+    return renamed(before, after)
 
 
 def _inventory(files: int, name: str, mount: int, cancel: threading.Event | None) -> tuple[BinEntry, ...]:
@@ -170,7 +168,10 @@ def prepare_restore(origin: TrashOrigin, trashed: str, volume: str, *,
         receipt, destination = _receipt(info, payload.name + ".trashinfo", scope, root)
         if destination != origin.path or os.path.lexists(origin.path):
             raise ValueError("Undo original path differs or is occupied")
-        entries = _inventory(files, payload.name, mount, cancel)
+        try:
+            entries = _inventory(files, payload.name, mount, cancel)
+        except bin_empty.BinSurveyCancelledError as error:
+            raise InterruptedError("Undo capture canceled") from error
         if not _unchanged(unpack_snapshot(origin.snapshot), unpack_snapshot(entries[0].snapshot)):
             raise ValueError("Trashed identity differs from the original")
     return RestorePlan(origin, str(payload), str(root), os.getuid(), mount, files_chain, info_chain, receipt, entries)

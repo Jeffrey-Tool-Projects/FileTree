@@ -2,19 +2,23 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QWidget,
+    QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QSpinBox,
+    QVBoxLayout, QWidget,
 )
 
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.optional_date import OptionalDateEdit
 
 INPUT_LIMIT = 128
+TEXT_LIMIT = 500
+MAX_DEPTH = 1000
 MAX_BYTES = (1 << 63) - 1
 UNITS = ("B", "KiB", "MiB", "GiB", "TiB")
 
@@ -66,6 +70,23 @@ def validate_sizes(minimum: Any, maximum: Any) -> None:
             raise ValueError(tr("search_range_size_error"))
     if minimum is not None and maximum is not None and minimum > maximum:
         raise ValueError(tr("search_range_order_error"))
+
+
+def validate_more(state: Mapping[str, Any]) -> dict[str, Any]:
+    """The name, owner and depth conditions of a state as ``Query`` fields, without coercing malformed ones."""
+    texts = {key: state.get(key, "") for key in ("exclude", "owner")}
+    depths = {key: state.get(key) for key in ("min_depth", "max_depth")}
+    regex = state.get("regex", False)
+    if (type(regex) is not bool or not all(isinstance(text, str) and len(text) <= TEXT_LIMIT
+                                           for text in texts.values())):
+        raise ValueError(tr("search_more_error"))
+    for depth in depths.values():
+        if depth is not None and (type(depth) is not int or not 1 <= depth <= MAX_DEPTH):
+            raise ValueError(tr("search_depth_error"))
+    least, most = depths["min_depth"], depths["max_depth"]
+    if least is not None and most is not None and least > most:
+        raise ValueError(tr("search_depth_error"))
+    return {"regex": regex, **texts, **depths}
 
 
 def calendar_bounds(start: Any, through: Any) -> tuple[float | None, float | None]:
@@ -121,6 +142,7 @@ class SearchRangeDialog(QDialog):
             row = QHBoxLayout()
             row.addWidget(field)
             self._add_field(form, field, key, row)
+        self._add_more(form, state)
         self.error = QLabel()
         self.error.setWordWrap(True)
         self.error.setTextFormat(Qt.TextFormat.PlainText)
@@ -137,6 +159,43 @@ class SearchRangeDialog(QDialog):
         layout.addWidget(self.error)
         layout.addWidget(self.buttons)
         self.setMinimumWidth(460)
+
+    def _add_more(self, form: QFormLayout, state: dict[str, Any]) -> None:
+        """Conditions on the name, owner and depth."""
+        self.regex = QCheckBox(tr("search_regex"))
+        self.regex.setToolTip(tr("search_regex_tip"))
+        self.regex.setChecked(state.get("regex") is True)
+        form.addRow("", self.regex)
+        self.exclude = QLineEdit(_size_text(state.get("exclude")))
+        self.owner = QLineEdit(_size_text(state.get("owner")))
+        self.min_depth, self.max_depth = QSpinBox(), QSpinBox()
+        for field, key in ((self.exclude, "search_exclude"), (self.owner, "search_owner")):
+            field.setMaxLength(TEXT_LIMIT)
+            field.setToolTip(tr(key + "_tip"))
+            row = QHBoxLayout()
+            row.addWidget(field)
+            self._add_field(form, field, key, row)
+        for field, key in ((self.min_depth, "min_depth"), (self.max_depth, "max_depth")):
+            field.setRange(0, MAX_DEPTH)
+            field.setSpecialValueText(tr("search_no_limit"))
+            value = state.get(key)
+            field.setValue(value if type(value) is int and 0 < value <= MAX_DEPTH else 0)
+            field.setToolTip(tr("search_depth_tip"))
+            row = QHBoxLayout()
+            row.addWidget(field)
+            row.addStretch(1)
+            self._add_field(form, field, f"search_{key}", row)
+
+    def _more(self) -> dict[str, Any] | None:
+        least, most = self.min_depth.value() or None, self.max_depth.value() or None
+        more = {"regex": self.regex.isChecked(), "exclude": self.exclude.text().strip(),
+                "owner": self.owner.text().strip(), "min_depth": least, "max_depth": most}
+        try:
+            validate_more(more)
+        except ValueError as error:
+            self._fail(self.max_depth, str(error))
+            return None
+        return more
 
     def _add_field(self, form: QFormLayout, field: QWidget, key: str, row: QHBoxLayout) -> None:
         label = QLabel(tr(key))
@@ -210,8 +269,11 @@ class SearchRangeDialog(QDialog):
         dates = self._dates()
         if dates is None:
             return
+        more = self._more()
+        if more is None:
+            return
         self.values = {"min_size": sizes[0], "max_size": sizes[1],
-                       "date_start": dates[0], "date_through": dates[1]}
+                       "date_start": dates[0], "date_through": dates[1], **more}
         super().accept()
 
 

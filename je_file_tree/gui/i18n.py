@@ -1,7 +1,7 @@
 """Translations: English, Traditional/Simplified Chinese, Japanese and Korean.
 
 Every text the window shows goes through ``tr(key, **values)``. The string
-tables live in ``je_file_tree.gui.strings``; a key missing from a language falls
+tables live in ``je_file_tree.gui.strings``, one module per language; a key missing from a language falls
 back to English, and every language must define exactly the English keys
 (``test_i18n`` checks this, and that the ``{placeholders}`` match).
 """

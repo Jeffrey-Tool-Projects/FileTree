@@ -38,6 +38,8 @@ class ChangesPanel(QWidget):
         self._saved: SavedScan | None = None
         self._current: CompareWorker | None = None
         self._running: set[CompareWorker] = set()
+        self._wanted: dict[str, object] | None = None  # what was opened and has not been compared yet
+        self._changes: list[FolderChange] = []
         bar = QHBoxLayout()
         bar.setContentsMargins(0, 0, 0, 0)
         bar.addWidget(self.summary, 1)
@@ -58,35 +60,43 @@ class ChangesPanel(QWidget):
         """Whether a comparison is running whose result will be shown."""
         return self._current is not None
 
+    @property
+    def changes(self) -> list[FolderChange]:
+        """The changes on screen."""
+        return self._changes
+
     def open(self, file: str) -> None:
         """Read the saved scan ``file`` and compare the tree with it (``failed`` when it is not one)."""
-        if self._root is not None:
-            self._run(CompareWorker(self._root, file=file, parent=self))
+        self._wanted = {"file": file}
+        self.refresh()
 
     def compare_saved(self, saved: SavedScan) -> None:
         """Compare with worker-loaded local history, including deeply nested saved trees."""
-        if self._root is not None:
-            self._run(CompareWorker(self._root, saved=saved, parent=self))
+        self._wanted = {"saved": saved}
+        self.refresh()
 
     def set_root(self, root: Node | None) -> None:
         """Compare this tree from now on (None while a scan runs: the list waits for the result)."""
         self._root = root
         if root is None:
             self.stop()
+            self._changes = []
             self.model.set_rows([])
             self._update_summary()
             return
         self.refresh()
 
     def refresh(self) -> None:
-        """Compare again after the tree changed."""
-        if self._root is not None and self._saved is not None:
-            self._run(CompareWorker(self._root, saved=self._saved, parent=self))
+        """Compare again after the tree changed: with what was opened last, also when it is still being read."""
+        wanted = self._wanted or ({"saved": self._saved} if self._saved is not None else None)
+        if self._root is not None and wanted is not None:
+            self._run(CompareWorker(self._root, parent=self, **wanted))
 
     def stop_comparing(self) -> None:
         """Forget the saved scan and hide the comparison."""
         self.stop()
-        self._saved = None
+        self._saved = self._wanted = None
+        self._changes = []
         self.model.set_rows([])
         self._update_summary()
         self.shown.emit(False)
@@ -117,14 +127,15 @@ class ChangesPanel(QWidget):
     def _done(self, worker: CompareWorker, saved: SavedScan, changes: list[FolderChange]) -> None:
         if worker is not self._current:
             return
-        self._current = None
+        self._current = self._wanted = None
         self._saved = saved
+        self._changes = changes
         self.model.set_rows(changes)
         self._update_summary()
         self.shown.emit(True)
 
     def _failed(self, reason: str) -> None:
-        self._current = None
+        self._current = self._wanted = None
         self._update_summary()
         self.failed.emit(reason)
 

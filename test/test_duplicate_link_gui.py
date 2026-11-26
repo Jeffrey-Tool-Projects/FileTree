@@ -183,7 +183,7 @@ def test_main_routes_exact_groups_joins_serializes_and_rescans_current_root(wind
     group = find_duplicates(root, min_size=1).groups[0]
     group = replace(group, kept=group.files[0])
     panel = window.results.duplicates
-    panel._found = SimpleNamespace()
+    panel._found = SimpleNamespace(skipped=0)
     panel._groups = [group]
     events = []
 
@@ -211,7 +211,7 @@ def test_main_routes_exact_groups_joins_serializes_and_rescans_current_root(wind
     notice.button.click()
     assert events[3:] == [("rescan", root)] and notice.isHidden()
     panel.kind.setCurrentIndex(panel.kind.findData("photos"))
-    panel._groups, panel._found = [group], SimpleNamespace()
+    panel._groups, panel._found = [group], SimpleNamespace(skipped=0)
     assert not panel.link_groups and not panel.link_extra.isEnabled()
     window.show_duplicate_links([group])
     assert len(events) == 4
@@ -237,7 +237,7 @@ def test_replaced_root_after_dialog_never_receives_old_root_refresh(window, tmp_
     group = find_duplicates(root, min_size=1).groups[0]
     group = replace(group, kept=group.files[0])
     panel = window.results.duplicates
-    panel._found, panel._groups = SimpleNamespace(), [group]
+    panel._found, panel._groups = SimpleNamespace(skipped=0), [group]
 
     class Dialog:
         changed = True

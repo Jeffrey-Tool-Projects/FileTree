@@ -136,7 +136,7 @@ def find_duplicates(root: Node, *, min_size: int = DEFAULT_MIN_SIZE, workers: in
     before every file and every 1 MB, and ``DuplicateSearchCancelledError`` is raised once it is set.
     """
     reader = _Reader(progress, cancel)
-    same_size = [files for files in _by_size(root.iter_files(), max(min_size, 1)).values() if len(files) > 1]
+    same_size = [files for files in _by_size(root, max(min_size, 1), cancel).values() if len(files) > 1]
     with ThreadPoolExecutor(max_workers=max(workers, 1), thread_name_prefix="file-tree-duplicates") as pool:
         same_head = reader.round(pool, same_size, whole=False)
         groups = [DuplicateGroup(files[0].size, files, digest=reader.digests[files[0]],
@@ -153,10 +153,14 @@ def find_duplicates(root: Node, *, min_size: int = DEFAULT_MIN_SIZE, workers: in
     return DuplicateResult(groups, reader.files_read, reader.bytes_read, reader.skipped, folders)
 
 
-def _by_size(files: Iterable[Node], min_size: int) -> dict[int, list[Node]]:
+def _by_size(root: Node, min_size: int, cancel: threading.Event | None) -> dict[int, list[Node]]:
     sizes: dict[int, list[Node]] = defaultdict(list)
-    for node in files:
-        if node.size >= min_size and node.error is None:
+    for node in root.iter_nodes():
+        if node.is_dir:
+            give_way()
+            if cancel is not None and cancel.is_set():
+                raise DuplicateSearchCancelledError
+        elif not node.is_link and node.size >= min_size and node.error is None:
             sizes[node.size].append(node)
     return sizes
 

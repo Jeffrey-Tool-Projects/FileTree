@@ -11,10 +11,13 @@ from PySide6.QtWidgets import QHBoxLayout, QMenu, QScrollArea, QSizePolicy, QToo
 from je_file_tree.core.node import Node
 from je_file_tree.gui.node_text import node_name, node_path
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.text_scale import text_scaled
+from je_file_tree.gui.text_size import text_size_controller
 
 _HISTORY_LIMIT = 100
 _VISIBLE_NODES = 6
 _LABEL_WIDTH = 120
+_HEIGHT = 46
 
 
 class FolderHistory:
@@ -101,7 +104,8 @@ class Breadcrumbs(QWidget):
         self._scroll_timer.setSingleShot(True)
         self._scroll_timer.timeout.connect(self._scroll_to_current)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        self.setMaximumHeight(46)
+        self.setMaximumHeight(text_scaled(_HEIGHT))
+        text_size_controller().changed.connect(self._fit_text)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(2)
@@ -112,6 +116,10 @@ class Breadcrumbs(QWidget):
             shortcut = QShortcut(QKeySequence(sequence), self)
             shortcut.activated.connect(lambda direction=offset: self.isVisible() and self.step(direction))
         self.retranslate()
+
+    def _fit_text(self, _percent: int) -> None:
+        self.setMaximumHeight(text_scaled(_HEIGHT))
+        self._rebuild()  # the shortened labels were measured in the old size
 
     def set_root(self, root: Node | None) -> None:
         """Bind navigation to the current scan; resuming the same live root preserves visits."""
@@ -173,7 +181,8 @@ class Breadcrumbs(QWidget):
             button = QToolButton()
             label = node_name(node) if node.path is None or node.parent is not None else (
                 os.path.basename(node.name.rstrip("\\/")) or node.name)
-            button.setText(self.fontMetrics().elidedText(label, Qt.TextElideMode.ElideMiddle, _LABEL_WIDTH))
+            button.setText(self.fontMetrics().elidedText(label, Qt.TextElideMode.ElideMiddle,
+                                                         text_scaled(_LABEL_WIDTH)))
             button.setToolTip(node_path(node))
             button.setAccessibleName(label)
             button.setAutoRaise(True)

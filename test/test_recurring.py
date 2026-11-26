@@ -18,11 +18,19 @@ from je_file_tree.core.node import Node
 from je_file_tree.core.scanner import ACCESS_DENIED, ScanOptions, scan
 
 
+def _write(path, data):
+    """Write a file clearly older than now: Python 3.11 and 3.12 read a 15.6 ms clock on Windows, so a file just
+    written can look newer than ``time.time()`` and a rule of no age leaves it out."""
+    path.write_bytes(data)
+    then = time.time() - 60
+    os.utime(path, (then, then))
+
+
 @pytest.fixture
 def observations(tmp_path):
     source = tmp_path / "source"
     source.mkdir()
-    (source / "old.dmp").write_bytes(b"owned old payload")
+    _write(source / "old.dmp", b"owned old payload")
     policy = CleanupPolicy((RuleSetting("crash_dumps", True, 0),))
     store = ScanHistory(tmp_path / "history")
     root = scan(source).root
@@ -43,8 +51,8 @@ def _proposal(source, policy, previous=None, saved=None):
 
 def test_new_junk_and_growth_are_bound_to_complete_history_and_preserve_payloads(observations):
     source, policy, _store, previous, saved = observations
-    (source / "new.dmp").write_bytes(b"owned new payload" * 10)
-    (source / "old.dmp").write_bytes(b"old larger payload" * 20)
+    _write(source / "new.dmp", b"owned new payload" * 10)
+    _write(source / "old.dmp", b"old larger payload" * 20)
     proof = {path.name: (path.stat().st_ino, hashlib.sha256(path.read_bytes()).hexdigest())
              for path in source.iterdir()}
     root, config, attempt, proposal = _proposal(source, policy, previous, saved)
@@ -126,7 +134,7 @@ def test_directory_and_file_errors_and_missing_identity_never_become_actionable(
 
 def test_observation_and_digest_read_only_captured_nodes_and_ignore_child_order(observations, monkeypatch):
     source, policy, _store, previous, saved = observations
-    (source / "second.bin").write_bytes(b"captured")
+    _write(source / "second.bin", b"captured")
     root, _config, _attempt, proposal = _proposal(source, policy, previous, saved)
     signature = recurring.tree_signature(root)
     root.children.reverse()
@@ -141,7 +149,7 @@ def test_observation_and_digest_read_only_captured_nodes_and_ignore_child_order(
 def test_candidate_rows_are_bounded_and_omitted_inventory_never_proves_new(observations):
     source, policy, _store, _previous, _saved = observations
     for index in range(130):
-        (source / f"dump-{index}.dmp").write_bytes(b"owned" * (index + 1))
+        _write(source / f"dump-{index}.dmp", b"owned" * (index + 1))
     baseline = recurring.capture(scan(source).root, policy, time.time())
     assert baseline.candidate_count == 131 and len(baseline.candidates) == recurring.MAX_ROWS
     assert not baseline.inventory_complete and len(recurring.dump_baseline(baseline)) <= recurring.MAX_BYTES

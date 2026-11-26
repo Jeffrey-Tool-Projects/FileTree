@@ -16,6 +16,7 @@ from je_file_tree.core.recurring import Candidate, Growth, RecurringProposal
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.tables import Column, _TableModel
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.window_fit import fit_window
 
 
@@ -106,7 +107,7 @@ class RecurringDialog(QDialog):
         view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         view.setWordWrap(False)
         view.horizontalHeader().setStretchLastSection(True)
-        view.setColumnWidth(0, 470)
+        view.setColumnWidth(0, text_scaled(470))
         install_copy(view)
         self.tabs.addTab(view, tr(key))
 

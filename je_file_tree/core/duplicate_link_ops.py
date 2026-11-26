@@ -13,7 +13,7 @@ from je_file_tree.core.link_io import _remove_alias, _retire_backup
 from je_file_tree.core.no_replace import anchored_directory, rename_no_replace
 from je_file_tree.core.operations import revalidate
 from je_file_tree.core.pacing import give_way
-from je_file_tree.core.snapshot import stable_snapshot, stat_snapshot, unpack_snapshot
+from je_file_tree.core.snapshot import renamed, stable_snapshot, stat_snapshot, unpack_snapshot
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,7 +47,7 @@ class _Attempt:
 
 def _own_change(before: bytes, after: bytes, links: int) -> bytes:
     original, actual = unpack_snapshot(before), unpack_snapshot(after)
-    if actual.links != links or replace(actual, changed_ns=original.changed_ns, links=original.links) != original:
+    if actual.links != links or not renamed(original, replace(actual, links=original.links)):
         raise ValueError("Native linking observations changed unexpectedly")
     return stable_snapshot(after)
 
@@ -115,12 +115,12 @@ def _recover(state: _Attempt) -> list[str]:
     try:
         with anchored_directory(pair.copy_parents) as parent:
             check_volume(parent, pair.volume)
-            if state.backup_snapshot is None and os.path.lexists(state.backup):
-                state.backup_snapshot = _own_change(pair.copy_snapshot, stat_snapshot(state.backup), 1)
-            if state.backup_snapshot is not None and not state.linked:
-                check_file(state.backup, state.backup_snapshot)
+            if not state.linked and os.path.lexists(state.backup):
+                # The same file gets its own name back whatever else was noticed about it; nothing is overwritten.
+                found, captured = unpack_snapshot(stat_snapshot(state.backup)), unpack_snapshot(pair.copy_snapshot)
+                if found.identity != captured.identity:
+                    raise ValueError("The retained copy is not the captured file")
                 rename_no_replace(state.backup, pair.copy_path, parent, parent)
-                _own_change(state.backup_snapshot, stat_snapshot(pair.copy_path), 1)
     except (OSError, ValueError) as exc:
         errors.append("Exclusive rollback retained actual paths: " + str(exc))
     if state.temporary_snapshot is not None and os.path.lexists(state.temporary):

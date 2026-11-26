@@ -14,9 +14,11 @@ from je_file_tree.core.scanner import ScanProgress, scan
 from je_file_tree.gui.bin_labels import bin_key
 from je_file_tree.gui import i18n
 from je_file_tree.gui.app import create_window
-from je_file_tree.gui.delegates import PathTailDelegate, bar_alpha
+from je_file_tree.gui.colours import contrast
+from je_file_tree.gui.delegates import PathTailDelegate, bar_colour
 from je_file_tree.gui.empty_hint import EmptyHint
-from je_file_tree.gui.main_window import RESULTS_PAGE
+from je_file_tree.gui.fluent_style import tokens_for
+from je_file_tree.gui.window_settings import RESULTS_PAGE
 from je_file_tree.gui.results_view import CHANGES_TAB, CHART_TAB, LARGEST_TAB, PROBLEMS_TAB, SEARCH_TAB
 from je_file_tree.gui.result_overview import ResultOverview
 from je_file_tree.gui.scan_bar import ScanBar
@@ -265,9 +267,14 @@ def test_folder_columns_keep_the_nearest_folders_when_elided(window, sample_tree
     assert results.largest_table.textElideMode() == Qt.TextElideMode.ElideMiddle  # names keep extensions
 
 
-def test_share_bars_are_stronger_on_dark_surfaces():
-    assert bar_alpha(QColor("#20242a")) > bar_alpha(QColor("#ffffff"))
-    assert bar_alpha(QColor("#ffffff")) == 110
+@pytest.mark.parametrize("scheme, wanted", [("light", 7), ("dark", 4.5)])
+@pytest.mark.parametrize("accent", [None, "#f38064", "#ffb900", "#ffffff", "#000000", "#00cc6a", "#dd9be3"])
+def test_share_bars_keep_their_text_readable_and_stay_visible(scheme, wanted, accent):
+    tokens = tokens_for(scheme, accent)
+    surface, text = QColor(tokens.card), QColor(tokens.text)
+    bar = bar_colour(QColor(tokens.accent), surface, text)
+    assert contrast(bar, text) >= wanted and contrast(bar, surface) >= 1.8
+    assert contrast(bar, QColor(tokens.selection)) >= 1.2  # also on the selected row
 
 
 def test_chart_breadcrumbs_show_the_pane_background(window):

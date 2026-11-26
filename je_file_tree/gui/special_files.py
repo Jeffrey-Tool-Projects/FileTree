@@ -17,6 +17,7 @@ from je_file_tree.core.special_files import SpecialEntry, SpecialFiles, special_
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.tree_model import NODE_ROLE
@@ -85,7 +86,7 @@ class SpecialFilesDialog(WorkerDialog):
         self.view.sortByColumn(2, Qt.SortOrder.DescendingOrder)
         self.view.doubleClicked.connect(self._select)
         for column, width in ((0, 180), (1, 210), (2, 135), (3, 100), (4, 350)):
-            self.view.setColumnWidth(column, width)
+            self.view.setColumnWidth(column, text_scaled(width))
         install_copy(self.view)
         self.hint = QLabel(tr("special_hint"))
         self.hint.setWordWrap(True)

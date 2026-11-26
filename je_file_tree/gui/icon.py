@@ -13,7 +13,7 @@ import sys
 from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QRectF, Qt
 from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 
-from je_file_tree.gui.treemap_widget import CATEGORY_COLOURS
+from je_file_tree.gui.chart_palette import PALETTES, STANDARD
 
 SIZES = (16, 24, 32, 48, 64, 128, 256)
 APP_USER_MODEL_ID = "JE-Chen.FileTree"
@@ -48,7 +48,7 @@ def draw(size: int) -> QImage:
     for (x, y, width, height), category in _BLOCKS:
         block = QRectF(inner.x() + x * inner.width(), inner.y() + y * inner.height(),
                        width * inner.width(), height * inner.height()).adjusted(0, 0, -gap, -gap)
-        painter.setBrush(QColor(CATEGORY_COLOURS[category]))
+        painter.setBrush(QColor(PALETTES[STANDARD][category]))
         painter.drawRoundedRect(block, size * 0.03, size * 0.03)
     painter.end()
     return image

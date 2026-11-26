@@ -24,12 +24,12 @@ from je_file_tree.core.history import ScanHistory  # noqa: E402
 from je_file_tree.core.node import Node  # noqa: E402
 from je_file_tree.core.scanner import ScanOptions, ScanResult  # noqa: E402
 from je_file_tree.core.snapshot import pack_snapshot  # noqa: E402
-from je_file_tree.gui import history, main_window  # noqa: E402
+from je_file_tree.gui import history, main_window, window_dialogs  # noqa: E402
 from je_file_tree.gui.app import create_workspace  # noqa: E402
 from je_file_tree.gui.folder_budget_dialog import FolderBudgetDialog  # noqa: E402
 from je_file_tree.gui.history import HistoryDialog  # noqa: E402
 from je_file_tree.gui.i18n import LANGUAGES, set_language, tr  # noqa: E402
-from je_file_tree.gui.main_window import RESULTS_PAGE  # noqa: E402
+from je_file_tree.gui.window_settings import RESULTS_PAGE  # noqa: E402
 from je_file_tree.gui.qt_translation import apply_qt_translation  # noqa: E402
 from je_file_tree.gui.scan_worker import analyse  # noqa: E402
 from je_file_tree.gui.search_ranges import exact_bytes  # noqa: E402
@@ -263,7 +263,8 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix='filetree-context-ux-') as temporary:
         scratch = Path(temporary)
         with patch.object(FolderBudgetDialog, 'open', hidden_open), \
-                patch.object(main_window, 'history_folder', lambda: scratch / 'history'), \
+                patch.object(window_dialogs, 'history_folder', lambda: scratch / 'history'), \
+                patch.object(history, 'history_folder', lambda: scratch / 'history'), \
                 patch.object(main_window, 'journal_folder', lambda: scratch / 'journal'):
             records = run(app, args, scratch)
     result = {'checks': 'passed', 'scale_factor': os.environ.get('QT_SCALE_FACTOR', 'default'),

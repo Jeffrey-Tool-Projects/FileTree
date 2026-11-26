@@ -19,6 +19,7 @@ from __future__ import annotations
 import errno
 import os
 import stat
+import sys
 import threading
 import time
 from collections.abc import Callable, Iterator
@@ -764,6 +765,8 @@ def _is_hidden(name: str, info: os.stat_result) -> bool:
 def _points_to_folder(entry: os.DirEntry[str]) -> bool:
     """Whether a link's target is a folder (False when the target is missing or unreadable)."""
     try:
+        if sys.platform == "win32":  # ``entry.is_dir`` answers for a junction from the listing, its target gone or not
+            return stat.S_ISDIR(os.stat(entry.path).st_mode)
         return entry.is_dir(follow_symlinks=True)
     except OSError:
         return False

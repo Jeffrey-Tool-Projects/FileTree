@@ -20,7 +20,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QMessageBox, QSystemTrayIco
 
 from je_file_tree.core.scanner import scan
 from je_file_tree.core.export import _atomic_file
-from je_file_tree.gui import file_actions, main_window
+from je_file_tree.gui import file_actions, main_window, window_settings
 from je_file_tree.gui.i18n import set_language
 from je_file_tree.gui.qt_translation import apply_qt_translation
 from je_file_tree.gui.scan_worker import analyse
@@ -225,7 +225,7 @@ def main() -> int:
                 proof[name] = {"error": str(error)}
                 failures.append(name)
         require(QRawFont.fromFont(app.font()).supportsCharacter(ord("檔")), "Native font lacks CJK glyphs")
-        window.pages.setCurrentIndex(main_window.RESULTS_PAGE)
+        window.pages.setCurrentIndex(window_settings.RESULTS_PAGE)
         window.show()
         app.processEvents()
         require(window.grab().save(str(evidence / "desktop-zh-TW.png")), "Native X11 capture failed")

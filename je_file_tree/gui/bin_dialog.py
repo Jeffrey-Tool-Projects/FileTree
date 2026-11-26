@@ -72,24 +72,26 @@ class EmptyBinWorker(QThread):
     def __init__(self, root: str, approved: TrashUsage | BinEmptyPlan | FinderEmptyPlan, parent: QWidget) -> None:
         super().__init__(parent)
         self.root, self.approved = root, approved
+        self.reason = ""
 
     def run(self) -> None:
         """Recheck approved totals and report native errors, including partial emptying."""
+        self.reason = self._empty()
+        self.completed.emit(self.reason)
+
+    def _empty(self) -> str:
         try:
             if isinstance(self.approved, FinderEmptyPlan):
                 empty_finder_bin(self.approved, finder_roots)
             elif isinstance(self.approved, BinEmptyPlan):
                 result = empty_posix_bin(self.approved)
                 if result.failures:
-                    self.completed.emit(tr("bin_partial", count=format_count(result.removed),
-                                           reason="; ".join(result.failures)))
-                    return
+                    return tr("bin_partial", count=format_count(result.removed), reason="; ".join(result.failures))
             else:
                 empty_windows_bin(self.root, self.approved)
         except (OSError, ValueError) as error:
-            self.completed.emit(str(error))
-            return
-        self.completed.emit("")
+            return str(error)
+        return ""
 
 
 class BinDialog(VolumesDialog):
@@ -207,16 +209,20 @@ class BinDialog(VolumesDialog):
         worker = EmptyBinWorker(root, approved, self)
         worker.completed.connect(lambda reason: after_threads((worker,), lambda: self._empty_finished(reason), self))
         self._empty_worker = worker
-        queue_worker(worker, lambda: not self._closed and self._empty_worker is worker, self)
+        queue_worker(worker, lambda: not self._closed and self._empty_worker is worker, self, self._not_emptied)
+
+    def _not_emptied(self) -> None:
+        """Closed between the second answer and the call: nothing was emptied, and the dialog may go."""
+        self._empty_worker = None
 
     def _empty_finished(self, reason: str) -> None:
         worker = self._empty_worker
         if worker is not None:
             worker.deleteLater()
         self._empty_worker = None
+        self.last_error = reason  # kept when closed too: the window shows it before it goes
         if self._closed:
             return
-        self.last_error = reason
         if worker is not None:
             self.emptied.emit(worker.root)
         self.close_box.setEnabled(True)
@@ -247,6 +253,7 @@ class BinDialog(VolumesDialog):
         """Join any native operation and the current metadata survey before destruction."""
         if wait and self._empty_worker is not None:
             wait_for(self._empty_worker)
+            self.last_error, self._empty_worker = self._empty_worker.reason, None
         if self._approval_worker is not None:
             self._approval_worker.cancel.set()
             if wait:

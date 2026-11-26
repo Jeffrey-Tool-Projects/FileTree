@@ -13,15 +13,39 @@ from je_file_tree.gui import elevation
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 
+@pytest.fixture(scope="module")
+def closed_windows_gone():
+    """Delete what earlier test files left to ``deleteLater``, which needs an event loop to happen.
+
+    For tests that restyle the whole program: every widget still alive is repolished at each change (16,842 after the
+    workspace tests; one theme test took over a minute on a Windows CI runner, measured 2026-11-26).
+    """
+    from PySide6.QtCore import QCoreApplication, QEvent
+
+    if QCoreApplication.instance() is not None:
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+
+
 @pytest.fixture(autouse=True)
-def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+def guards():
+    """The patches that keep tests away from the user's own data, out of reach of a test's ``monkeypatch.undo()``.
+
+    Autouse fixtures that patch with ``monkeypatch`` ask for this one first: it has to be undone last, or a test's own
+    patch would put a guard back for good.
+    """
+    with pytest.MonkeyPatch.context() as patch:
+        yield patch
+
+
+@pytest.fixture(autouse=True)
+def no_administrator_prompt(guards: pytest.MonkeyPatch, tmp_path: Path):
     """Fail any test that reaches the real UAC prompt (it would wait on the desktop of whoever runs the tests).
 
     A test that needs an answer replaces ``elevation.relaunch_elevated``; the prompt itself counts as declined.
     Uninspected failed-entry reports are dismissed and reported at teardown instead of waiting for a user.
     """
     reached: list[str] = []
-    from je_file_tree.gui import main_window
+    from je_file_tree.gui import main_window, window_dialogs
     from je_file_tree.gui import history
     from je_file_tree.core import trash_size
     from je_file_tree.gui import bin_labels
@@ -33,9 +57,9 @@ def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     def reject_unhandled_report(dialog):
         unhandled_reports.append(dialog.windowTitle())
         return QDialog.DialogCode.Rejected
-    monkeypatch.setattr(FailedEntriesDialog, "exec", reject_unhandled_report)
+    guards.setattr(FailedEntriesDialog, "exec", reject_unhandled_report)
     from je_file_tree.gui.permanent_delete import PermanentReportDialog
-    monkeypatch.setattr(PermanentReportDialog, "exec", reject_unhandled_report)
+    guards.setattr(PermanentReportDialog, "exec", reject_unhandled_report)
 
     emptied: list[str] = []
     original_empty_scope = bin_empty._empty_scope
@@ -44,26 +68,26 @@ def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
             emptied.append(scope.directory)
             raise AssertionError("Tests cannot empty a real user POSIX Trash")
         return original_empty_scope(scope, mount)
-    monkeypatch.setattr(bin_empty, "_empty_scope", forbid_live_posix_scope)
+    guards.setattr(bin_empty, "_empty_scope", forbid_live_posix_scope)
     from je_file_tree.core import finder_bin
     def forbid_live_finder_empty():
         emptied.append("Finder-wide Trash")
         raise AssertionError("Tests cannot empty a real user's Finder Trash")
-    monkeypatch.setattr(finder_bin, "_run_finder_empty", forbid_live_finder_empty)
+    guards.setattr(finder_bin, "_run_finder_empty", forbid_live_finder_empty)
     if os.name == "nt":
         def forbid_live_empty(_window, root, _flags):
             emptied.append(root)
             raise AssertionError("Tests cannot empty a real user Recycle Bin")
-        monkeypatch.setattr(trash_size._shell32(), "SHEmptyRecycleBinW", forbid_live_empty)
+        guards.setattr(trash_size._shell32(), "SHEmptyRecycleBinW", forbid_live_empty)
 
-    monkeypatch.setattr(main_window, "journal_folder", lambda: tmp_path / "journal")
-    monkeypatch.setattr(history, "history_folder", lambda: tmp_path / "history")
-    monkeypatch.setattr(main_window, "history_folder", lambda: tmp_path / "history")
+    guards.setattr(main_window, "journal_folder", lambda: tmp_path / "journal")
+    guards.setattr(history, "history_folder", lambda: tmp_path / "history")
+    guards.setattr(window_dialogs, "history_folder", lambda: tmp_path / "history")
     from je_file_tree.gui import forecast as forecast_view
-    monkeypatch.setattr(forecast_view, "forecast_file", lambda: tmp_path / "forecast" / "volumes.json")
+    guards.setattr(forecast_view, "forecast_file", lambda: tmp_path / "forecast" / "volumes.json")
     # Automatic label refresh after fixture moves must never query the host user's bins.
-    monkeypatch.setattr(bin_labels, "trash_usage", lambda _root, **_kwargs: trash_size.TrashUsage(0, 0, True))
-    monkeypatch.setattr(elevation, "run_as_admin",
+    guards.setattr(bin_labels, "trash_usage", lambda _root, **_kwargs: trash_size.TrashUsage(0, 0, True))
+    guards.setattr(elevation, "run_as_admin",
                         lambda program, _parameters, _folder: reached.append(program) and False)
     yield
     assert not reached, f"a test brought up the real administrator prompt for {reached}"
@@ -72,7 +96,7 @@ def no_administrator_prompt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
 
 
 @pytest.fixture(autouse=True)
-def _design_screen(monkeypatch: pytest.MonkeyPatch):
+def _design_screen(guards, monkeypatch: pytest.MonkeyPatch):
     """Open windows as on the full-HD desktop their sizes were chosen for, not the 800-pixel test screen.
 
     ``test_window_fit.py`` replaces this with the screens it wants to check.
@@ -83,7 +107,7 @@ def _design_screen(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture(autouse=True)
-def _python_scanner(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch):
+def _python_scanner(request: pytest.FixtureRequest, guards, monkeypatch: pytest.MonkeyPatch):
     """Scan with the Python folder reader, whose seams (``os.scandir``, ``MountSurvey.listing``) tests replace.
 
     The native reader is optional and absent on most systems; ``test_native_scan.py`` switches it on and
@@ -96,7 +120,7 @@ def _python_scanner(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPa
 
 
 @pytest.fixture(autouse=True)
-def _python_tree_passes(monkeypatch: pytest.MonkeyPatch):
+def _python_tree_passes(guards, monkeypatch: pytest.MonkeyPatch):
     """Take the passes over a finished tree in Python, whose steps (``extension_of``, ``_Counts``) tests replace.
 
     The native passes are optional; ``test_native_tree.py`` switches them on and proves that each gives
@@ -109,9 +133,8 @@ def _python_tree_passes(monkeypatch: pytest.MonkeyPatch):
 
 def _inside_temporary(path: str, base: str) -> bool:
     """Whether ``path`` itself (its last name not followed) lies strictly inside the folder ``base``."""
-    absolute = os.path.abspath(path)
-    parent, name = os.path.split(absolute)
-    if not name:  # a drive or file-system root
+    parent, name = os.path.split(path)  # not shortened first: "link/.." is not the folder the link is in
+    if name in ("", ".", ".."):
         return False
     where = os.path.normcase(os.path.join(os.path.realpath(parent), name))
     try:
@@ -121,7 +144,7 @@ def _inside_temporary(path: str, base: str) -> bool:
 
 
 @pytest.fixture(autouse=True)
-def _permanent_delete_guard(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory):
+def _permanent_delete_guard(guards: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory):
     """Refuse, instead of performing, any permanent delete outside pytest's temporary directory.
 
     Every removal of ``je_file_tree.core.permanent_delete`` goes through its ``remove_entry``. During
@@ -140,7 +163,7 @@ def _permanent_delete_guard(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: p
             raise AssertionError(f"Tests may only delete fixtures under {base}; refused {path}")
         original(path, expected, parent, directory=directory)
 
-    monkeypatch.setattr(permanent_delete, "remove_entry", guarded)
+    guards.setattr(permanent_delete, "remove_entry", guarded)
     yield refused
     assert not refused, f"a test tried to permanently delete outside the temporary directory: {refused}"
 
@@ -182,16 +205,16 @@ def qapp():
 
 
 @pytest.fixture(autouse=True)
-def _modeled_gui_recycling(request, monkeypatch):
+def _modeled_gui_recycling(request, guards):
     """GUI mover fixtures do not read the host bin/policy; dedicated guard tests restore the boundary."""
     if "qapp" in request.fixturenames:
         from je_file_tree.gui import trash_worker
 
-        monkeypatch.setattr(trash_worker, "recycle_reason", lambda _node, _cancel: None)
+        guards.setattr(trash_worker, "recycle_reason", lambda _node, _cancel: None)
 
 
 @pytest.fixture(autouse=True)
-def _modeled_entry_move_prompts(request, monkeypatch):
+def _modeled_entry_move_prompts(request, guards):
     """Flow tests supply explicit answers; presentation tests restore the real literal presenter."""
     unhandled = []
     if "qapp" in request.fixturenames:
@@ -207,13 +230,13 @@ def _modeled_entry_move_prompts(request, monkeypatch):
                 return callback(parent, title, text, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                 QMessageBox.StandardButton.No)
             return callback(parent, title, text)
-        monkeypatch.setattr(main_window, "confirm_entry_move", answer)
+        guards.setattr(main_window, "confirm_entry_move", answer)
 
         def unanswered_permanent(_parent, title, _text):
             unhandled.append(title)  # a test that reaches the question must answer it itself
             return QMessageBox.StandardButton.No
-        monkeypatch.setattr(main_window, "confirm_permanent_delete", unanswered_permanent)
-        monkeypatch.setattr(main_window, "refuse_managed", lambda _parent, _nodes: unhandled.append("managed notice"))
+        guards.setattr(main_window, "confirm_permanent_delete", unanswered_permanent)
+        guards.setattr(main_window, "refuse_managed", lambda _parent, _nodes: unhandled.append("managed notice"))
     yield
     assert not unhandled, f"a flow test did not supply an entry-move approval answer: {unhandled}"
 

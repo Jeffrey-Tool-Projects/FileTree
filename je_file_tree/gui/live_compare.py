@@ -16,6 +16,7 @@ from je_file_tree.core.scanner import ScanCancelledError, ScanOptions, scan
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.scan_worker import ExportWorker, wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue_worker, retire_worker
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.window_fit import fit_window
@@ -95,7 +96,7 @@ class LiveCompareDialog(WorkerDialog):
         self.view.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.view.setSortingEnabled(True)
         for column, width in enumerate((300, 190, 125, 125, 170, 170)):
-            self.view.setColumnWidth(column, width)
+            self.view.setColumnWidth(column, text_scaled(width))
         install_copy(self.view)
         self.hint, self.status = QLabel(tr("compare_hint")), QLabel(tr("compare_reading"))
         self.hint.setWordWrap(True)

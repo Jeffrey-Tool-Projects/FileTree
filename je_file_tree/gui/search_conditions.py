@@ -18,12 +18,13 @@ from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.search_ranges import MAX_BYTES
 
 
-CONDITIONS = ("text", "min_size", "max_size", "changed", "category", "kind")
+CONDITIONS = ("text", "min_size", "max_size", "changed", "category", "kind", "exclude", "owner", "depth")
 
 
 def descriptions(text: str, state: Mapping[str, Any], unit: str) -> dict[str, str]:
     """Describe active input without coercing malformed saved bounds into valid ones."""
-    result = {"text": tr("search_condition_name", value=text)} if text else {}
+    name = "search_condition_regex" if state.get("regex") is True else "search_condition_name"
+    result = {"text": tr(name, value=text)} if text else {}
     for key, label in (("min_size", "search_larger"), ("max_size", "search_smaller")):
         value = state.get(key)
         if value is not None:
@@ -43,6 +44,13 @@ def descriptions(text: str, state: Mapping[str, Any], unit: str) -> dict[str, st
     if state.get("kind", "any") != "any":
         result["kind"] = tr("search_condition_value", label=tr("search_show"),
                             value=tr(f"search_kind_{state['kind']}"))
+    for key in ("exclude", "owner"):
+        if state.get(key):
+            result[key] = tr("search_condition_value", label=tr(f"search_{key}"), value=str(state[key]))
+    depths = [state.get("min_depth"), state.get("max_depth")]
+    if any(depth is not None for depth in depths):
+        least, most = (tr("search_no_limit") if depth is None else str(depth) for depth in depths)
+        result["depth"] = tr("search_condition_depth", least=least, most=most)
     return result
 
 

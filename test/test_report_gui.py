@@ -1,5 +1,7 @@
 """Independent chart capture and modal report writing leave user navigation untouched."""
 
+import subprocess  # nosec B404 - a fixed import check in a fresh interpreter
+import sys
 import threading
 
 from PySide6.QtCore import Qt
@@ -94,3 +96,8 @@ def test_main_menu_excel_export_writes_six_sheets(qapp, window, sample_tree, tmp
     assert window.settings.value("export_dir") == str(tmp_path)
     assert window._actions["export_report_html"].text()
     assert not window._actions["export_report_html"].isCheckable()
+
+
+def test_starting_the_window_does_not_load_the_excel_writer():
+    code = "import sys, je_file_tree.gui.app; sys.exit('openpyxl' in sys.modules)"
+    assert subprocess.run([sys.executable, "-c", code], check=False).returncode == 0  # noqa: S603 - fixed code

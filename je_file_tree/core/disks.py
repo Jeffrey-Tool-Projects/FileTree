@@ -31,6 +31,7 @@ import sys
 import threading
 import time
 from typing import Any
+from xml.parsers.expat import ExpatError
 
 MEDIA_SSD, MEDIA_HDD, MEDIA_UNKNOWN = "ssd", "hdd", "unknown"
 HEALTHY, WARNING, UNHEALTHY, HEALTH_UNKNOWN = "healthy", "warning", "unhealthy", "unknown"
@@ -368,7 +369,7 @@ def _children(folder: str) -> list[str]:
 def _plist(data: bytes) -> dict[str, Any]:
     try:
         value = plistlib.loads(data)
-    except (plistlib.InvalidFileException, ValueError, TypeError) as error:
+    except (plistlib.InvalidFileException, ExpatError, AttributeError, ValueError, TypeError) as error:
         raise ValueError("diskutil output is not a property list") from error
     if not isinstance(value, dict):
         raise ValueError("diskutil output is not a dictionary")

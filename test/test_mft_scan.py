@@ -14,7 +14,8 @@ from test_gui import window as window  # noqa: PLC0414 - explicit fixture re-exp
 from je_file_tree.core import mft_scan, native_scan
 from je_file_tree.core.scanner import NOT_SCANNED, ScanCancelledError, ScanOptions, scan
 from je_file_tree.core.snapshot import pack_snapshot, path_metadata
-from je_file_tree.gui import main_window as main
+from je_file_tree.gui import window_scans
+from je_file_tree.gui.window_settings import MFT_SCAN_KEY, read_flag
 
 ROOT = "Q:\\"
 ROOT_REFERENCE = 5 | (5 << 48)
@@ -334,13 +335,14 @@ def test_rescanning_one_folder_of_a_finished_scan_lists_it(window, tmp_path, mon
     window.results.show_outcome(analyse(scan(tmp_path)))
     made = []
 
-    class Recording(main.ScanWorker):
+    class Recording(window_scans.ScanWorker):
         def __init__(self, path, options, *arguments, **named):
             made.append((path, options.mft))
             super().__init__(path, options, *arguments, **named)
 
-    monkeypatch.setattr(main, "ScanWorker", Recording)
-    monkeypatch.setattr(main, "queue_worker", lambda *_arguments, **_options: None)  # built and owned, never started
+    monkeypatch.setattr(window_scans, "ScanWorker", Recording)
+    # built and owned, never started
+    monkeypatch.setattr(window_scans, "queue_worker", lambda *_arguments, **_options: None)
     inner = window.results.tree_model.root.children[0]
     assert window._scan_options().mft
     window.rescan_folder(inner)
@@ -355,9 +357,9 @@ def test_window_reads_the_table_by_default_and_remembers_the_choice(window):
     assert action.isCheckable() and action.isChecked() and window._scan_options().mft
     assert action in window._menus["menu_options"].actions()
     action.trigger()
-    assert not window._scan_options().mft and not main.read_flag(window.settings, main.MFT_SCAN_KEY, True)
+    assert not window._scan_options().mft and not read_flag(window.settings, MFT_SCAN_KEY, True)
     action.trigger()
-    assert window._scan_options().mft and main.read_flag(window.settings, main.MFT_SCAN_KEY, False)
+    assert window._scan_options().mft and read_flag(window.settings, MFT_SCAN_KEY, False)
 
 
 # ---- the real table of the drive holding pytest's temporary folder: read-only, made-up entries ----

@@ -71,6 +71,8 @@ def load_saved(file: str | os.PathLike[str]) -> SavedScan:
         document = json.loads(Path(file).read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         raise SavedScanError(str(error)) from error
+    except RecursionError as error:
+        raise SavedScanError("the folders are nested too deeply") from error
     if not isinstance(document, dict) or document.get("format") != JSON_FORMAT:
         raise SavedScanError(f"not a FileTree scan (no \"format\": \"{JSON_FORMAT}\")")
     top = document.get("root")

@@ -203,6 +203,8 @@ def test_main_close_surfaces_final_copy_gate_failure_received_during_join(window
     monkeypatch.setattr(trash_worker.file_actions, "trash_receipt", lambda path: moves.append(path) or True)
     monkeypatch.setattr(QMessageBox, "exec", lambda question: questions.append(
         (full_details(question), question.textFormat())) or QMessageBox.StandardButton.Ok)
+    warned = []
+    monkeypatch.setattr(QMessageBox, "warning", lambda *args: warned.append((window._close_ready, args[2])))
     worker = trash_worker.TrashWorker(root, [proof.item.node], [], {proof.item.node: None}, window)
     worker.copy_approval = CopyApproval((proof,))
     window._trash_worker = worker
@@ -212,6 +214,7 @@ def test_main_close_surfaces_final_copy_gate_failure_received_during_join(window
     _wait(qapp, lambda: window._close_ready)
     assert not worker.isRunning() and worker.result.copy_errors and not moves
     assert window._trash_worker is None and len(questions) == 1
+    assert len(warned) == 1 and warned[0][0] is False and "folder" in warned[0][1]  # shown before the window goes
     assert "closed <verification> retained" in questions[0][0] and questions[0][1] == Qt.TextFormat.PlainText
     assert (source / "folder" / "file").read_bytes() == b"payload"
 

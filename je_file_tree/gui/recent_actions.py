@@ -12,8 +12,10 @@ from PySide6.QtWidgets import (
 )
 
 from je_file_tree.core.operation_journal import JournalRead, OperationJournal, OperationRecord, export_journal
+from je_file_tree.gui.cleanup_text import title
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import ExportWorker, wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.window_fit import fit_window
 
@@ -92,9 +94,9 @@ class RecentActions(WorkerDialog):
                 item.setToolTip(value)
                 items.append(item)
             self.model.appendRow(items)
-        self.view.setColumnWidth(0, 210)
-        self.view.setColumnWidth(1, 270)
-        self.view.setColumnWidth(4, 180)
+        self.view.setColumnWidth(0, text_scaled(210))
+        self.view.setColumnWidth(1, text_scaled(270))
+        self.view.setColumnWidth(4, text_scaled(180))
         self.export_button.setEnabled(bool(result.records))
         self.status.setText(tr("journal_summary", count=str(len(result.records)), invalid=str(result.invalid),
                                unavailable=str(result.unavailable)))
@@ -139,7 +141,7 @@ def _cells(record: OperationRecord) -> tuple[str, ...]:
                   else tr(f"journal_status_{outcome.status}"))
         detail = _record_text(f"permanent_skip_{outcome.detail}", outcome.detail) if outcome.detail else ""
     else:
-        reason = (_record_text(f"cleanup_{record.reason[8:]}", record.reason)
+        reason = (_cleanup_title(record.reason)
                   if record.reason.startswith("cleanup:") else
                   tr("journal_reason_undo" if record.reason == "undo" else
                      "journal_reason_duplicate_links" if record.reason == "duplicate_links" else
@@ -149,6 +151,13 @@ def _cells(record: OperationRecord) -> tuple[str, ...]:
         detail = _record_text(f"trash_skip_{outcome.detail}", outcome.detail) if outcome.detail else ""
     return (record.timestamp, record.source, str(record.identity), reason, status, detail,
             outcome.destination or tr("size_unknown"))
+
+
+def _cleanup_title(reason: str) -> str:
+    try:
+        return title(reason.removeprefix("cleanup:"))
+    except KeyError:
+        return reason  # Retained records can describe rules from a newer release.
 
 
 def _record_text(key: str, original: str) -> str:

@@ -7,6 +7,7 @@ temporary directory, and any question a test does not answer itself counts as de
 from __future__ import annotations
 
 import os
+import threading
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -25,6 +26,7 @@ from je_file_tree.core.system_files import SystemFile
 from je_file_tree.gui.busy_notice import busy_text
 from je_file_tree.gui import i18n, main_window
 from je_file_tree.gui import permanent_delete as gui_delete
+from je_file_tree.core.permanent_delete import DeleteResult
 from je_file_tree.gui.permanent_delete import LISTED, PermanentDeleteWorker, PermanentReportDialog
 from je_file_tree.gui.strings import STRINGS
 
@@ -262,7 +264,7 @@ def test_escape_stops_a_running_deletion(window):
     assert stopped == [True]
 
 
-def test_closing_during_a_deletion_waits_for_it(window, qapp, sample_tree, monkeypatch, answers):
+def test_closing_during_a_deletion_waits_for_it(window, qapp, sample_tree, monkeypatch, answers, reports):
     _scanned(window, qapp, sample_tree)
     root = window.results.tree_model.root
     monkeypatch.setattr(window, "rescan_folder", lambda _node: None)
@@ -271,6 +273,34 @@ def test_closing_during_a_deletion_waits_for_it(window, qapp, sample_tree, monke
     window.close()
     _wait(qapp, lambda: window._close_ready)
     assert window._delete_worker is None or window._delete_worker.isFinished()
+    left = (sample_tree / "notes.txt").exists()  # stopped before or after it: reported only when it stayed
+    assert [row[0] for _summary, rows in reports for row in rows] == ([str(sample_tree / "notes.txt")] if left else [])
+
+
+def test_closing_shows_what_a_deletion_could_not_do(window, qapp, sample_tree, monkeypatch, reports):
+    _scanned(window, qapp, sample_tree)
+    root = window.results.tree_model.root
+    node = _child(root, "notes.txt")
+    warned, entered = [], threading.Event()
+    monkeypatch.setattr(QMessageBox, "warning", lambda *args: warned.append(args[2]))
+
+    def run(worker):
+        entered.set()
+        worker._cancel.wait(10)
+        worker.journal_errors.append("the journal was refused")
+        worker.result = DeleteResult(refused=[(node.path, "changed")])
+        worker.done.emit(worker.result)
+
+    monkeypatch.setattr(PermanentDeleteWorker, "run", run)
+    worker = PermanentDeleteWorker(root, [node], [], {node: None}, window._journal, window)
+    window._delete_worker = worker
+    worker.start()
+    assert entered.wait(10)
+    window.close()
+    _wait(qapp, lambda: window._close_ready)
+    assert [row[0] for _summary, rows in reports for row in rows] == [node.path]
+    assert len(warned) == 1 and "the journal was refused" in warned[0] and node.path and (
+        sample_tree / "notes.txt").exists()
 
 
 # --- where it is offered ----------------------------------------------------------------------

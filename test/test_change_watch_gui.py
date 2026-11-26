@@ -445,3 +445,16 @@ def test_an_inotify_feed_reads_the_folders_it_watches_newly_once_armed(window, q
     controller.tick()  # armed: the old feed is retired
     # It watched nothing there before it was armed: that folder is read again, in case it changed meanwhile.
     assert controller._previous is None and controller._pending.folders == (str(source / "資料" / "新資料夾"),)
+
+
+def test_a_feed_replaced_without_a_held_position_is_read_on_from(window, qapp, tmp_path, monkeypatch):
+    _source(window, tmp_path)
+    controller = _enable(window, qapp, monkeypatch)
+    controller.worker.position = (9, 120)
+    scope = controller.worker.scope
+    assert controller._handoff is None
+    controller._arm(scope)
+    assert controller.worker.since == (9, 120)  # records the running feed has not polled yet are in there
+    controller._handoff = (9, 100)
+    controller._arm(scope)
+    assert controller.worker.since == (9, 100) and controller._handoff is None

@@ -13,7 +13,7 @@ import os
 import sys
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QObject, QThread, Qt, QTimer
@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from je_file_tree.gui.main_window import MainWindow
 
 ENABLED_KEY = "follow_changes"
+RETRY_SECONDS = 30.0  # before a refresh that was stopped or failed is made again
 COALESCE_SECONDS = 0.5  # changes this close together are read in one go; analysing after each also spaces them
 TICK_MS = 250
 
@@ -221,7 +222,8 @@ class FollowChanges(QObject):
         """Start a feed over ``scope``: beside the running one, which it then replaces, else after the old ones join."""
         if self._previous is not None:
             self._retire(self._previous)
-        feed = ChangeWorker(scope, self._handoff)
+        # Without an agreed place to read on from, take the running feed's: what it has not polled yet is not lost.
+        feed = ChangeWorker(scope, self._handoff or self._position())
         self._previous, self.worker = self.worker, feed
         self._handoff = None
         if self._previous is not None:
@@ -322,6 +324,13 @@ class FollowChanges(QObject):
             self._merge(ChangeBatch(full=True, reason="root_changed"))
         else:
             self._merge(ChangeBatch(trees=(path,)) if whole else ChangeBatch((path,)))
+
+    def retry(self, chosen: Sequence[tuple[Node, bool]]) -> None:
+        """Read folders whose refresh was stopped or failed again, but not at once: somebody may have stopped it."""
+        for node, whole in chosen:
+            if node.path is not None and self.root is not None and node.is_in(self.root):
+                self.request(node.path, whole=whole)
+        self._since = time.monotonic() + RETRY_SECONDS
 
     def shutdown(self, *, wait: bool = True) -> None:
         """Prevent late replies and join all native work before the tab is destroyed."""

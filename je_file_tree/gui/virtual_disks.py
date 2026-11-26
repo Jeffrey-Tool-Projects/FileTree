@@ -20,6 +20,7 @@ from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.list_transfer import install_copy
 from je_file_tree.gui.reasons import problem_text
 from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads
 from je_file_tree.gui.tables import SORT_ROLE, Column, _TableModel
 from je_file_tree.gui.virtual_disk_compaction import VirtualDiskCompactionDialog
@@ -151,7 +152,7 @@ class VirtualDisksDialog(WorkerDialog):
         self.view.setSortingEnabled(True)
         self.view.sortByColumn(4, Qt.SortOrder.DescendingOrder)
         for column, width in enumerate((200, 90, 150, 130, 140, 140, 150, 140, 310, 480)):
-            self.view.setColumnWidth(column, width)
+            self.view.setColumnWidth(column, text_scaled(width))
         install_copy(self.view)
         self.hint, self.status = QLabel(tr("vd_hint")), QLabel(tr("vd_reading"))
         for label in (self.hint, self.status):

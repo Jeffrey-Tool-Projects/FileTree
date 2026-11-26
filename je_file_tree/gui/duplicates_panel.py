@@ -37,6 +37,7 @@ from je_file_tree.gui.tree_model import NODE_ROLE
 
 MIN_SIZES = (1, 100 * 1024, DEFAULT_MIN_SIZE, 10 * 1024 * 1024, 100 * 1024 * 1024)
 LISTED_GROUPS = 1000
+_HEURISTICS = {"photos": 4, "media": 1}  # candidate searches and their usual tolerance: bits, seconds
 
 
 def oldest_first(files: list[Node]) -> list[Node]:
@@ -122,7 +123,7 @@ class DuplicatesPanel(QWidget):
         self._assemble()
         self.view.selectionModel().currentChanged.connect(lambda _current, _previous: self._keeper_button())
         self.retranslate()
-        self.kind.currentIndexChanged.connect(lambda: self.set_root(self._root))
+        self.kind.currentIndexChanged.connect(self._kind_changed)
         self.set_root(None)
 
     # --- public API -------------------------------------------------------
@@ -136,6 +137,23 @@ class DuplicatesPanel(QWidget):
     def running(self) -> bool:
         """Whether a search is running."""
         return self._worker is not None or self._estimator is not None
+
+    @property
+    def _heuristic(self) -> str:
+        """The kind of candidate search chosen (``photos`` or ``media``), or empty for exact duplicates."""
+        kind = self.kind.currentData()
+        return kind if kind in _HEURISTICS else ""
+
+    @property
+    def _words(self) -> str:
+        return self._heuristic or "photos"
+
+    def _kind_changed(self) -> None:
+        if self._heuristic:
+            self.distance.setValue(_HEURISTICS[self._heuristic])
+            self._distance_label.setText(tr(f"{self._words}_distance"))
+            self.distance.setToolTip(tr(f"{self._words}_hint"))
+        self.set_root(self._root)
 
     def set_root(self, root: Node | None) -> None:
         """Look for duplicates beneath ``root`` from now on (None: nothing to search, the panel is idle)."""
@@ -154,10 +172,11 @@ class DuplicatesPanel(QWidget):
         if self._root is None or self.running:
             return
         worker = DuplicatesWorker(self._root, int(self.min_size.currentData()), self,
-                                  photos=self.kind.currentData() == "photos", distance=self.distance.value())
+                                  heuristic=self._heuristic, distance=self.distance.value())
         worker.progressed.connect(lambda progress: worker is self._worker and self._show_progress(progress))
         worker.succeeded.connect(lambda result: worker is self._worker and self._show_result(result))
         worker.cancelled.connect(lambda: worker is self._worker and self._finish(stopped=True))
+        worker.failed.connect(lambda reason: worker is self._worker and self._search_failed(reason))
         worker.finished.connect(worker.deleteLater)
         worker.finished.connect(lambda: self._search_workers.discard(worker))
         self._worker = worker
@@ -177,7 +196,8 @@ class DuplicatesPanel(QWidget):
             for pending in self._search_workers.copy() | self._estimate_workers.copy():
                 wait_for(pending)
         self._worker = None
-        self._stopped = True
+        if worker is not None:  # the results of a finished search stay
+            self._stopped = True
         self._update()
 
     def prune(self) -> None:
@@ -267,10 +287,11 @@ class DuplicatesPanel(QWidget):
         self.kind.clear()
         self.kind.addItem(tr("photos_exact"), "exact")
         self.kind.addItem(tr("photos_similar"), "photos")
+        self.kind.addItem(tr("media_similar"), "media")
         self.kind.setCurrentIndex(max(0, self.kind.findData(current_kind)))
         self.kind.blockSignals(False)
-        self._distance_label.setText(tr("photos_distance"))
-        self.distance.setToolTip(tr("photos_hint"))
+        self._distance_label.setText(tr(f"{self._words}_distance"))
+        self.distance.setToolTip(tr(f"{self._words}_hint"))
         self.estimate.setToolTip(tr("duplicates_estimate_assumption"))
         current = self.min_size.currentData()
         self.min_size.blockSignals(True)
@@ -326,7 +347,7 @@ class DuplicatesPanel(QWidget):
 
     def _rebuild(self) -> None:
         """Fill the list from ``_groups`` (the most extra space first, up to ``LISTED_GROUPS``), oldest copy first."""
-        if self.kind.currentData() == "photos":
+        if self._heuristic:
             self._rebuild_photos()
             return
         self.view.setUniformRowHeights(True)
@@ -346,7 +367,7 @@ class DuplicatesPanel(QWidget):
                 for node in files:
                     if data := photos.thumbnails.get(node):
                         icons[node] = QIcon(QPixmap.fromImage(QImage.fromData(data)))
-        grouped_list.fill(self.model, self.view, groups, self.unit, tips=[tr("photos_hint")] * len(groups),
+        grouped_list.fill(self.model, self.view, groups, self.unit, tips=[tr(f"{self._words}_hint")] * len(groups),
                           icons=icons)
         self.view.setUniformRowHeights(False)
         self.view.setIconSize(QSize(64, 64))
@@ -361,7 +382,7 @@ class DuplicatesPanel(QWidget):
                 files = group.files[:remaining]
                 if not files:
                     break
-                title = tr("photos_group", count=format_count(len(group.files)), distance=photos.distance)
+                title = tr(f"{self._words}_group", count=format_count(len(group.files)), distance=photos.distance)
                 groups.append((title, files))
                 remaining -= len(files)
         return groups
@@ -403,15 +424,19 @@ class DuplicatesPanel(QWidget):
         self._stopped = stopped
         self._update()
 
+    def _search_failed(self, reason: str) -> None:
+        self._finish(stopped=False)
+        self.status.setText(tr("duplicates_failed", reason=reason))
+
     def _update(self) -> None:
         running = self._worker is not None
         self.min_size.setEnabled(self._root is not None and not self.running)
         self.kind.setEnabled(not self.running)
-        photos = self.kind.currentData() == "photos"
+        photos = bool(self._heuristic)
         self.distance.setEnabled(not self.running)
         self.distance.setVisible(photos)
         self._distance_label.setVisible(photos)
-        self.start_button.setText(tr("photos_find") if photos else tr("duplicates_find"))
+        self.start_button.setText(tr(f"{self._words}_find") if photos else tr("duplicates_find"))
         self.start_button.setEnabled(self._root is not None and not self.running)
         self.stop_button.setEnabled(self.running)
         self._busy.setVisible(self.running)
@@ -426,7 +451,7 @@ class DuplicatesPanel(QWidget):
         self.estimate.setText(self._estimate_text())
 
     def _keeper_button(self) -> None:
-        self.keep_selected.setEnabled(self.kind.currentData() != "photos" and not self.running
+        self.keep_selected.setEnabled(not self._heuristic and not self.running
                                       and self.view.currentIndex().data(NODE_ROLE) is not None)
 
     def _cancel_estimate(self) -> None:
@@ -455,8 +480,8 @@ class DuplicatesPanel(QWidget):
         self._update()
 
     def _refresh_group_labels(self) -> None:
-        if self.kind.currentData() == "photos":
-            labels = [(title, tr("photos_hint")) for title, _files in self._photo_groups()]
+        if self._heuristic:
+            labels = [(title, tr(f"{self._words}_hint")) for title, _files in self._photo_groups()]
         else:
             titles = [self._group_title(row, group) for row, group in enumerate(self._groups[:LISTED_GROUPS])]
             labels = [(title, title) for title in titles]
@@ -488,7 +513,7 @@ class DuplicatesPanel(QWidget):
         return title
 
     def _status_text(self) -> str:
-        return self._photo_status() if self.kind.currentData() == "photos" else self._exact_status()
+        return self._photo_status() if self._heuristic else self._exact_status()
 
     def _exact_status(self) -> str:
         if self._worker is not None:
@@ -515,14 +540,15 @@ class DuplicatesPanel(QWidget):
     def _photo_status(self) -> str:
         if self._worker is not None:
             read, skipped = self._progress if isinstance(self._progress, tuple) else (0, 0)
-            return tr("photos_running", read=format_count(read), skipped=format_count(skipped))
+            return tr(f"{self._words}_running", read=format_count(read), skipped=format_count(skipped))
         if self._stopped:
             return tr("duplicates_stopped")
         if self._photos is None:
-            return tr("photos_hint")
+            return tr(f"{self._words}_hint")
         result = self._photos
-        text = tr("photos_summary", groups=format_count(len(result.groups)), read=format_count(result.files_read),
-                  skipped=format_count(result.skipped)) + " " + tr("photos_hint")
+        text = tr(f"{self._words}_summary", groups=format_count(len(result.groups)),
+                  read=format_count(result.files_read), skipped=format_count(result.skipped))
+        text += " " + tr(f"{self._words}_hint")
         if result.limited or sum(len(group.files) for group in result.groups) > LISTED_GROUPS:
             text += " " + tr("photos_limited", count=format_count(LISTED_GROUPS))
         return text

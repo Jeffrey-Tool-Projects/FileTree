@@ -7,18 +7,21 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Qt, Signal
 from PySide6.QtWidgets import (
-    QCheckBox, QDialogButtonBox, QFileDialog, QHBoxLayout, QLabel, QMessageBox, QPlainTextEdit,
+    QCheckBox, QDialog, QDialogButtonBox, QFileDialog, QHBoxLayout, QLabel, QMessageBox, QPlainTextEdit,
     QPushButton, QSpinBox, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from je_file_tree.core.cleanup import DETAILS, find_cleanup
 from je_file_tree.core.cleanup_policy import CleanupPolicy, RuleSetting, load_policy
 from je_file_tree.core.coverage import coverage_of
+from je_file_tree.core.custom_rules import CustomRule
 from je_file_tree.core.formatting import format_count, format_size
 from je_file_tree.core.node import Node
 from je_file_tree.gui.cleanup_text import explanation
+from je_file_tree.gui.custom_rules_dialog import CustomRulesDialog
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_worker import wait_for
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog
 from je_file_tree.gui.window_fit import fit_window
 
@@ -66,9 +69,9 @@ class CleanupPolicyDialog(WorkerDialog):
         self._previewed: CleanupPolicy | None = None
         self.table = QTableWidget(len(DETAILS), 3)
         self.table.setHorizontalHeaderLabels([tr("policy_enabled"), tr("review_rule"), tr("policy_age")])
-        self.table.setColumnWidth(0, 80)
-        self.table.setColumnWidth(1, 470)
-        self.table.setColumnWidth(2, 150)
+        self.table.setColumnWidth(0, text_scaled(80))
+        self.table.setColumnWidth(1, text_scaled(470))
+        self.table.setColumnWidth(2, text_scaled(150))
         self._controls: dict[str, tuple[QCheckBox, QSpinBox]] = {}
         self.exclusions = QPlainTextEdit()
         self.exclusions.setMaximumHeight(100)
@@ -81,7 +84,11 @@ class CleanupPolicyDialog(WorkerDialog):
         self.preview_button.clicked.connect(self.preview)
         self.import_button = QPushButton(tr("policy_import"))
         self.import_button.clicked.connect(self._import)
+        self._custom: tuple[CustomRule, ...] = ()
+        self.custom_button = QPushButton()
+        self.custom_button.clicked.connect(self._edit_custom)
         bar = QHBoxLayout()
+        bar.addWidget(self.custom_button)
         bar.addWidget(self.import_button)
         bar.addWidget(self.preview_button)
         bar.addStretch(1)
@@ -122,13 +129,27 @@ class CleanupPolicyDialog(WorkerDialog):
             check.setChecked(setting.enabled)
             age.setValue(setting.minimum_age)
         self.exclusions.setPlainText("\n".join(policy.exclusions))
+        self._show_custom(policy.custom)
 
     def policy(self) -> CleanupPolicy:
         """Validate every current control, including absolute path/name exclusions."""
         settings = tuple(RuleSetting(key, check.isChecked(), age.value())
                          for key, (check, age) in self._controls.items())
         paths = tuple(line.strip() for line in self.exclusions.toPlainText().splitlines() if line.strip())
-        return CleanupPolicy(settings, paths)
+        return CleanupPolicy(settings, paths, self._custom)
+
+    def _show_custom(self, rules: tuple[CustomRule, ...]) -> None:
+        self._custom = rules
+        self.custom_button.setText(tr("custom_rules_button", count=format_count(len(rules))))
+
+    def _edit_custom(self) -> None:
+        dialog = CustomRulesDialog(self._custom, self)
+        try:
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                self._show_custom(dialog.rules())
+                self._changed()
+        finally:
+            dialog.deleteLater()
 
     def _changed(self) -> None:
         if self._current is not None:

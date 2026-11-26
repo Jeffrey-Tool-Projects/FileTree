@@ -25,6 +25,7 @@ from je_file_tree.core.coverage import coverage_of
 from je_file_tree.core.folder_budgets import BudgetBatch, BudgetTicket, observe_budgets
 from je_file_tree.core.compare import SavedScan, SavedScanError, compare, load_saved
 from je_file_tree.core.duplicates import DuplicateProgress, DuplicateSearchCancelledError, find_duplicates
+from je_file_tree.core.similar_media import find_similar_media
 from je_file_tree.core.similar_photos import PhotoSearchCancelledError
 from je_file_tree.core.hard_links import plan_hard_links
 from je_file_tree.core.node import Node
@@ -243,27 +244,34 @@ class CompareWorker(QThread):
             except SavedScanError as error:
                 self.failed.emit(str(error))
                 return
-        self.done.emit(saved, compare(self._root, saved))
+        try:
+            changes = compare(self._root, saved)
+        except Exception as error:  # noqa: BLE001 - terminal GUI boundary; the panel must not stay busy
+            _LOG.exception("Unexpected comparison failure")
+            self.failed.emit(str(error) or type(error).__name__)
+            return
+        self.done.emit(saved, changes)
 
 
 class DuplicatesWorker(QThread):
-    """Looks for duplicate files off the GUI thread: ``progressed``, then ``succeeded`` or ``cancelled``."""
+    """Looks for duplicate files off the GUI thread: ``progressed``, then ``succeeded``, ``cancelled`` or ``failed``."""
 
     progressed = Signal(object)
     succeeded = Signal(object)
     cancelled = Signal()
+    failed = Signal(str)
 
     PROGRESS_INTERVAL = 0.1  # seconds between two progress signals
 
     def __init__(self, root: Node, min_size: int, parent: QObject | None = None,
-                 *, photos: bool = False, distance: int = 4) -> None:
+                 *, heuristic: str = "", distance: int = 4) -> None:
         super().__init__(parent)
         self._root = root
         self._min_size = min_size
         self._cancel = threading.Event()
         self._lock = threading.Lock()
         self._last_report = 0.0
-        self._photos, self._distance = photos, distance
+        self._heuristic, self._distance = heuristic, distance
 
     def stop(self) -> None:
         """Ask the search to give up; ``cancelled`` follows."""
@@ -272,13 +280,21 @@ class DuplicatesWorker(QThread):
     def run(self) -> None:
         """Thread body."""
         try:
-            if self._photos:
+            if self._heuristic == "photos":
                 result = self._find_photos()
+            elif self._heuristic == "media":
+                result = find_similar_media(self._root, min_size=self._min_size, seconds=self._distance,
+                                            cancel=self._cancel,
+                                            progress=lambda read, skipped: self._report((read, skipped)))
             else:
                 result = find_duplicates(self._root, min_size=self._min_size,
                                          progress=self._report, cancel=self._cancel)
         except (DuplicateSearchCancelledError, PhotoSearchCancelledError):
             self.cancelled.emit()
+            return
+        except Exception as error:  # noqa: BLE001 - terminal GUI boundary; the panel must not stay busy
+            _LOG.exception("Unexpected duplicate search failure")
+            self.failed.emit(str(error) or type(error).__name__)
             return
         self.succeeded.emit(result)
 

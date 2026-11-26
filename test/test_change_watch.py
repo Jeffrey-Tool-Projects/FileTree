@@ -15,12 +15,12 @@ from je_file_tree.core.scanner import scan
 
 
 def _notify(name="資料\\file.bin", action=3, next_offset=0):
-    encoded = name.encode("utf-16-le")
+    encoded = name.encode("utf-16-le", "surrogatepass")
     return struct.pack("<III", next_offset, action, len(encoded)) + encoded
 
 
 def _usn(*, inode=55, parent=22, reason=1, major=2, usn=100, name="資料.bin", directory=False):
-    encoded = name.encode("utf-16-le")
+    encoded = name.encode("utf-16-le", "surrogatepass")
     size = -(-(60 + len(encoded)) // 8) * 8
     row = windows_watch._USN.pack(size, major, 0, inode, parent, usn, 0, reason, 0, 0,
                                   0x10 if directory else 0, len(encoded), 60)
@@ -394,3 +394,10 @@ def test_fsevents_name_changed_folders_inside_the_scan_and_every_loss_reads_all_
     assert mac_watch.parse_fsevents(["/Users/owner/來源"], [0x20], root, forms).full  # the scan root moved
     assert mac_watch.parse_fsevents(["/Users/owner/來源/disk"], [0x40], root, forms).full  # mounted inside
     assert not mac_watch.parse_fsevents(["/Volumes/other"], [0x40], root, forms).full  # mounted elsewhere
+
+
+def test_names_that_are_no_valid_utf16_do_not_end_the_feed():
+    root, lone = "C:\\owned", "lone\ud800x"
+    assert windows_watch.parse_notifications(_notify(lone + "\\file"), root, {root}).folders == (root + "\\" + lone,)
+    _, batch = windows_watch.parse_usn(_usn(name=lone), {22: root}, root, 100)
+    assert batch.folders == (root,) and not batch.full

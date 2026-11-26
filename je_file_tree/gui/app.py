@@ -9,13 +9,16 @@ from PySide6.QtCore import QLocale, QSettings, Qt
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from je_file_tree import __version__
+from je_file_tree.gui.chart_palette import palette_controller, saved_palette
 from je_file_tree.gui.i18n import LANGUAGES, match_language, set_language, tr
 from je_file_tree.gui.icon import app_icon, claim_taskbar_button
 from je_file_tree.gui import elevation
-from je_file_tree.gui.main_window import ASK_ADMIN_KEY, MainWindow, read_flag
+from je_file_tree.gui.main_window import MainWindow
+from je_file_tree.gui.window_settings import ASK_ADMIN_KEY, read_flag
 from je_file_tree.gui.qt_translation import apply_qt_translation
 from je_file_tree.gui.scan_worker import pace_workers
-from je_file_tree.gui.themes import theme_controller
+from je_file_tree.gui.text_size import saved_text_size, text_size_controller
+from je_file_tree.gui.themes import ACCENT_KEY, theme_controller, valid_accent
 from je_file_tree.gui.workspace import ScanWorkspace
 from je_file_tree.gui.startup_state import workspace_state
 from je_file_tree.gui.locale_font import apply_language_font
@@ -29,7 +32,10 @@ def _configure_interface(settings: QSettings) -> None:
     if language not in LANGUAGES:
         language = match_language(QLocale.system().name())
     set_language(language)
+    theme_controller().chosen_accent = valid_accent(settings.value(ACCENT_KEY, ''))
     theme_controller().apply(str(settings.value('theme', 'system')))
+    palette_controller().apply(saved_palette(settings))
+    text_size_controller().apply(saved_text_size(settings))
     apply_language_font(language)
     apply_qt_translation(language)
 

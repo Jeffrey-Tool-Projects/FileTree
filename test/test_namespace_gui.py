@@ -11,6 +11,7 @@ from test_gui import window as window  # noqa: PLC0414
 from je_file_tree.core import namespace_moves
 from je_file_tree.core.namespace_moves import NamespaceResult
 from je_file_tree.core.scanner import scan
+from je_file_tree.core import verified_copy
 from je_file_tree.gui import main_window, namespace_worker
 from je_file_tree.gui.namespace_dialog import NamespaceDialog
 from je_file_tree.gui.scan_worker import analyse
@@ -265,3 +266,16 @@ def test_close_reports_failures_received_while_joining(window, qapp, tmp_path, m
     assert questions[1][2] == Qt.TextFormat.PlainText
     dialog.shutdown()
     assert len(questions) == 2
+
+
+def test_every_reason_the_copy_gives_has_its_words():
+    import re
+    from pathlib import Path
+
+    from je_file_tree.gui.strings import en
+
+    source = Path(verified_copy.__file__).read_text(encoding="utf-8")
+    words = next(table for table in vars(en).values() if isinstance(table, dict) and "namespace_reason_ready" in table)
+    reasons = set(re.findall(r'return "([a-z_]+)"', source))
+    assert {"folder_required", "copy_unsupported", "directory_streams"} <= reasons
+    assert not [reason for reason in reasons if f"namespace_reason_{reason}" not in words]

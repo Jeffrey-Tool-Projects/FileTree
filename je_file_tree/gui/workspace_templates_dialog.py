@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from je_file_tree.gui.i18n import tr
 from je_file_tree.gui.scan_preferences import SCAN_FLAGS
 from je_file_tree.gui.startup_state import WorkspaceState
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.worker_lifecycle import WorkerDialog, after_threads, queue_worker
 from je_file_tree.gui.workspace_templates import ReplacementImpact, WorkspaceTemplate, read_templates, write_templates
 from je_file_tree.gui.window_fit import fit_window
@@ -78,7 +79,7 @@ class WorkspaceTemplatesDialog(WorkerDialog):
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
-        self.table.setColumnWidth(3, 160)
+        self.table.setColumnWidth(3, text_scaled(160))
         self.table.setMinimumHeight(100)
         self.details = QPlainTextEdit()
         self.details.setReadOnly(True)

@@ -22,6 +22,7 @@ from je_file_tree.core.formatting import format_size, format_time
 from je_file_tree.core.node import Node
 from je_file_tree.gui.delegates import PathTailDelegate
 from je_file_tree.gui.i18n import tr
+from je_file_tree.gui.text_scale import text_scaled
 from je_file_tree.gui.tree_model import NODE_ROLE
 
 COLUMNS = ("column_name", "column_size", "column_folder", "column_modified")
@@ -353,7 +354,7 @@ def fill(model: GroupedListModel, view: QTreeView, groups: Sequence[tuple[str, S
     for row in range(model.rowCount()):
         view.setFirstColumnSpanned(row, QModelIndex(), True)  # a group's line runs across the columns
     for column, width in _COLUMN_WIDTHS.items():
-        view.setColumnWidth(column, width)
+        view.setColumnWidth(column, text_scaled(width))
     view.header().setSectionResizeMode(_FOLDER_COLUMN, QHeaderView.ResizeMode.Stretch)
     waiting = view.findChild(_ExpandWhenShown)
     if waiting is not None:

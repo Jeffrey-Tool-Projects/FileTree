@@ -101,8 +101,11 @@ def observe_budgets(root: Node, coverage: Coverage, ticket: BudgetTicket,
         return BudgetBatch(())
     sources = root.children if root.path is None else (root,)
     source_paths = tuple(_observed_path(source.path) for source in sources if source.path is not None)
-    relevant = {budget_path(rule.path): rule for rule in ticket.rules
-                if any(_inside(budget_path(rule.path), source) for source in source_paths)}
+    relevant: dict[str, list[BudgetRule]] = {}
+    for rule in ticket.rules:
+        path = budget_path(rule.path)
+        if any(_inside(path, source) for source in source_paths):
+            relevant.setdefault(path, []).append(rule)
     found: dict[str, Node] = {}
     stack = list(sources)
     while stack and len(found) < len(relevant):
@@ -119,10 +122,10 @@ def observe_budgets(root: Node, coverage: Coverage, ticket: BudgetTicket,
     if cancel is not None and cancel.is_set():
         return None
     observations = []
-    for path, rule in relevant.items():
+    for path, rules in relevant.items():
         size, reason = _measurement(found.get(path), coverage)
-        observations.append(BudgetObservation(rule.identity, rule.version, ticket.sequence,
-                                              measured_at, size, reason))
+        observations.extend(BudgetObservation(rule.identity, rule.version, ticket.sequence, measured_at, size, reason)
+                            for rule in rules)
     return BudgetBatch(tuple(observations))
 
 

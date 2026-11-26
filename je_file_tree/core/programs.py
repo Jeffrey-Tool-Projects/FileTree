@@ -310,7 +310,10 @@ def installed_programs(root: Node, *, partial: bool = False,
     rows = list({(row.source, row.name, row.version, os.path.normcase(row.location), row.reported): row
                  for row in rows}.values())
     wanted = {os.path.normcase(row.location) for row in rows if row.location}
-    folders, stack = {}, [root]
+    folders = {}
+    # A combined scan's root has no path of its own; its sources do.
+    stack = [root] if root.path is not None else [child for child in root.children
+                                                  if child.is_dir and not child.is_link]
     while stack:
         if _stopped(cancel):
             return None

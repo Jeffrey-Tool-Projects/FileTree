@@ -8,7 +8,7 @@ from PySide6.QtCore import QTimer, Qt, Signal
 from PySide6.QtGui import QHideEvent, QShowEvent
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QPushButton, QSizePolicy, QVBoxLayout, QWidget
 
-from je_file_tree.core.formatting import format_count, format_size
+from je_file_tree.core.formatting import AUTO_UNIT, format_count, format_size
 from je_file_tree.core.scanner import ScanProgress
 from je_file_tree.gui.i18n import format_duration, tr
 from je_file_tree.gui.elided_label import ElidedLabel
@@ -25,6 +25,7 @@ class ScanBar(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._started = time.monotonic()
+        self.unit = AUTO_UNIT
         self._last: ScanProgress | None = None
         self._stopping = False
         self._analysing = False
@@ -134,7 +135,7 @@ class ScanBar(QFrame):
             return
         elapsed = format_duration(time.monotonic() - self._started)
         self._counts.setText(tr("scan_progress", files=format_count(progress.files),
-                                folders=format_count(progress.folders), size=format_size(progress.size),
+                                folders=format_count(progress.folders), size=format_size(progress.size, self.unit),
                                 time=elapsed))
         if self._pause.isChecked():
             self._counts.setText(tr("scan_paused", progress=self._counts.text()))

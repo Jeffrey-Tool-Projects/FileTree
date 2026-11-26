@@ -76,6 +76,15 @@ def test_what_is_not_a_saved_scan_is_refused_with_the_reason(tmp_path: Path, con
         load_saved(target)
 
 
+def test_folders_nested_past_the_parser_are_refused_not_raised(tmp_path: Path) -> None:
+    depth = 100_000
+    target = tmp_path / "deep.json"
+    target.write_text('{"format": "file-tree/1", "root": ' + '{"name": "a", "size": 1, "children": [' * depth
+                      + ']}' * depth + '}', encoding="utf-8")
+    with pytest.raises(SavedScanError, match="nested too deeply"):
+        load_saved(target)
+
+
 def test_a_missing_file_is_refused(tmp_path: Path) -> None:
     with pytest.raises(SavedScanError):
         load_saved(tmp_path / "missing.json")

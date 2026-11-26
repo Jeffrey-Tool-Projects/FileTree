@@ -16,7 +16,8 @@ from je_file_tree.core import scanner
 from je_file_tree.gui import app, elevation, i18n
 from je_file_tree.gui.app import create_window, wants_admin_prompt
 from je_file_tree.gui.startup_state import WorkspaceState, workspace_state
-from je_file_tree.gui.main_window import ASK_ADMIN_KEY, MainWindow
+from je_file_tree.gui.main_window import MainWindow
+from je_file_tree.gui.window_settings import ASK_ADMIN_KEY
 from je_file_tree.gui.qt_translation import apply_qt_translation
 
 
