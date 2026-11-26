@@ -99,6 +99,13 @@ def test_cleanup_lists_candidates_and_changes_nothing(source, capsys, tmp_path):
     policy.write_text("{}", encoding="utf-8")
     assert _run(capsys, "cleanup", source, "--policy", policy)[0] == cli.INVALID_ARGUMENTS
     assert _run(capsys, "cleanup", source, "--policy", tmp_path / "missing.json")[0] == cli.IO_ERROR
+    other = tmp_path / "policy.txt"
+    other.write_text(CleanupPolicy().dumps(), encoding="utf-8")
+    assert _run(capsys, "cleanup", source, "--policy", other)[0] == cli.INVALID_ARGUMENTS  # not a policy file
+    (tmp_path / "folder.json").mkdir()
+    assert _run(capsys, "cleanup", source, "--policy", tmp_path / "folder.json")[0] == cli.INVALID_ARGUMENTS
+    policy.write_text(" " * 300_000, encoding="utf-8")
+    assert _run(capsys, "cleanup", source, "--policy", policy)[0] == cli.INVALID_ARGUMENTS
 
 
 def test_budgets_tell_over_within_and_unknown_apart(source, capsys, tmp_path):

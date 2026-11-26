@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import stat
 import threading
 import time
 from collections.abc import Callable
@@ -139,8 +140,19 @@ def read_policy(path: str | None) -> CleanupPolicy:
     """The policy to list with; the built-in one without a file."""
     if path is None:
         return CleanupPolicy()
-    with Path(path).open(encoding="utf-8") as stream:
-        return load_policy(stream.read(_POLICY_LIMIT + 1))
+    return load_policy(_policy_text(Path(path)))
+
+
+def _policy_text(path: Path) -> str:
+    """Only an ordinary ``.json`` file of bounded size is read; nothing of it is echoed back."""
+    if path.suffix.casefold() != ".json":
+        raise ValueError("a clean-up policy is a .json file")
+    resolved = path.resolve(strict=True)  # FileNotFoundError: an I/O error, as before
+    info = resolved.stat()
+    if not stat.S_ISREG(info.st_mode) or info.st_size > _POLICY_LIMIT:
+        raise ValueError("a clean-up policy is an ordinary .json file of at most 256 KB")
+    with resolved.open(encoding="utf-8") as stream:
+        return stream.read(_POLICY_LIMIT + 1)
 
 
 def report_cleanup(args: argparse.Namespace, root: Node, coverage: Coverage,

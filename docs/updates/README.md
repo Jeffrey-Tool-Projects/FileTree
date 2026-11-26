@@ -71,6 +71,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-30 | 2026-11-26 | 命令列只讀取一般的 .json 清理規則檔 | #done #fix #security | [2026-11-b](2026-11-b.md) |
 | U-20261126-29 | 2026-11-26 | 完成全專案審查 | #done #review #fix | [2026-11-b](2026-11-b.md) |
 | U-20261126-28 | 2026-11-26 | 全專案審查第七輪：日文與韓文 | #done #fix #review #i18n #docs | [2026-11-b](2026-11-b.md) |
 | U-20261126-27 | 2026-11-26 | 全專案審查第六輪：結果畫面 | #done #fix #review #gui #i18n | [2026-11-b](2026-11-b.md) |
